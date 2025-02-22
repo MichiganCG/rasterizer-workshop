@@ -2,11 +2,13 @@
 
 #include <cmath>
 #include <vector>
+#include <ostream>
 
 class Matrix4
 {
 private:
     std::vector<float> data;
+    Matrix4(std::vector<float>);
 
     class Proxy
     {
@@ -16,7 +18,11 @@ private:
         Proxy(Matrix4 &m, size_t row) : row(row), m(m) {}
 
     public:
-        float &operator[](size_t col) { return m.at(row, col); }
+        float &operator[](size_t col) {
+            if (col >= SIZE)
+                throw std::runtime_error("Access outside of matrix columns.");
+            return m.at(row, col);
+        }
     };
 
     class ConstProxy
@@ -27,17 +33,36 @@ private:
         ConstProxy(const Matrix4 &m, size_t row) : row(row), m(m) {}
 
     public:
-        float operator[](size_t col) const { return m.at(row, col); }
+        float operator[](size_t col) const {
+            if (col >= SIZE)
+                throw std::runtime_error("Access outside of matrix columns.");
+            return m.at(row, col);
+        }
     };
 
 public:
-    Matrix4() : data(std::vector<float>(16, 0.0f)) {}
+    static const size_t SIZE = 4, D_SIZE = 16;
+    static const Matrix4 IDENTITY;
 
-    float &at(size_t row, size_t col) { return data[row * 4 + col]; }
-    float at(size_t row, size_t col) const { return data[row * 4 + col]; }
+    Matrix4();
+    Matrix4(const Matrix4 &);
+    Matrix4 &operator=(const Matrix4 &);
 
-    Proxy operator[](size_t row) { return {*this, row}; }
-    ConstProxy operator[](size_t row) const { return {*this, row}; }
+    float &at(size_t row, size_t col) { return data[row * SIZE + col]; }
+    float at(size_t row, size_t col) const { return data[row * SIZE + col]; }
 
-    
+    Proxy operator[](size_t row) {
+        if (row >= SIZE)
+            throw std::runtime_error("Access outside of matrix rows.");
+        return {*this, row};
+    }
+    ConstProxy operator[](size_t row) const {
+        if (row >= SIZE)
+            throw std::runtime_error("Access outside of matrix rows.");
+        return {*this, row};
+    }
+
+    friend std::ostream &operator<<(std::ostream &, const Matrix4 &);
 };
+
+Matrix4 operator*(const Matrix4 &, const Matrix4 &);
