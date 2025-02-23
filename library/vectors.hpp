@@ -83,6 +83,9 @@ inline float lerp(const float a, const float b, const float t);
  */
 Vec3 normalize(const Vec3 &);
 
+/**
+ * Computes the cross product of two vectors.
+ */
 Vec3 cross(const Vec3 &, const Vec3 &);
 
 Vec3 lerp(const Vec3 &, const Vec3 &, const float);

@@ -2,24 +2,18 @@ OUT    := raster
 CXX    := g++
 FLAGS  := -std=c++20 -Wall
 COMMAND = $(CXX) $(FLAGS) $^ -o
-HEAD   := library.o matrix.o vectors.o
+objects:= library.o matrix.o vectors.o quaternion.o
 
 $(OUT): FLAGS += -g3 -DDEBUG
-$(OUT): main.cpp $(HEAD)
+$(OUT): main.cpp $(objects)
 	$(COMMAND) $(OUT)
 
 $(OUT)_release: FLAGS += -O3 -DNDEBUG
-$(OUT)_release: main.cpp $(HEAD)
+$(OUT)_release: main.cpp $(objects)
 	$(COMMAND) $(OUT)_release
 
-library.o: library/library.cpp
-	$(CXX) $(FLAGS) -c $^ -o $@
-
-matrix.o: library/matrix.cpp
-	$(CXX) $(FLAGS) -c $^ -o $@
-
-vectors.o: library/vectors.cpp
-	$(CXX) $(FLAGS) -c $^ -o $@
+$(objects): %.o: $(addprefix library/, %.cpp)
+	$(CC) $(FLAGS) -c $^ -o $@
 
 clean:
 	rm -rf *.o $(OUT)*
