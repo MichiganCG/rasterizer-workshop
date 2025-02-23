@@ -1,8 +1,8 @@
-OUT    := rasterizer
+OUT    := raster
 CXX    := g++
 FLAGS  := -std=c++20 -Wall
 COMMAND = $(CXX) $(FLAGS) $^ -o
-HEAD   := library.o matrix.o
+HEAD   := library.o matrix.o vectors.o
 
 $(OUT): FLAGS += -g3 -DDEBUG
 $(OUT): main.cpp $(HEAD)
@@ -16,6 +16,9 @@ library.o: library/library.cpp
 	$(CXX) $(FLAGS) -c $^ -o $@
 
 matrix.o: library/matrix.cpp
+	$(CXX) $(FLAGS) -c $^ -o $@
+
+vectors.o: library/vectors.cpp
 	$(CXX) $(FLAGS) -c $^ -o $@
 
 clean:

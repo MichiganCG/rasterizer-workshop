@@ -1,5 +1,6 @@
 #include "library/library.hpp"
 #include "library/matrix.hpp"
+#include "library/vectors.hpp"
 
 #include <iostream>
 
