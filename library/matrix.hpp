@@ -1,5 +1,8 @@
 #pragma once
 
+#include "vectors.hpp"
+#include "quaternion.hpp"
+
 #include <cmath>
 #include <vector>
 #include <ostream>
@@ -8,7 +11,7 @@ class Matrix4
 {
 private:
     std::vector<float> data;
-    Matrix4(std::vector<float>);
+    Matrix4(std::vector<float> data) : data(data) {}
 
     class Proxy
     {
@@ -46,7 +49,7 @@ public:
     static const size_t SIZE = 4, D_SIZE = 16;
     static const Matrix4 IDENTITY;
 
-    Matrix4();
+    Matrix4() : data(std::vector<float>(D_SIZE, 0.0f)) {}
     Matrix4(const Matrix4 &);
     Matrix4 &operator=(const Matrix4 &);
 
@@ -67,11 +70,26 @@ public:
         return {*this, row};
     }
 
+    Matrix4 &operator+=(const Matrix4 &);
+    Matrix4 &operator-=(const Matrix4 &);
     Matrix4 &operator*=(const Matrix4 &);
-    Matrix4 &operator*=(const float);
-
-    friend Matrix4 operator*(Matrix4 lhs, const Matrix4 &rhs) { return (lhs *= rhs); }
-    friend Matrix4 operator*(Matrix4 lhs, const float rhs) { return (lhs *= rhs); }
+    Matrix4 &operator*=(float);
 
     friend std::ostream &operator<<(std::ostream &, const Matrix4 &);
 };
+
+inline Matrix4 operator+(Matrix4 lhs, const Matrix4 &rhs) { return (lhs += rhs); }
+inline Matrix4 operator-(Matrix4 lhs, const Matrix4 &rhs) { return (lhs -= rhs); }
+inline Matrix4 operator*(Matrix4 lhs, const Matrix4 &rhs) { return (lhs *= rhs); }
+inline Matrix4 operator*(Matrix4 lhs, float rhs) { return (lhs *= rhs); }
+
+Vec3 operator*(const Matrix4 &, const Vec3 &);
+inline Vec3 operator*(const Vec3 &lhs, const Matrix4 &rhs) { return rhs * lhs; }
+
+Matrix4 translation(const Vec3 &);
+Matrix4 rotation(const Quaternion &);
+Matrix4 rotation_translation(const Quaternion &, const Vec3 &);
+Matrix4 quick_inverse(const Matrix4 &);
+
+Matrix4 projection(float, float, float, float);
+Matrix4 look_at();
