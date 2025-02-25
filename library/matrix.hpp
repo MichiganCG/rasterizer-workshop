@@ -4,14 +4,12 @@
 #include "quaternion.hpp"
 
 #include <cmath>
-#include <vector>
 #include <ostream>
 
 class Matrix4
 {
 private:
-    std::vector<float> data;
-    Matrix4(std::vector<float> data) : data(data) {}
+    float data[16];
 
     class Proxy
     {
@@ -47,14 +45,17 @@ private:
 
 public:
     static const size_t SIZE = 4, D_SIZE = 16;
-    static const Matrix4 IDENTITY;
 
-    Matrix4() : data(std::vector<float>(D_SIZE, 0.0f)) {}
+    /**
+     * Create an identity matrix with default ctor.
+     */
+    Matrix4() : data({0}) {}
     Matrix4(const Matrix4 &);
+
     Matrix4 &operator=(const Matrix4 &);
 
-    float &at(size_t row, size_t col) { return data[row * SIZE + col]; }
-    float at(size_t row, size_t col) const { return data[row * SIZE + col]; }
+    float &at(size_t row, size_t col) { return data[row + col * SIZE]; }
+    float at(size_t row, size_t col) const { return data[row + col * SIZE]; }
 
     Proxy operator[](size_t row)
     {
@@ -68,6 +69,16 @@ public:
         if (row >= SIZE)
             throw std::runtime_error("Access outside of matrix rows.");
         return {*this, row};
+    }
+
+    Matrix4 &identity()
+    {
+        Matrix4 matrix;
+        matrix.at(0, 0) = 1;
+        matrix.at(1, 1) = 1;
+        matrix.at(2, 2) = 1;
+        matrix.at(3, 3) = 1;
+        return (*this = matrix);
     }
 
     Matrix4 &operator+=(const Matrix4 &);
@@ -84,12 +95,12 @@ inline Matrix4 operator*(Matrix4 lhs, const Matrix4 &rhs) { return (lhs *= rhs);
 inline Matrix4 operator*(Matrix4 lhs, float rhs) { return (lhs *= rhs); }
 
 Vec3 operator*(const Matrix4 &, const Vec3 &);
-inline Vec3 operator*(const Vec3 &lhs, const Matrix4 &rhs) { return rhs * lhs; }
 
-Matrix4 translation(const Vec3 &);
-Matrix4 rotation(const Quaternion &);
-Matrix4 rotation_translation(const Quaternion &, const Vec3 &);
+Matrix4 &translate(Matrix4 &, const Vec3 &);
+Matrix4 translate(const Vec3 &);
+Matrix4 &rotate(Matrix4 &, const Quaternion &);
+Matrix4 rotate(const Quaternion &);
 Matrix4 quick_inverse(const Matrix4 &);
 
 Matrix4 projection(float, float, float, float);
-Matrix4 look_at();
+Matrix4 look_at(const Vec3 &, const Vec3 &, const Vec3 &);
