@@ -45,7 +45,7 @@ Vec3 Quaternion::up()
 /**
  * Applies the quaternion to the vector (1, 0, 0).
  */
-Vec3 Quaternion::right()
+Vec3 Quaternion::left()
 {
     return {
         1 - (2 * (j * j + k * k)),

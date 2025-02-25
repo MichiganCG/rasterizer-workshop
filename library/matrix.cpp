@@ -1,7 +1,5 @@
 #include "matrix.hpp"
 
-const Matrix4 Matrix4::IDENTITY = Matrix4({1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1});
-
 Matrix4::Matrix4(const Matrix4 &other) : Matrix4()
 {
     for (size_t i = 0; i < D_SIZE; ++i)
@@ -54,10 +52,10 @@ Matrix4 &Matrix4::operator*=(const Matrix4 &rhs)
 Vec3 operator*(const Matrix4 &lhs, const Vec3 &rhs)
 {
     Vec3 vector;
-    vector.x = rhs.x * lhs.at(0, 0) + rhs.y * lhs.at(1, 0) + rhs.z * lhs.at(2, 0) + rhs.w * lhs.at(3, 0);
-    vector.y = rhs.x * lhs.at(0, 1) + rhs.y * lhs.at(1, 1) + rhs.z * lhs.at(2, 1) + rhs.w * lhs.at(3, 1);
-    vector.z = rhs.x * lhs.at(0, 2) + rhs.y * lhs.at(1, 2) + rhs.z * lhs.at(2, 2) + rhs.w * lhs.at(3, 2);
-    vector.w = rhs.x * lhs.at(0, 3) + rhs.y * lhs.at(1, 3) + rhs.z * lhs.at(2, 3) + rhs.w * lhs.at(3, 3);
+    vector.x = rhs.x * lhs.at(0, 0) + rhs.y * lhs.at(0, 1) + rhs.z * lhs.at(0, 2) + rhs.w * lhs.at(0, 3);
+    vector.y = rhs.x * lhs.at(1, 0) + rhs.y * lhs.at(1, 1) + rhs.z * lhs.at(1, 2) + rhs.w * lhs.at(1, 3);
+    vector.z = rhs.x * lhs.at(2, 0) + rhs.y * lhs.at(2, 1) + rhs.z * lhs.at(2, 2) + rhs.w * lhs.at(2, 3);
+    vector.w = rhs.x * lhs.at(3, 0) + rhs.y * lhs.at(3, 1) + rhs.z * lhs.at(3, 2) + rhs.w * lhs.at(3, 3);
     return vector;
 }
 
@@ -83,12 +81,19 @@ std::ostream &operator<<(std::ostream &os, const Matrix4 &rhs)
     return os;
 }
 
-Matrix4 translation(const Vec3 &v)
+Matrix4 &translate(Matrix4 &matrix, const Vec3 &vector)
 {
-    Matrix4 matrix(Matrix4::IDENTITY);
-    matrix.at(0, 3) = v.x;
-    matrix.at(1, 3) = v.y;
-    matrix.at(2, 3) = v.z;
+    matrix.at(0, 3) = vector.x;
+    matrix.at(1, 3) = vector.y;
+    matrix.at(2, 3) = vector.z;
+    return matrix;
+}
+
+Matrix4 translate(const Vec3 &vector)
+{
+    Matrix4 matrix;
+    matrix.identity();
+    translate(matrix, vector);
     return matrix;
 }
 
@@ -96,10 +101,9 @@ Matrix4 translation(const Vec3 &v)
  * Converts the quaternion into rotation matrix form.
  * https://automaticaddison.com/how-to-convert-a-quaternion-to-a-rotation-matrix/
  */
-Matrix4 rotation(const Quaternion &q)
+Matrix4 &rotate(Matrix4 &matrix, const Quaternion &q)
 {
     float r = q.r, i = q.i, j = q.j, k = q.k;
-    Matrix4 matrix;
     matrix.at(0, 0) = 1 - (2 * (j * j + k * k));
     matrix.at(0, 1) = 2 * (i * j - r * k);
     matrix.at(0, 2) = 2 * (i * k + r * j);
@@ -113,15 +117,11 @@ Matrix4 rotation(const Quaternion &q)
     return matrix;
 }
 
-/**
- * Creates a matrix with both rotation and translation.
- */
-Matrix4 rotation_translation(const Quaternion &q, const Vec3 &v)
+Matrix4 rotate(const Quaternion &q)
 {
-    Matrix4 matrix(rotation(q));
-    matrix.at(0, 3) = v.x;
-    matrix.at(1, 3) = v.y;
-    matrix.at(2, 3) = v.z;
+    Matrix4 matrix;
+    matrix.identity();
+    rotate(matrix, q);
     return matrix;
 }
 
@@ -164,6 +164,35 @@ Matrix4 projection(float fov, float aspect_ratio, float front, float back)
     matrix.at(2, 2) = -(back + front) / (back - front);
     matrix.at(2, 3) = -(2 * back * front) / (back - front);
     matrix.at(3, 2) = -1;
-    matrix.at(3, 3) = 0;
+    return matrix;
+}
+
+Matrix4 look_at(const Vec3 &eye, const Vec3 &target, const Vec3 &up_dir)
+{
+    Vec3 forward = eye - target;
+    forward = normalize(forward);
+
+    Vec3 left = cross(up_dir, forward);
+    left = normalize(left);
+
+    Vec3 up = cross(forward, left);
+
+    Matrix4 matrix;
+    matrix.identity();
+
+    matrix.at(0, 0) = left.x;
+    matrix.at(0, 1) = left.y;
+    matrix.at(0, 2) = left.z;
+    matrix.at(1, 0) = up.x;
+    matrix.at(1, 1) = up.y;
+    matrix.at(1, 2) = up.z;
+    matrix.at(2, 0) = forward.x;
+    matrix.at(2, 1) = forward.y;
+    matrix.at(2, 2) = forward.z;
+
+    matrix.at(0, 3) = -left.x * eye.x - left.y * eye.y - left.z * eye.z;
+    matrix.at(1, 3) = -up.x * eye.x - up.y * eye.y - up.z * eye.z;
+    matrix.at(2, 3) = -forward.x * eye.x - forward.y * eye.y - forward.z * eye.z;
+
     return matrix;
 }

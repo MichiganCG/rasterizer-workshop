@@ -8,10 +8,10 @@ struct Vec2
 {
 	float u, v, w;
 
-	Vec2() : u(0), v(0), w(1) {};
-	Vec2(float u, float v) : u(u), v(v), w(1) {};
-	Vec2(float value) : u(value), v(value), w(1) {};
-	Vec2(const Vec2 &other) : u(other.u), v(other.v), w(1) {};
+	Vec2() : u(0), v(0), w(1) {}
+	Vec2(float u, float v) : u(u), v(v), w(1) {}
+	Vec2(float value) : u(value), v(value), w(1) {}
+	Vec2(const Vec2 &other) : u(other.u), v(other.v), w(1) {}
 	Vec2 &operator=(const Vec2 &);
 };
 
@@ -19,8 +19,8 @@ struct Vec3
 {
 	float x, y, z, w;
 
-	Vec3() : x(0), y(0), z(0), w(1) {};
-	Vec3(float x, float y, float z) : x(x), y(y), z(z), w(1) {};
+	Vec3() : x(0), y(0), z(0), w(1) {}
+	Vec3(float x, float y, float z) : x(x), y(y), z(z), w(1) {}
 	Vec3(float value) : x(value), y(value), z(value), w(1) {}
 	Vec3(const Vec3 &other) : x(other.x), y(other.y), z(other.z), w(other.w) {}
 

@@ -16,7 +16,7 @@ public:
 
     Vec3 forward();
     Vec3 up();
-    Vec3 right();
+    Vec3 left();
     Vec3 bivector();
 
     void get_axis_angle(Vec3 &, float &);
