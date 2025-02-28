@@ -82,6 +82,8 @@ Quaternion &Quaternion::operator*=(const Quaternion &rhs)
     return (*this = quaternion);
 }
 
+Quaternion operator*(Quaternion lhs, Quaternion rhs) { return (lhs *= rhs); }
+
 Quaternion &Quaternion::operator*=(float rhs)
 {
     w *= rhs;
@@ -90,6 +92,8 @@ Quaternion &Quaternion::operator*=(float rhs)
     z *= rhs;
     return *this;
 }
+
+Quaternion operator*(Quaternion lhs, float rhs) { return (lhs *= rhs); }
 
 std::ostream &operator<<(std::ostream &os, const Quaternion &rhs)
 {

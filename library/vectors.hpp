@@ -39,19 +39,19 @@ struct Vec3
 	friend std::ostream &operator<<(std::ostream &, const Vec3 &);
 };
 
-Vec3 operator+(Vec3 lhs, const Vec3 &rhs) { return (lhs += rhs); }
-Vec3 operator-(Vec3 lhs, const Vec3 &rhs) { return (lhs -= rhs); }
-Vec3 operator*(Vec3 lhs, const Vec3 &rhs) { return (lhs *= rhs); }
-Vec3 operator/(Vec3 lhs, const Vec3 &rhs) { return (lhs /= rhs); }
-Vec3 operator*(Vec3 lhs, float rhs) { return (lhs *= rhs); }
-Vec3 operator/(Vec3 lhs, float rhs) { return (lhs /= rhs); }
+Vec3 operator+(Vec3 lhs, const Vec3 &rhs);
+Vec3 operator-(Vec3 lhs, const Vec3 &rhs);
+Vec3 operator*(Vec3 lhs, const Vec3 &rhs);
+Vec3 operator/(Vec3 lhs, const Vec3 &rhs);
+Vec3 operator*(Vec3 lhs, float rhs);
+Vec3 operator/(Vec3 lhs, float rhs);
 Vec3 operator+(const Vec3 &);
 Vec3 operator-(const Vec3 &);
 
-float dot(const Vec3 &lhs, const Vec3 &rhs) { return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z; }
-float abs_dot(const Vec3 &lhs, const Vec3 &rhs) { return std::abs(dot(lhs, rhs)); }
-float magnitude_squared(const Vec3 &vector) { return dot(vector, vector); }
-float magnitude(const Vec3 &vector) { return std::sqrt(magnitude_squared(vector)); }
+float dot(const Vec3 &lhs, const Vec3 &rhs);
+float abs_dot(const Vec3 &lhs, const Vec3 &rhs);
+float magnitude_squared(const Vec3 &vector);
+float magnitude(const Vec3 &vector);
 
 /**
  * Normalizes a vector.
@@ -76,7 +76,7 @@ Vec3 project(const Vec3 &line, const Vec3 &vector);
  * Makes the normal orthogonal to the tangent.
  * @returns Two unit vectors that are orthonormal.
  */
-Vec3 orthonormal(Vec3 &normal, Vec3 &tangent);
+void orthonormal(Vec3 &normal, Vec3 &tangent);
 
 /**
  * Computes the point where the line segment and plane intersect.

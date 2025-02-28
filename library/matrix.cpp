@@ -25,6 +25,8 @@ Matrix4 &Matrix4::operator+=(const Matrix4 &other)
     return *this;
 }
 
+Matrix4 operator+(Matrix4 lhs, const Matrix4 &rhs) { return (lhs += rhs); }
+
 Matrix4 &Matrix4::operator-=(const Matrix4 &other)
 {
     for (size_t i = 0; i < D_SIZE; ++i)
@@ -32,6 +34,8 @@ Matrix4 &Matrix4::operator-=(const Matrix4 &other)
 
     return *this;
 }
+
+Matrix4 operator-(Matrix4 lhs, const Matrix4 &rhs) { return (lhs -= rhs); }
 
 Matrix4 &Matrix4::operator*=(const Matrix4 &rhs)
 {
@@ -49,6 +53,8 @@ Matrix4 &Matrix4::operator*=(const Matrix4 &rhs)
     return (*this = matrix);
 }
 
+Matrix4 operator*(Matrix4 lhs, const Matrix4 &rhs) { return (lhs *= rhs); }
+
 Vec3 operator*(const Matrix4 &lhs, const Vec3 &rhs)
 {
     Vec3 vector;
@@ -56,7 +62,16 @@ Vec3 operator*(const Matrix4 &lhs, const Vec3 &rhs)
     vector.y = rhs.x * lhs.at(1, 0) + rhs.y * lhs.at(1, 1) + rhs.z * lhs.at(1, 2) + rhs.w * lhs.at(1, 3);
     vector.z = rhs.x * lhs.at(2, 0) + rhs.y * lhs.at(2, 1) + rhs.z * lhs.at(2, 2) + rhs.w * lhs.at(2, 3);
     vector.w = rhs.x * lhs.at(3, 0) + rhs.y * lhs.at(3, 1) + rhs.z * lhs.at(3, 2) + rhs.w * lhs.at(3, 3);
+
+    if (vector.w != 1)
+        vector /= vector.w;
+
     return vector;
+}
+
+Vec3 operator*(const Vec3 &lhs, const Matrix4 &rhs)
+{
+    return rhs * lhs;
 }
 
 Matrix4 &Matrix4::operator*=(float rhs)
@@ -67,6 +82,8 @@ Matrix4 &Matrix4::operator*=(float rhs)
     }
     return *this;
 }
+
+Matrix4 operator*(Matrix4 lhs, float rhs) { return (lhs *= rhs); }
 
 std::ostream &operator<<(std::ostream &os, const Matrix4 &rhs)
 {
@@ -79,92 +96,6 @@ std::ostream &operator<<(std::ostream &os, const Matrix4 &rhs)
         os << std::endl;
     }
     return os;
-}
-
-Matrix4 &translate(Matrix4 &matrix, const Vec3 &vector)
-{
-    matrix.at(0, 3) = vector.x;
-    matrix.at(1, 3) = vector.y;
-    matrix.at(2, 3) = vector.z;
-    return matrix;
-}
-
-Matrix4 translate(const Vec3 &vector)
-{
-    Matrix4 matrix;
-    matrix.identity();
-    translate(matrix, vector);
-    return matrix;
-}
-
-/**
- * Converts the quaternion into rotation matrix form.
- * https://automaticaddison.com/how-to-convert-a-quaternion-to-a-rotation-matrix/
- */
-Matrix4 &rotate(Matrix4 &matrix, const Quaternion &q)
-{
-    float r = q.r, i = q.i, j = q.j, k = q.k;
-    matrix.at(0, 0) = 1 - (2 * (j * j + k * k));
-    matrix.at(0, 1) = 2 * (i * j - r * k);
-    matrix.at(0, 2) = 2 * (i * k + r * j);
-    matrix.at(1, 0) = 2 * (i * j + r * k);
-    matrix.at(1, 1) = 1 - (2 * (i * i + k * k));
-    matrix.at(1, 2) = 2 * (j * k - r * i);
-    matrix.at(2, 0) = 2 * (i * k - r * j);
-    matrix.at(2, 1) = 2 * (j * k + r * i);
-    matrix.at(2, 2) = 1 - (2 * (i * i + j * j));
-    matrix.at(3, 3) = 1;
-    return matrix;
-}
-
-Matrix4 rotate(const Quaternion &q)
-{
-    Matrix4 matrix;
-    matrix.identity();
-    rotate(matrix, q);
-    return matrix;
-}
-
-/**
- * Quickly inverts a translation and rotation matrix.
- * Transposes the rotation component and negates the translation component.
- * @returns The inverse of the rotation-translation matrix.
- */
-Matrix4 quick_inverse(const Matrix4 &m)
-{
-    Matrix4 matrix;
-    matrix.at(0, 1) = m.at(1, 0);
-    matrix.at(0, 2) = m.at(2, 0);
-    matrix.at(1, 0) = m.at(0, 1);
-    matrix.at(1, 2) = m.at(2, 1);
-    matrix.at(2, 0) = m.at(0, 2);
-    matrix.at(2, 1) = m.at(1, 2);
-    matrix.at(3, 0) = -m.at(0, 0) * m.at(0, 3) - m.at(1, 0) * m.at(1, 3) - m.at(2, 0) * m.at(2, 3);
-    matrix.at(3, 1) = -m.at(0, 1) * m.at(0, 3) - m.at(1, 1) * m.at(1, 3) - m.at(2, 1) * m.at(2, 3);
-    matrix.at(3, 2) = -m.at(0, 2) * m.at(0, 3) - m.at(1, 2) * m.at(1, 3) - m.at(2, 2) * m.at(2, 3);
-    matrix.at(3, 3) = 1;
-    return matrix;
-}
-
-/**
- * Creates a symmetric frustum with horizontal FOV.
- * https://www.songho.ca/opengl/gl_projectionmatrix.html
- */
-Matrix4 projection(float fov, float aspect_ratio, float front, float back)
-{
-    const float DEG2RAD = std::acos(-1.0f) / 180;
-
-    float tangent = std::tan(fov / 2 * DEG2RAD);
-    float right = front * tangent;
-    float top = right / aspect_ratio;
-
-    Matrix4 matrix;
-    matrix.at(0, 0) = front / right;
-    matrix.at(1, 1) = front / top;
-    matrix.at(2, 2) = -(back + front) / (back - front);
-    matrix.at(2, 3) = -(2 * back * front) / (back - front);
-    matrix.at(3, 2) = -1;
-    return matrix;
 }
 
 Matrix4 look_at(const Vec3 &eye, const Vec3 &target, const Vec3 &up_dir)
@@ -194,5 +125,93 @@ Matrix4 look_at(const Vec3 &eye, const Vec3 &target, const Vec3 &up_dir)
     matrix.at(1, 3) = -up.x * eye.x - up.y * eye.y - up.z * eye.z;
     matrix.at(2, 3) = -forward.x * eye.x - forward.y * eye.y - forward.z * eye.z;
 
+    return matrix;
+}
+
+Matrix4 &translate(Matrix4 &matrix, const Vec3 &vector)
+{
+    matrix.at(0, 3) = vector.x;
+    matrix.at(1, 3) = vector.y;
+    matrix.at(2, 3) = vector.z;
+    return matrix;
+}
+
+Matrix4 translate(const Vec3 &vector)
+{
+    Matrix4 matrix;
+    matrix.identity();
+    translate(matrix, vector);
+    return matrix;
+}
+
+Matrix4 &rotate(Matrix4 &matrix, const Quaternion &q)
+{
+    float r = q.w, i = q.x, j = q.y, k = q.z;
+    matrix.at(0, 0) = 1 - (2 * (j * j + k * k));
+    matrix.at(0, 1) = 2 * (i * j - r * k);
+    matrix.at(0, 2) = 2 * (i * k + r * j);
+    matrix.at(1, 0) = 2 * (i * j + r * k);
+    matrix.at(1, 1) = 1 - (2 * (i * i + k * k));
+    matrix.at(1, 2) = 2 * (j * k - r * i);
+    matrix.at(2, 0) = 2 * (i * k - r * j);
+    matrix.at(2, 1) = 2 * (j * k + r * i);
+    matrix.at(2, 2) = 1 - (2 * (i * i + j * j));
+    matrix.at(3, 3) = 1;
+    return matrix;
+}
+
+Matrix4 rotate(const Quaternion &q)
+{
+    Matrix4 matrix;
+    matrix.identity();
+    rotate(matrix, q);
+    return matrix;
+}
+
+Matrix4 quick_inverse(const Matrix4 &m)
+{
+    Matrix4 matrix;
+    matrix.at(0, 0) = m.at(0, 0);
+    matrix.at(0, 1) = m.at(1, 0);
+    matrix.at(0, 2) = m.at(2, 0);
+    matrix.at(1, 0) = m.at(0, 1);
+    matrix.at(1, 1) = m.at(1, 1);
+    matrix.at(1, 2) = m.at(2, 1);
+    matrix.at(2, 0) = m.at(0, 2);
+    matrix.at(2, 1) = m.at(1, 2);
+    matrix.at(2, 2) = m.at(2, 2);
+    matrix.at(3, 0) = -m.at(0, 0) * m.at(0, 3) - m.at(1, 0) * m.at(1, 3) - m.at(2, 0) * m.at(2, 3) + 0.0;
+    matrix.at(3, 1) = -m.at(0, 1) * m.at(0, 3) - m.at(1, 1) * m.at(1, 3) - m.at(2, 1) * m.at(2, 3) + 0.0;
+    matrix.at(3, 2) = -m.at(0, 2) * m.at(0, 3) - m.at(1, 2) * m.at(1, 3) - m.at(2, 2) * m.at(2, 3) + 0.0;
+    matrix.at(3, 3) = 1;
+    return matrix;
+}
+
+Matrix4 projection(float fov, float aspect_ratio, float near, float far)
+{
+    const float DEG2RAD = std::acos(-1.0f) / 180;
+
+    float tangent = std::tan(fov / 2 * DEG2RAD);
+    float right = near * tangent;
+    float top = right / aspect_ratio;
+
+    Matrix4 matrix;
+    matrix.at(0, 0) = near / right;
+    matrix.at(1, 1) = near / top;
+    matrix.at(2, 2) = -(far + near) / (far - near);
+    matrix.at(2, 3) = -(2 * far * near) / (far - near);
+    matrix.at(3, 2) = -1;
+    return matrix;
+}
+
+Matrix4 viewport(uint32_t width, uint32_t height)
+{
+    Matrix4 matrix;
+    matrix.at(0, 0) = width / 2;
+    matrix.at(1, 1) = height / 2;
+    matrix.at(2, 2) = 1;
+    matrix.at(0, 3) = (width - 1) / 2;
+    matrix.at(1, 3) = (height - 1) / 2;
+    matrix.at(3, 3) = 1;
     return matrix;
 }

@@ -46,8 +46,8 @@ public:
     friend std::ostream &operator<<(std::ostream &, const Quaternion &);
 };
 
-Quaternion operator*(Quaternion lhs, Quaternion rhs) { return (lhs *= rhs); }
-Quaternion operator*(Quaternion lhs, float rhs) { return (lhs *= rhs); }
+Quaternion operator*(Quaternion lhs, Quaternion rhs);
+Quaternion operator*(Quaternion lhs, float rhs);
 
 float dot(const Quaternion &, const Quaternion &);
 float magnitude_squared(const Quaternion &);

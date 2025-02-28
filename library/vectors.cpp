@@ -35,6 +35,8 @@ Vec3 &Vec3::operator+=(const Vec3 &rhs)
     return *this;
 }
 
+Vec3 operator+(Vec3 lhs, const Vec3 &rhs) { return (lhs += rhs); }
+
 Vec3 &Vec3::operator-=(const Vec3 &rhs)
 {
     x -= rhs.x;
@@ -43,6 +45,8 @@ Vec3 &Vec3::operator-=(const Vec3 &rhs)
     w -= rhs.w;
     return *this;
 }
+
+Vec3 operator-(Vec3 lhs, const Vec3 &rhs) { return (lhs -= rhs); }
 
 Vec3 &Vec3::operator*=(const Vec3 &rhs)
 {
@@ -53,6 +57,8 @@ Vec3 &Vec3::operator*=(const Vec3 &rhs)
     return *this;
 }
 
+Vec3 operator*(Vec3 lhs, const Vec3 &rhs) { return (lhs *= rhs); }
+
 Vec3 &Vec3::operator/=(const Vec3 &rhs)
 {
     x /= rhs.x;
@@ -61,6 +67,8 @@ Vec3 &Vec3::operator/=(const Vec3 &rhs)
     w /= rhs.w;
     return *this;
 }
+
+Vec3 operator/(Vec3 lhs, const Vec3 &rhs) { return (lhs /= rhs); }
 
 Vec3 &Vec3::operator*=(float rhs)
 {
@@ -71,6 +79,8 @@ Vec3 &Vec3::operator*=(float rhs)
     return *this;
 }
 
+Vec3 operator*(Vec3 lhs, float rhs) { return (lhs *= rhs); }
+
 Vec3 &Vec3::operator/=(float rhs)
 {
     x /= rhs;
@@ -79,6 +89,8 @@ Vec3 &Vec3::operator/=(float rhs)
     w /= rhs;
     return *this;
 }
+
+Vec3 operator/(Vec3 lhs, float rhs) { return (lhs /= rhs); }
 
 Vec3 operator+(const Vec3 &rhs)
 {
@@ -106,6 +118,11 @@ std::ostream &operator<<(std::ostream &os, const Vec3 &rhs)
     return os;
 }
 
+float dot(const Vec3 &lhs, const Vec3 &rhs) { return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z; }
+float abs_dot(const Vec3 &lhs, const Vec3 &rhs) { return std::abs(dot(lhs, rhs)); }
+float magnitude_squared(const Vec3 &vector) { return dot(vector, vector); }
+float magnitude(const Vec3 &vector) { return std::sqrt(magnitude_squared(vector)); }
+
 Vec3 normalize(const Vec3 &v)
 {
     float squared = magnitude_squared(v);
@@ -128,7 +145,7 @@ Vec3 project(const Vec3 &line, const Vec3 &vector)
     return n * d;
 }
 
-Vec3 orthonormal(Vec3 &normal, Vec3 &tangent)
+void orthonormal(Vec3 &normal, Vec3 &tangent)
 {
     Vec3 n = project(normal, tangent);
     Vec3 t = normalize(tangent - n);
