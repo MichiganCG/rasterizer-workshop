@@ -11,6 +11,10 @@ Vec2 &Vec2::operator=(const Vec2 &other)
     return *this;
 }
 
+const Vec3 Vec3::RIGHT = Vec3(1, 0, 0);
+const Vec3 Vec3::UP = Vec3(0, 1, 0);
+const Vec3 Vec3::FORWARD = Vec3(0, 0, 1);
+
 Vec3 &Vec3::operator=(const Vec3 &other)
 {
     if (this == &other)
@@ -58,7 +62,6 @@ Vec3 &Vec3::operator/=(const Vec3 &rhs)
     return *this;
 }
 
-
 Vec3 &Vec3::operator*=(float rhs)
 {
     x *= rhs;
@@ -103,12 +106,12 @@ std::ostream &operator<<(std::ostream &os, const Vec3 &rhs)
     return os;
 }
 
-Vec3 normalize(const Vec3 &vector)
+Vec3 normalize(const Vec3 &v)
 {
-    float squared = magnitude_squared(vector);
+    float squared = magnitude_squared(v);
     if (almost_zero(squared))
         return Vec3();
-    return vector / std::sqrt(squared);
+    return v / std::sqrt(squared);
 }
 
 Vec3 cross(const Vec3 &lhs, const Vec3 &rhs)
@@ -118,9 +121,19 @@ Vec3 cross(const Vec3 &lhs, const Vec3 &rhs)
             lhs.x * rhs.y - lhs.y * rhs.x};
 }
 
-Vec3 lerp(const Vec3 &start, const Vec3 &end, float t)
+Vec3 project(const Vec3 &line, const Vec3 &vector)
 {
-    return {lerp(start.x, end.x, t), lerp(start.y, end.y, t), lerp(start.z, end.z, t)};
+    Vec3 n = normalize(line);
+    float d = dot(n, vector);
+    return n * d;
+}
+
+Vec3 orthonormal(Vec3 &normal, Vec3 &tangent)
+{
+    Vec3 n = project(normal, tangent);
+    Vec3 t = normalize(tangent - n);
+    normal = n;
+    tangent = t;
 }
 
 std::optional<Vec3> intersect_plane(Vec3 point, Vec3 normal, Vec3 start, Vec3 end)
