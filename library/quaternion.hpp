@@ -75,7 +75,7 @@ public:
     Quaternion &rotate(const Vec3 &axis, float angle);
 
     /**
-     * Multiplies two quaternions `A` and `B`. This result in a quaternion that performs
+     * Multiplies two (2) quaternions `A` and `B`. This result in a quaternion that performs
      * a rotation by `A` followed by a rotation by `B`.
      * @note Mutiplication of two quaternions is associative, but not commutative.
      */
@@ -89,7 +89,7 @@ Quaternion operator*(Quaternion lhs, Quaternion rhs);
 Quaternion operator*(Quaternion lhs, float rhs);
 
 /**
- * Computes the dot product of two quaternions.
+ * Computes the dot product of two (2) quaternions.
  * @returns The dot product
  */
 float dot(const Quaternion &, const Quaternion &);

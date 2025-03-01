@@ -21,7 +21,7 @@ private:
     public:
         float &operator[](size_t col)
         {
-            if (col >= SIZE)
+            if (col >= 4)
                 throw std::runtime_error("Access outside of matrix columns.");
             return m.at(row, col);
         }
@@ -37,36 +37,40 @@ private:
     public:
         float operator[](size_t col) const
         {
-            if (col >= SIZE)
+            if (col >= 4)
                 throw std::runtime_error("Access outside of matrix columns.");
             return m.at(row, col);
         }
     };
 
 public:
-    static const size_t SIZE = 4, D_SIZE = 16;
-
     /**
-     * Create an identity matrix with default ctor.
+     * Default constructor.
+     * Initializes an empty matrix.
      */
     Matrix4() : data({0}) {}
+
+    /**
+     * Copy constructor.
+     * Initializes a matrix with the same values.
+     */
     Matrix4(const Matrix4 &);
 
     Matrix4 &operator=(const Matrix4 &);
 
-    float &at(size_t row, size_t col) { return data[row + col * SIZE]; }
-    float at(size_t row, size_t col) const { return data[row + col * SIZE]; }
+    float &at(size_t row, size_t col) { return data[row + col * 4]; }
+    float at(size_t row, size_t col) const { return data[row + col * 4]; }
 
     Proxy operator[](size_t row)
     {
-        if (row >= SIZE)
+        if (row >= 4)
             throw std::runtime_error("Access outside of matrix rows.");
         return {*this, row};
     }
 
     ConstProxy operator[](size_t row) const
     {
-        if (row >= SIZE)
+        if (row >= 4)
             throw std::runtime_error("Access outside of matrix rows.");
         return {*this, row};
     }
@@ -106,25 +110,34 @@ Matrix4 look_at(const Vec3 &eye, const Vec3 &target, const Vec3 &up_dir);
 Matrix4 &translate(Matrix4 &, const Vec3 &);
 Matrix4 translate(const Vec3 &);
 
-Matrix4 &rotate(Matrix4 &, const Quaternion &);
 /**
- * Converts the quaternion into rotation matrix form.
+ * Converts the given quaternion into rotation matrix form.
  * https://automaticaddison.com/how-to-convert-a-quaternion-to-a-rotation-matrix/
  */
+Matrix4 &rotate(Matrix4 &, const Quaternion &);
 Matrix4 rotate(const Quaternion &);
 
 /**
  * Quickly inverts a translation and rotation matrix.
- * Transposes the rotation component and negates the translation component.
+ * Because these matrices have a specific format, we can simply transpose the 
+ * rotation component and negate the translation component to find the inverse.
  * @returns The inverse of the rotation-translation matrix.
  */
 Matrix4 quick_inverse(const Matrix4 &);
 
 /**
- * Creates a symmetric frustum with horizontal FOV.
- * The field of view is measured in degrees. Aspect ratio is width / height.
- * Matrix is used to convert from view space to NDC space.
+ * Creates a symmetric frustum using horizontal FOV.
+ * 
+ * This matrix is used to convert from view space to clip space.
  * https://www.songho.ca/opengl/gl_projectionmatrix.html
+ * @param fov          The horizontal field of view measured in degrees.
+ * @param aspect_ratio Defined as `width / height`.
+ * @param near         The distance to the 'near' clipping plane through the negative z-axis.
+ * @param far          The distance to the 'far' clipping plane through the negative z-axis.
  */
-Matrix4 projection(float fov, float aspect_ratio, float near, float far);
+Matrix4 perspective_projection(float fov, float aspect_ratio, float near, float far);
+
+/**
+ * Creates a matrix that transforms from NDC space to screen space.
+ */
 Matrix4 viewport(uint32_t width, uint32_t height);

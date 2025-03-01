@@ -2,7 +2,7 @@
 
 Matrix4::Matrix4(const Matrix4 &other) : Matrix4()
 {
-    for (size_t i = 0; i < D_SIZE; ++i)
+    for (size_t i = 0; i < 16; ++i)
         data[i] = other.data[i];
 }
 
@@ -11,7 +11,7 @@ Matrix4 &Matrix4::operator=(const Matrix4 &other)
     if (this == &other)
         return *this;
 
-    for (size_t i = 0; i < D_SIZE; ++i)
+    for (size_t i = 0; i < 16; ++i)
         data[i] = other.data[i];
 
     return *this;
@@ -19,7 +19,7 @@ Matrix4 &Matrix4::operator=(const Matrix4 &other)
 
 Matrix4 &Matrix4::operator+=(const Matrix4 &other)
 {
-    for (size_t i = 0; i < D_SIZE; ++i)
+    for (size_t i = 0; i < 16; ++i)
         data[i] += other.data[i];
 
     return *this;
@@ -29,7 +29,7 @@ Matrix4 operator+(Matrix4 lhs, const Matrix4 &rhs) { return (lhs += rhs); }
 
 Matrix4 &Matrix4::operator-=(const Matrix4 &other)
 {
-    for (size_t i = 0; i < D_SIZE; ++i)
+    for (size_t i = 0; i < 16; ++i)
         data[i] -= other.data[i];
 
     return *this;
@@ -40,11 +40,11 @@ Matrix4 operator-(Matrix4 lhs, const Matrix4 &rhs) { return (lhs -= rhs); }
 Matrix4 &Matrix4::operator*=(const Matrix4 &rhs)
 {
     Matrix4 matrix;
-    for (size_t i = 0; i < Matrix4::SIZE; ++i)
+    for (size_t i = 0; i < 4; ++i)
     {
-        for (size_t j = 0; j < Matrix4::SIZE; ++j)
+        for (size_t j = 0; j < 4; ++j)
         {
-            for (size_t k = 0; k < Matrix4::SIZE; ++k)
+            for (size_t k = 0; k < 4; ++k)
             {
                 matrix.at(i, j) += (at(i, k) * rhs.at(k, j));
             }
@@ -63,8 +63,10 @@ Vec3 operator*(const Matrix4 &lhs, const Vec3 &rhs)
     vector.z = rhs.x * lhs.at(2, 0) + rhs.y * lhs.at(2, 1) + rhs.z * lhs.at(2, 2) + rhs.w * lhs.at(2, 3);
     vector.w = rhs.x * lhs.at(3, 0) + rhs.y * lhs.at(3, 1) + rhs.z * lhs.at(3, 2) + rhs.w * lhs.at(3, 3);
 
-    if (vector.w != 1)
+    if (vector.w != 1) {
         vector /= vector.w;
+        vector.w = 1;
+    }
 
     return vector;
 }
@@ -76,7 +78,7 @@ Vec3 operator*(const Vec3 &lhs, const Matrix4 &rhs)
 
 Matrix4 &Matrix4::operator*=(float rhs)
 {
-    for (size_t i = 0; i < Matrix4::D_SIZE; ++i)
+    for (size_t i = 0; i < 16; ++i)
     {
         data[i] *= rhs;
     }
@@ -87,13 +89,12 @@ Matrix4 operator*(Matrix4 lhs, float rhs) { return (lhs *= rhs); }
 
 std::ostream &operator<<(std::ostream &os, const Matrix4 &rhs)
 {
-    for (size_t i = 0; i < Matrix4::SIZE; ++i)
+    for (size_t i = 0; i < 4; ++i)
     {
-        for (size_t j = 0; j < Matrix4::SIZE; ++j)
+        for (size_t j = 0; j < 4; ++j)
         {
             os << rhs[i][j] << " ";
         }
-        os << std::endl;
     }
     return os;
 }
@@ -139,8 +140,7 @@ Matrix4 &translate(Matrix4 &matrix, const Vec3 &vector)
 Matrix4 translate(const Vec3 &vector)
 {
     Matrix4 matrix;
-    matrix.identity();
-    translate(matrix, vector);
+    translate(matrix.identity(), vector);
     return matrix;
 }
 
@@ -163,8 +163,7 @@ Matrix4 &rotate(Matrix4 &matrix, const Quaternion &q)
 Matrix4 rotate(const Quaternion &q)
 {
     Matrix4 matrix;
-    matrix.identity();
-    rotate(matrix, q);
+    rotate(matrix.identity(), q);
     return matrix;
 }
 
@@ -187,7 +186,7 @@ Matrix4 quick_inverse(const Matrix4 &m)
     return matrix;
 }
 
-Matrix4 projection(float fov, float aspect_ratio, float near, float far)
+Matrix4 perspective_projection(float fov, float aspect_ratio, float near, float far)
 {
     const float DEG2RAD = std::acos(-1.0f) / 180;
 

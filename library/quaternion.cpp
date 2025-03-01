@@ -97,7 +97,7 @@ Quaternion operator*(Quaternion lhs, float rhs) { return (lhs *= rhs); }
 
 std::ostream &operator<<(std::ostream &os, const Quaternion &rhs)
 {
-    os << rhs.w << " " << rhs.x << " " << rhs.y << " " << rhs.z;
+    os << "( " << rhs.w << " " << rhs.x << " " << rhs.y << " " << rhs.z << " )";
     return os;
 }
 
