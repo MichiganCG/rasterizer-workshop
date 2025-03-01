@@ -142,18 +142,17 @@ void orthonormal(Vec3 &normal, Vec3 &tangent)
 
 std::optional<Vec3> intersect_plane(const Vec3 &point, const Vec3 &normal, const Vec3 &start, const Vec3 &end)
 {
-    Vec3 n = normalize(normal);
-    Vec3 dir = end - start;
-    float a = dot(n, point);
-    float b = dot(n, dir);
-    if (b == 0) // The line is parallel with the plane
+    Vec3 norm = normalize(normal);
+    Vec3 ray = end - start;
+
+    Vec3 diff = start - point;
+    float a = dot(diff, norm);
+    float b = dot(ray, norm);
+    if (std::abs(b) < std::numeric_limits<float>::epsilon())
         return {};
 
-    float t = (a - dot(n, start)) / b;
-    if (t >= 0 && t <= 1) // The intersection is in the line segment
-        return start + dir * t;
-
-    return {};
+    float t = a / b;
+    return start - ray * t;
 }
 
 Vec2 &Vec2::operator=(const Vec2 &other)
