@@ -4,41 +4,80 @@
 
 #include <ostream>
 
-// https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html
-
+/**
+ * An implementation of rotation quaternions.
+ * @cite https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html
+ */
 class Quaternion
 {
 public:
     float w, x, y, z;
 
-    // Creates an identity quaternion with no rotation
+    /**
+     * Default constructor.
+     * Initializes an identity quaternion with no rotation `q = 1`.
+     */
     Quaternion();
-    // Creates a quaternion with the specified components
-    Quaternion(float w, float x, float y, float z);
-    // Creates a quaternion using the given axis-angle representation
-    Quaternion(const Vec3 &axis, float angle);
-    // Copy ctor
-    Quaternion(const Quaternion &other);
-    Quaternion &operator=(const Quaternion &other);
 
-    // Rotates (1, 0, 0)
+    /**
+     * Constructs a quaternion of the form `q = w + xi + yj + zk`.
+     */
+    Quaternion(float w, float x, float y, float z);
+
+    /**
+     * Constructs a quaternion using the given axis-angle representation.
+     */
+    Quaternion(const Vec3 &axis, float angle);
+
+    /**
+     * Copy constructor.
+     * Constructs a copy of the given quaternion.
+     */
+    Quaternion(const Quaternion &other);
+
+    Quaternion &operator=(const Quaternion &other) &;
+
+    /**
+     * Applies the rotation of this quaternion to the vector `<1, 0, 0>`.
+     * @returns The right direction vector.
+     */
     Vec3 right();
-    // Rotates (0, 1, 0)
+
+    /**
+     * Applies the rotation of this quaternion to the vector `<0, 1, 0>`.
+     * @returns The up direction vector.
+     */
     Vec3 up();
-    // Rotates (0, 0, 1)
+
+    /**
+     * Applies the rotation of this quaternion to the vector `<0, 0, 1>`.
+     * @returns The forward direction vector.
+     */
     Vec3 forward();
 
-    // Returns the imaginary component (bivector)
+    /**
+     * @returns The imaginary component (bivector) of this quaternion
+     */
     Vec3 bivector();
 
-    // Computes the axis-angle representation of this rotation
+    /**
+     * Computes the axis-angle representation of this rotation.
+     * @param axis_out Sets equal to this quaternion's axis
+     * @param angle_out Sets equal to this quaternion's angle
+     */
     void axis_angle(Vec3 &axis_out, float &angle_out);
-    // Applies the axis-angle representation to this rotation
+
+    /**
+     * Constructs a new quaternion using the given axis-angle representation and multiplies 
+     * it with this quaternion to combine their rotations.
+     * @returns The total rotation
+     */
     Quaternion &rotate(const Vec3 &axis, float angle);
 
     /**
-     * Mutiplication of two quaternions is associative, but no commutative
-     * A rotation by A followed by a rotation by B is equal to C = A * B
+     * Multiplies two quaternions `A` and `B`. This result in a quaternion that performs
+     * a rotation by `A` followed by a rotation by `B`.
+     * @note Mutiplication of two quaternions is associative, but not commutative.
      */
     Quaternion &operator*=(const Quaternion &rhs);
     Quaternion &operator*=(float rhs);
@@ -49,17 +88,34 @@ public:
 Quaternion operator*(Quaternion lhs, Quaternion rhs);
 Quaternion operator*(Quaternion lhs, float rhs);
 
+/**
+ * Computes the dot product of two quaternions.
+ * @returns The dot product
+ */
 float dot(const Quaternion &, const Quaternion &);
+
+/**
+ * Computes the square of the magnitude of the given quaternion.
+ * @returns The square of the magnitude
+ */
 float magnitude_squared(const Quaternion &);
+
+/**
+ * Computes the magnitude of the given quaternion.
+ * @returns The magnitude
+ */
 float magnitude(const Quaternion &);
 
 /**
- * Implementation from https://stackoverflow.com/questions/11667783/quaternion-and-normalization
+ * Normalizes the quaternion to be of length one (1).
+ * @cite https://stackoverflow.com/questions/11667783/quaternion-and-normalization
  * @return A unit quaternion with the same rotation
  */
 Quaternion normalize(const Quaternion &);
 
 /**
+ * Computes the conjugate of the quaternion.
+ * @note For the special case of rotation quaternions, this is equal to its inverse.
  * @return The inverse of the rotation
  */
 Quaternion conjugate(const Quaternion &);

@@ -3,7 +3,7 @@
 
 #define epsilon 8E-7f
 
-Quaternion::Quaternion() : w(1.0f), x(0.0f), y(0.0f), z(0.0f) {}
+Quaternion::Quaternion() : w(1), x(0), y(0), z(0) {}
 
 Quaternion::Quaternion(float w, float x, float y, float z) : w(w), x(x), y(y), z(z) {}
 
@@ -18,7 +18,7 @@ Quaternion::Quaternion(const Vec3 &axis, float angle) : Quaternion()
 
 Quaternion::Quaternion(const Quaternion &other) : w(other.w), x(other.x), y(other.y), z(other.z) {}
 
-Quaternion &Quaternion::operator=(const Quaternion &other)
+Quaternion &Quaternion::operator=(const Quaternion &other) &
 {
     if (this == &other)
         return *this;
@@ -97,7 +97,7 @@ Quaternion operator*(Quaternion lhs, float rhs) { return (lhs *= rhs); }
 
 std::ostream &operator<<(std::ostream &os, const Quaternion &rhs)
 {
-    os << rhs.w << " " << rhs.x << " " << rhs.y << " " << rhs.z << std::endl;
+    os << rhs.w << " " << rhs.x << " " << rhs.y << " " << rhs.z;
     return os;
 }
 
