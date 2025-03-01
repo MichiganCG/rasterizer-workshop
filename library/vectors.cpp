@@ -187,7 +187,7 @@ Vec2 operator-(Vec2 lhs, const Vec2 &rhs) { return (lhs -= rhs); }
 
 std::ostream &operator<<(std::ostream &os, const Vec2 &rhs)
 {
-    os << "( " << rhs.u << ", " << rhs.v << " " << rhs.w << " )";
+    os << "( " << rhs.u << " " << rhs.v << " " << rhs.w << " )";
     return os;
 }
 
