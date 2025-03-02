@@ -9,53 +9,14 @@
 #include "vectors.hpp"
 #include "library.hpp"
 
-class Mesh
-{
-public:
-    Mesh() {}
-    Mesh(const std::string &file_name)
-    {
-        load_file(file_name);
-    }
-
-    struct Triangle
-    {
-        const Mesh *mesh;
-        int verts[3];
-
-        Triangle(const Mesh *mesh, int v1, int v2, int v3) : mesh(mesh), verts{v1, v2, v3} {}
-        const Vec3 &operator[](size_t i) const { return mesh->vertices[verts[i]]; }
-    };
-
-    void load_file(const std::string &file_name);
-
-    size_t size() { return triangles.size(); }
-
-    std::vector<Triangle>::iterator begin() { return triangles.begin(); }
-    std::vector<Triangle>::iterator end() { return triangles.end(); }
-
-private:
-    std::vector<Vec3> vertices;
-    std::vector<Vec3> normals;
-    std::vector<Triangle> triangles;
-};
-
+/**
+ * A plane is defined by a point and normal vector.
+ */
 struct Plane
 {
     Vec3 point;
     Vec3 normal;
 };
-
-/**
- * Clips the triangle using the Sutherland-Hodgman algorithm.
- */
-std::vector<Vec3> sutherland_hodgman(std::vector<Vec3> &input_list, const std::vector<Plane> &clipping_planes);
-
-/**
- * Digital Differential Analyzer.
- * Draws a line from 'start' to 'end'.
- */
-void DDA(Image &image, Vec2 &start, Vec2 &end);
 
 class DepthBuffer
 {
@@ -70,7 +31,97 @@ public:
     float &at(uint32_t x, uint32_t y) { return data[y * width + x]; };
 };
 
-// https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
-Vec2 get_barycentric(Vec2 p, Vec2 &t1, Vec2 &t2, Vec2 &t3);
+/**
+ * A collection of triangle faces and vertices.
+ */
+class Mesh
+{
+public:
 
+    /**
+     * Default constructor.
+     */
+    Mesh() {}
+
+    /**
+     * Constructs the mesh by loading the given file.
+     */
+    Mesh(const std::string &file_name)
+    {
+        load_file(file_name);
+    }
+
+    struct Triangle
+    {
+        const Mesh *owner;
+        int vertex_indices[3];
+        int texture_indices[3];
+        int normal_indices[3];
+
+        Triangle(const Mesh *mesh) : owner(mesh) {}
+        const Vec3 &get_vertex(size_t i) const { return owner->vertices[vertex_indices[i]]; }
+        const Vec2 &get_texture(size_t i) const { return owner->textures[texture_indices[i]]; }
+        const Vec3 &get_normal(size_t i) const { return owner->normals[normal_indices[i]]; }
+
+        void set_vertices(int v0, int v1, int v2)
+        {
+            vertex_indices[0] = v0;
+            vertex_indices[1] = v1;
+            vertex_indices[2] = v2;
+        }
+
+        void set_textures(int t0, int t1, int t2)
+        {
+            texture_indices[0] = t0;
+            texture_indices[1] = t1;
+            texture_indices[2] = t2;
+        }
+
+        void set_normals(int n0, int n1, int n2)
+        {
+            normal_indices[0] = n0;
+            normal_indices[1] = n1;
+            normal_indices[2] = n2;
+        }
+    };
+
+    /**
+     * Loads the faces of the mesh using a Wavefront .obj file.
+     */
+    void load_file(const std::string &file_name);
+
+    size_t size() { return triangles.size(); }
+
+    const Triangle &at(size_t i) const { return triangles[i]; }
+    Triangle &at(size_t i) { return triangles[i]; }
+
+    const Triangle &operator[](size_t i) const { return at(i); }
+    Triangle &operator[](size_t i) { return at(i); }
+
+    std::vector<Triangle>::iterator begin() { return triangles.begin(); }
+    std::vector<Triangle>::iterator end() { return triangles.end(); }
+
+private:
+    std::vector<Vec3> vertices;
+    std::vector<Vec3> normals;
+    std::vector<Vec2> textures;
+
+    std::vector<Triangle> triangles;
+};
+
+/**
+ * Clips the given polygon using the Sutherland-Hodgman algorithm.
+ * @returns A list of clipped vertices
+ */
+std::vector<Vec3> sutherland_hodgman(std::vector<Vec3> &input_list, const std::vector<Plane> &clipping_planes);
+
+/**
+ * Digital Differential Analyzer.
+ * Draws a line from 'start' to 'end'.
+ */
+void draw_DDA(Image &image, Vec2 &start, Vec2 &end);
+
+/**
+ * Uses barycentric coordinates to fill a triangle.
+ */
 void draw_barycentric(Image &image, DepthBuffer &depth, Vec2 &t1, Vec2 &t2, Vec2 &t3);

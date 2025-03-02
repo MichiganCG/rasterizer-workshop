@@ -3,23 +3,10 @@
 #include <optional>
 #include <iostream>
 
-std::vector<std::string> split_by(const std::string &str, char delimiter)
-{
-    std::stringstream ss(str);
-    std::string word;
-    std::vector<std::string> words;
-
-    while (std::getline(ss, word, delimiter))
-    {
-        words.push_back(word);
-    }
-    return words;
-}
-
 void Mesh::load_file(const std::string &file_name)
 {
     std::fstream file;
-    std::string line, current;
+    std::string line;
 
     file.open(file_name);
 
@@ -28,9 +15,16 @@ void Mesh::load_file(const std::string &file_name)
         while (std::getline(file, line))
         {
             std::stringstream ss(line);
-            ss >> current;
+            if (ss.eof())
+                continue;
 
-            if (current == "v") // geometric vertices
+            std::string key;
+            ss >> key;
+
+            if (key == "#") // ignore comments
+                continue;
+
+            if (key == "v") // geometric vertices
             {
                 float x, y, z;
                 ss >> x >> y >> z;
@@ -38,12 +32,15 @@ void Mesh::load_file(const std::string &file_name)
                 continue;
             }
 
-            if (current == "vt") // texture coordinates
+            if (key == "vt") // texture coordinates
             {
+                float u, v;
+                ss >> u >> v;
+                textures.push_back({u, v});
                 continue;
             }
 
-            if (current == "vn") // vertex normals
+            if (key == "vn") // vertex normals
             {
                 float x, y, z;
                 ss >> x >> y >> z;
@@ -51,19 +48,61 @@ void Mesh::load_file(const std::string &file_name)
                 continue;
             }
 
-            if (current == "f") // face element
+            if (key == "f") // face element
             {
-                std::vector<int> verts;
-                while (ss >> current)
+                std::string element;
+
+                size_t count = 0;
+                std::vector<int> vertex_indices;
+                std::vector<int> texture_indices;
+                std::vector<int> normal_indices;
+
+                while (ss >> element)
                 {
-                    std::vector<std::string> indices = split_by(current, '/');
-                    verts.push_back(std::stoi(indices[0]) - 1);
+                    ++count;
+                    // Cases: v, v/t, v//n, v/t/n
+                    std::stringstream element_ss(element);
+
+                    int vertex_index;
+                    element_ss >> vertex_index;
+                    vertex_indices.push_back(vertex_index - 1);
+
+                    if (!element_ss.eof() && element_ss.peek() == '/')
+                    {
+                        // Cases: v/t, v//n, v/t/n
+                        char ignore;
+                        element_ss >> ignore;
+
+                        if (!element_ss.eof() && element_ss.peek() != '/')
+                        {
+                            // Cases: v/t, v/t/n
+                            int texture_index;
+                            element_ss >> texture_index;
+                            texture_indices.push_back(texture_index - 1);
+                        }
+
+                        if (!element_ss.eof() && element_ss.peek() == '/')
+                        {
+                            // Cases: v//n, v/t/n
+                            int normal_index;
+                            element_ss >> ignore >> normal_index;
+                            normal_indices.push_back(normal_index - 1);
+                        }
+                    }
                 }
 
-                // Split polygon into triangles using Fan Triangulation
-                // https://en.wikipedia.org/wiki/Fan_triangulation
-                for (size_t i = 1; i < verts.size() - 1; ++i)
-                    triangles.push_back({this, verts[0], verts[i], verts[i + 1]});
+                // Split polygon into triangles using Fan Triangulation: https://en.wikipedia.org/wiki/Fan_triangulation
+                for (size_t i = 1; i < count - 1; ++i)
+                {
+                    Triangle triangle(this);
+                    triangle.set_vertices(vertex_indices[0], vertex_indices[i], vertex_indices[i + 1]);
+                    if (!texture_indices.empty())
+                        triangle.set_textures(texture_indices[0], texture_indices[i], texture_indices[i + 1]);
+                    if (!normal_indices.empty())
+                        triangle.set_normals(normal_indices[0], normal_indices[i], normal_indices[i + 1]);
+
+                    triangles.push_back(triangle);
+                }
                 continue;
             }
         }
@@ -75,6 +114,7 @@ void Mesh::load_file(const std::string &file_name)
     }
 }
 
+// Checks if the point is on the same side of the plane as the normal.
 inline bool infront(const Vec3 &point, const Plane &plane) { return dot(plane.normal, point - plane.point) >= 0; }
 
 std::vector<Vec3> sutherland_hodgman(std::vector<Vec3> &input_list, const std::vector<Plane> &clipping_planes)
@@ -113,7 +153,7 @@ std::vector<Vec3> sutherland_hodgman(std::vector<Vec3> &input_list, const std::v
     return out_list;
 }
 
-void DDA(Image &image, Vec2 &start, Vec2 &end)
+void draw_DDA(Image &image, Vec2 &start, Vec2 &end)
 {
     float u, v, du, dv, step;
     du = end.u - start.u;
