@@ -6,6 +6,9 @@
 #include <cmath>
 #include <ostream>
 
+/**
+ * Implementation of 4-by-4 matrices.
+ */
 class Matrix4
 {
 private:
@@ -86,12 +89,12 @@ public:
         return (*this = matrix);
     }
 
-    Matrix4 &operator+=(const Matrix4 &);
-    Matrix4 &operator-=(const Matrix4 &);
-    Matrix4 &operator*=(const Matrix4 &);
+    Matrix4 &operator+=(const Matrix4 &rhs);
+    Matrix4 &operator-=(const Matrix4 &rhs);
+    Matrix4 &operator*=(const Matrix4 &rhs);
     Matrix4 &operator*=(float);
 
-    friend std::ostream &operator<<(std::ostream &, const Matrix4 &);
+    friend std::ostream &operator<<(std::ostream &os, const Matrix4 &rhs);
 };
 
 Matrix4 operator+(Matrix4 lhs, const Matrix4 &rhs);
@@ -99,35 +102,35 @@ Matrix4 operator-(Matrix4 lhs, const Matrix4 &rhs);
 Matrix4 operator*(Matrix4 lhs, const Matrix4 &rhs);
 Matrix4 operator*(Matrix4 lhs, float rhs);
 
-Vec3 operator*(const Matrix4 &, const Vec3 &);
-Vec3 operator*(const Vec3 &, const Matrix4 &);
+Vec3 operator*(const Matrix4 &lhs, const Vec3 &rhs);
+Vec3 operator*(const Vec3 &lhs, const Matrix4 &rhs);
 
 /**
  * Creates a rotation matrix that looks from the eye to the target.
  */
 Matrix4 look_at(const Vec3 &eye, const Vec3 &target, const Vec3 &up_dir);
 
-Matrix4 &translate(Matrix4 &, const Vec3 &);
-Matrix4 translate(const Vec3 &);
+Matrix4 &translate(Matrix4 &matrix, const Vec3 &translation);
+Matrix4 translate(const Vec3 &translation);
 
 /**
  * Converts the given quaternion into rotation matrix form.
  * https://automaticaddison.com/how-to-convert-a-quaternion-to-a-rotation-matrix/
  */
-Matrix4 &rotate(Matrix4 &, const Quaternion &);
-Matrix4 rotate(const Quaternion &);
+Matrix4 &rotate(Matrix4 &matrix, const Quaternion &rotation);
+Matrix4 rotate(const Quaternion &rotation);
 
 /**
  * Quickly inverts a translation and rotation matrix.
- * Because these matrices have a specific format, we can simply transpose the 
+ * Because these matrices have a specific format, we can simply transpose the
  * rotation component and negate the translation component to find the inverse.
  * @returns The inverse of the rotation-translation matrix.
  */
-Matrix4 quick_inverse(const Matrix4 &);
+Matrix4 quick_inverse(const Matrix4 &input);
 
 /**
  * Creates a symmetric frustum using horizontal FOV.
- * 
+ *
  * This matrix is used to convert from view space to clip space.
  * https://www.songho.ca/opengl/gl_projectionmatrix.html
  * @param fov          The horizontal field of view measured in degrees.

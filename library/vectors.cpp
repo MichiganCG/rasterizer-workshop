@@ -39,8 +39,8 @@ std::ostream &operator<<(std::ostream &os, const Vec2 &rhs)
 
 float dot(const Vec2 &lhs, const Vec2 &rhs) { return lhs.u * rhs.u + lhs.v * rhs.v; }
 float abs_dot(const Vec2 &lhs, const Vec2 &rhs) { return std::abs(dot(lhs, rhs)); }
-float magnitude_squared(const Vec2 &vector) { return dot(vector, vector); }
-float magnitude(const Vec2 &vector) { return std::sqrt(magnitude_squared(vector)); }
+float magnitude_squared(const Vec2 &input) { return dot(input, input); }
+float magnitude(const Vec2 &input) { return std::sqrt(magnitude_squared(input)); }
 const Vec3 Vec3::RIGHT = Vec3(1, 0, 0, 0);
 const Vec3 Vec3::UP = Vec3(0, 1, 0, 0);
 const Vec3 Vec3::FORWARD = Vec3(0, 0, 1, 0);
@@ -146,15 +146,15 @@ std::ostream &operator<<(std::ostream &os, const Vec3 &rhs)
 
 float dot(const Vec3 &lhs, const Vec3 &rhs) { return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z; }
 float abs_dot(const Vec3 &lhs, const Vec3 &rhs) { return std::abs(dot(lhs, rhs)); }
-float magnitude_squared(const Vec3 &vector) { return dot(vector, vector); }
-float magnitude(const Vec3 &vector) { return std::sqrt(magnitude_squared(vector)); }
+float magnitude_squared(const Vec3 &input) { return dot(input, input); }
+float magnitude(const Vec3 &input) { return std::sqrt(magnitude_squared(input)); }
 
-Vec3 normalize(const Vec3 &v)
+Vec3 normalize(const Vec3 &input)
 {
-    float squared = magnitude_squared(v);
+    float squared = magnitude_squared(input);
     if (almost_zero(squared))
         return Vec3();
-    return v / std::sqrt(squared);
+    return input / std::sqrt(squared);
 }
 
 Vec3 cross(const Vec3 &lhs, const Vec3 &rhs)

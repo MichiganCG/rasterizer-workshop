@@ -129,24 +129,24 @@ Matrix4 look_at(const Vec3 &eye, const Vec3 &target, const Vec3 &up_dir)
     return matrix;
 }
 
-Matrix4 &translate(Matrix4 &matrix, const Vec3 &vector)
+Matrix4 &translate(Matrix4 &matrix, const Vec3 &translation)
 {
-    matrix.at(0, 3) = vector.x;
-    matrix.at(1, 3) = vector.y;
-    matrix.at(2, 3) = vector.z;
+    matrix.at(0, 3) = translation.x;
+    matrix.at(1, 3) = translation.y;
+    matrix.at(2, 3) = translation.z;
     return matrix;
 }
 
-Matrix4 translate(const Vec3 &vector)
+Matrix4 translate(const Vec3 &translation)
 {
     Matrix4 matrix;
-    translate(matrix.identity(), vector);
+    translate(matrix.identity(), translation);
     return matrix;
 }
 
-Matrix4 &rotate(Matrix4 &matrix, const Quaternion &q)
+Matrix4 &rotate(Matrix4 &matrix, const Quaternion &rotation)
 {
-    float r = q.w, i = q.x, j = q.y, k = q.z;
+    float r = rotation.w, i = rotation.x, j = rotation.y, k = rotation.z;
     matrix.at(0, 0) = 1 - (2 * (j * j + k * k));
     matrix.at(0, 1) = 2 * (i * j - r * k);
     matrix.at(0, 2) = 2 * (i * k + r * j);
@@ -160,28 +160,28 @@ Matrix4 &rotate(Matrix4 &matrix, const Quaternion &q)
     return matrix;
 }
 
-Matrix4 rotate(const Quaternion &q)
+Matrix4 rotate(const Quaternion &rotation)
 {
     Matrix4 matrix;
-    rotate(matrix.identity(), q);
+    rotate(matrix.identity(), rotation);
     return matrix;
 }
 
-Matrix4 quick_inverse(const Matrix4 &m)
+Matrix4 quick_inverse(const Matrix4 &input)
 {
     Matrix4 matrix;
-    matrix.at(0, 0) = m.at(0, 0);
-    matrix.at(0, 1) = m.at(1, 0);
-    matrix.at(0, 2) = m.at(2, 0);
-    matrix.at(1, 0) = m.at(0, 1);
-    matrix.at(1, 1) = m.at(1, 1);
-    matrix.at(1, 2) = m.at(2, 1);
-    matrix.at(2, 0) = m.at(0, 2);
-    matrix.at(2, 1) = m.at(1, 2);
-    matrix.at(2, 2) = m.at(2, 2);
-    matrix.at(3, 0) = -m.at(0, 0) * m.at(0, 3) - m.at(1, 0) * m.at(1, 3) - m.at(2, 0) * m.at(2, 3) + 0.0;
-    matrix.at(3, 1) = -m.at(0, 1) * m.at(0, 3) - m.at(1, 1) * m.at(1, 3) - m.at(2, 1) * m.at(2, 3) + 0.0;
-    matrix.at(3, 2) = -m.at(0, 2) * m.at(0, 3) - m.at(1, 2) * m.at(1, 3) - m.at(2, 2) * m.at(2, 3) + 0.0;
+    matrix.at(0, 0) = input.at(0, 0);
+    matrix.at(0, 1) = input.at(1, 0);
+    matrix.at(0, 2) = input.at(2, 0);
+    matrix.at(1, 0) = input.at(0, 1);
+    matrix.at(1, 1) = input.at(1, 1);
+    matrix.at(1, 2) = input.at(2, 1);
+    matrix.at(2, 0) = input.at(0, 2);
+    matrix.at(2, 1) = input.at(1, 2);
+    matrix.at(2, 2) = input.at(2, 2);
+    matrix.at(3, 0) = -input.at(0, 0) * input.at(0, 3) - input.at(1, 0) * input.at(1, 3) - input.at(2, 0) * input.at(2, 3) + 0.0;
+    matrix.at(3, 1) = -input.at(0, 1) * input.at(0, 3) - input.at(1, 1) * input.at(1, 3) - input.at(2, 1) * input.at(2, 3) + 0.0;
+    matrix.at(3, 2) = -input.at(0, 2) * input.at(0, 3) - input.at(1, 2) * input.at(1, 3) - input.at(2, 2) * input.at(2, 3) + 0.0;
     matrix.at(3, 3) = 1;
     return matrix;
 }

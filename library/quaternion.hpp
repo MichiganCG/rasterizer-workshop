@@ -82,7 +82,7 @@ public:
     Quaternion &operator*=(const Quaternion &rhs);
     Quaternion &operator*=(float rhs);
 
-    friend std::ostream &operator<<(std::ostream &, const Quaternion &);
+    friend std::ostream &operator<<(std::ostream &os, const Quaternion &rhs);
 };
 
 Quaternion operator*(Quaternion lhs, Quaternion rhs);
@@ -92,30 +92,30 @@ Quaternion operator*(Quaternion lhs, float rhs);
  * Computes the dot product of two (2) quaternions.
  * @returns The dot product
  */
-float dot(const Quaternion &, const Quaternion &);
+float dot(const Quaternion &lhs, const Quaternion &rhs);
 
 /**
  * Computes the square of the magnitude of the given quaternion.
  * @returns The square of the magnitude
  */
-float magnitude_squared(const Quaternion &);
+float magnitude_squared(const Quaternion &input);
 
 /**
  * Computes the magnitude of the given quaternion.
  * @returns The magnitude
  */
-float magnitude(const Quaternion &);
+float magnitude(const Quaternion &input);
 
 /**
  * Normalizes the quaternion to be of length one (1).
  * @cite https://stackoverflow.com/questions/11667783/quaternion-and-normalization
  * @return A unit quaternion with the same rotation
  */
-Quaternion normalize(const Quaternion &);
+Quaternion normalize(const Quaternion &input);
 
 /**
  * Computes the conjugate of the quaternion.
  * @note For the special case of rotation quaternions, this is equal to its inverse.
  * @return The inverse of the rotation
  */
-Quaternion conjugate(const Quaternion &);
+Quaternion conjugate(const Quaternion &input);
