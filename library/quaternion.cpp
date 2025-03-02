@@ -106,25 +106,25 @@ float dot(const Quaternion &lhs, const Quaternion &rhs)
     return lhs.w * rhs.w + lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
 }
 
-float magnitude_squared(const Quaternion &q)
+float magnitude_squared(const Quaternion &input)
 {
-    return dot(q, q);
+    return dot(input, input);
 }
 
-float magnitude(const Quaternion &q)
+float magnitude(const Quaternion &input)
 {
-    return std::sqrt(magnitude_squared(q));
+    return std::sqrt(magnitude_squared(input));
 }
 
-Quaternion normalize(const Quaternion &q)
+Quaternion normalize(const Quaternion &input)
 {
-    float qmagsq = magnitude_squared(q);
-    if (std::abs(1.0f - qmagsq) < 2.107342E-08)
-        return q * (2.0f / (1.0f + qmagsq));
-    return q * (1.0f / std::sqrt(qmagsq));
+    float magnitude_sqrd = magnitude_squared(input);
+    if (std::abs(1.0f - magnitude_sqrd) < 2.107342E-08)
+        return input * (2.0f / (1.0f + magnitude_sqrd));
+    return input * (1.0f / std::sqrt(magnitude_sqrd));
 }
 
-Quaternion conjugate(const Quaternion &q)
+Quaternion conjugate(const Quaternion &input)
 {
-    return {q.w, -q.x, -q.y, -q.z};
+    return {input.w, -input.x, -input.y, -input.z};
 }
