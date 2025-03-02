@@ -129,22 +129,22 @@ Matrix4 look_at(const Vec3 &eye, const Vec3 &target, const Vec3 &up_dir)
     return matrix;
 }
 
-Matrix4 &translate(Matrix4 &matrix, const Vec3 &translation)
+void translate(Matrix4 &matrix, const Vec3 &translation)
 {
     matrix.at(0, 3) = translation.x;
     matrix.at(1, 3) = translation.y;
     matrix.at(2, 3) = translation.z;
-    return matrix;
 }
 
 Matrix4 translate(const Vec3 &translation)
 {
     Matrix4 matrix;
-    translate(matrix.identity(), translation);
+    matrix.identity();
+    translate(matrix, translation);
     return matrix;
 }
 
-Matrix4 &rotate(Matrix4 &matrix, const Quaternion &rotation)
+void rotate(Matrix4 &matrix, const Quaternion &rotation)
 {
     float r = rotation.w, i = rotation.x, j = rotation.y, k = rotation.z;
     matrix.at(0, 0) = 1 - (2 * (j * j + k * k));
@@ -157,13 +157,13 @@ Matrix4 &rotate(Matrix4 &matrix, const Quaternion &rotation)
     matrix.at(2, 1) = 2 * (j * k + r * i);
     matrix.at(2, 2) = 1 - (2 * (i * i + j * j));
     matrix.at(3, 3) = 1;
-    return matrix;
 }
 
 Matrix4 rotate(const Quaternion &rotation)
 {
     Matrix4 matrix;
-    rotate(matrix.identity(), rotation);
+    matrix.identity();
+    rotate(matrix, rotation);
     return matrix;
 }
 

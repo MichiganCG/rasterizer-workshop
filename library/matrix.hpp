@@ -110,14 +110,14 @@ Vec3 operator*(const Vec3 &lhs, const Matrix4 &rhs);
  */
 Matrix4 look_at(const Vec3 &eye, const Vec3 &target, const Vec3 &up_dir);
 
-Matrix4 &translate(Matrix4 &matrix, const Vec3 &translation);
+void translate(Matrix4 &matrix, const Vec3 &translation);
 Matrix4 translate(const Vec3 &translation);
 
 /**
  * Converts the given quaternion into rotation matrix form.
  * https://automaticaddison.com/how-to-convert-a-quaternion-to-a-rotation-matrix/
  */
-Matrix4 &rotate(Matrix4 &matrix, const Quaternion &rotation);
+void rotate(Matrix4 &matrix, const Quaternion &rotation);
 Matrix4 rotate(const Quaternion &rotation);
 
 /**
