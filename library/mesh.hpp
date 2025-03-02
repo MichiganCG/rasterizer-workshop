@@ -12,9 +12,9 @@
 class Mesh
 {
 public:
-
     Mesh() {}
-    Mesh(const std::string &file_name) {
+    Mesh(const std::string &file_name)
+    {
         load_file(file_name);
     }
 
@@ -40,23 +40,37 @@ private:
     std::vector<Triangle> triangles;
 };
 
-struct Triangle
-{
-    int verts[3];
-};
-
-std::vector<Triangle> triangulate(std::vector<Vec3> &polygon);
-
 struct Plane
 {
     Vec3 point;
     Vec3 normal;
 };
 
+/**
+ * Clips the triangle using the Sutherland-Hodgman algorithm.
+ */
 std::vector<Vec3> sutherland_hodgman(std::vector<Vec3> &input_list, const std::vector<Plane> &clipping_planes);
 
+/**
+ * Digital Differential Analyzer.
+ * Draws a line from 'start' to 'end'.
+ */
 void DDA(Image &image, Vec2 &start, Vec2 &end);
 
+class DepthBuffer
+{
+private:
+    uint32_t width, height;
+    std::vector<float> data;
+
+public:
+    DepthBuffer(uint32_t width, uint32_t height) : width(width), height(height), data(width * height, Infinity) {}
+
+    float at(uint32_t x, uint32_t y) const { return data[y * width + x]; };
+    float &at(uint32_t x, uint32_t y) { return data[y * width + x]; };
+};
+
 // https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
-Vec2 get_barycentric(Vec2 &p, Vec2 &t1, Vec2 &t2, Vec2 &t3);
-void draw_barycentric(Image &image, Vec2 &t1, Vec2 &t2, Vec2 &t3);
+Vec2 get_barycentric(Vec2 p, Vec2 &t1, Vec2 &t2, Vec2 &t3);
+
+void draw_barycentric(Image &image, DepthBuffer &depth, Vec2 &t1, Vec2 &t2, Vec2 &t3);

@@ -1,6 +1,46 @@
 #include "vectors.hpp"
 #include "library.hpp"
 
+Vec2 &Vec2::operator=(const Vec2 &other)
+{
+    if (this == &other)
+        return *this;
+    u = other.u;
+    v = other.v;
+    w = other.w;
+    return *this;
+}
+
+Vec2 &Vec2::operator+=(const Vec2 &rhs)
+{
+    u += rhs.u;
+    v += rhs.v;
+    w += rhs.w;
+    return *this;
+}
+
+Vec2 operator+(Vec2 lhs, const Vec2 &rhs) { return (lhs += rhs); }
+
+Vec2 &Vec2::operator-=(const Vec2 &rhs)
+{
+    u -= rhs.u;
+    v -= rhs.v;
+    w -= rhs.w;
+    return *this;
+}
+
+Vec2 operator-(Vec2 lhs, const Vec2 &rhs) { return (lhs -= rhs); }
+
+std::ostream &operator<<(std::ostream &os, const Vec2 &rhs)
+{
+    os << "( " << rhs.u << " " << rhs.v << " " << rhs.w << " )";
+    return os;
+}
+
+float dot(const Vec2 &lhs, const Vec2 &rhs) { return lhs.u * rhs.u + lhs.v * rhs.v; }
+float abs_dot(const Vec2 &lhs, const Vec2 &rhs) { return std::abs(dot(lhs, rhs)); }
+float magnitude_squared(const Vec2 &vector) { return dot(vector, vector); }
+float magnitude(const Vec2 &vector) { return std::sqrt(magnitude_squared(vector)); }
 const Vec3 Vec3::RIGHT = Vec3(1, 0, 0, 0);
 const Vec3 Vec3::UP = Vec3(0, 1, 0, 0);
 const Vec3 Vec3::FORWARD = Vec3(0, 0, 1, 0);
@@ -154,44 +194,3 @@ std::optional<Vec3> intersect_plane(const Vec3 &point, const Vec3 &normal, const
     float t = a / b;
     return start - ray * t;
 }
-
-Vec2 &Vec2::operator=(const Vec2 &other)
-{
-    if (this == &other)
-        return *this;
-    u = other.u;
-    v = other.v;
-    w = other.w;
-    return *this;
-}
-
-Vec2 &Vec2::operator+=(const Vec2 &rhs)
-{
-    u += rhs.u;
-    v += rhs.v;
-    w += rhs.w;
-    return *this;
-}
-
-Vec2 operator+(Vec2 lhs, const Vec2 &rhs) { return (lhs += rhs); }
-
-Vec2 &Vec2::operator-=(const Vec2 &rhs)
-{
-    u -= rhs.u;
-    v -= rhs.v;
-    w -= rhs.w;
-    return *this;
-}
-
-Vec2 operator-(Vec2 lhs, const Vec2 &rhs) { return (lhs -= rhs); }
-
-std::ostream &operator<<(std::ostream &os, const Vec2 &rhs)
-{
-    os << "( " << rhs.u << " " << rhs.v << " " << rhs.w << " )";
-    return os;
-}
-
-float dot(const Vec2 &lhs, const Vec2 &rhs) { return lhs.u * rhs.u + lhs.v * rhs.v; }
-float abs_dot(const Vec2 &lhs, const Vec2 &rhs) { return std::abs(dot(lhs, rhs)); }
-float magnitude_squared(const Vec2 &vector) { return dot(vector, vector); }
-float magnitude(const Vec2 &vector) { return std::sqrt(magnitude_squared(vector)); }

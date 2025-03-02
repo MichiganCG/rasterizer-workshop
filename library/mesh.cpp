@@ -75,11 +75,6 @@ void Mesh::load_file(const std::string &file_name)
     }
 }
 
-std::vector<Triangle> triangulate(std::vector<Vec3> &polygon)
-{
-    std::vector<Triangle> triangles;
-}
-
 inline bool infront(const Vec3 &point, const Plane &plane) { return dot(plane.normal, point - plane.point) >= 0; }
 
 std::vector<Vec3> sutherland_hodgman(std::vector<Vec3> &input_list, const std::vector<Plane> &clipping_planes)
@@ -143,7 +138,7 @@ void DDA(Image &image, Vec2 &start, Vec2 &end)
     }
 }
 
-Vec2 get_barycentric(Vec2 &p, Vec2 &t1, Vec2 &t2, Vec2 &t3)
+Vec2 get_barycentric(Vec2 p, Vec2 &t1, Vec2 &t2, Vec2 &t3)
 {
     Vec2 v0 = t2 - t1, v1 = t3 - t1, v2 = p - t1;
     float d00 = dot(v0, v0);
@@ -151,7 +146,7 @@ Vec2 get_barycentric(Vec2 &p, Vec2 &t1, Vec2 &t2, Vec2 &t3)
     float d11 = dot(v1, v1);
     float d20 = dot(v2, v0);
     float d21 = dot(v2, v1);
-    float denom = d00 * d11 - d01 * d01;
+    float denom = d00 * d11 - d01 * d01; // Area of full triangle
     Vec2 out;
     out.v = (d11 * d20 - d01 * d21) / denom;
     out.w = (d00 * d21 - d01 * d20) / denom;
@@ -159,9 +154,28 @@ Vec2 get_barycentric(Vec2 &p, Vec2 &t1, Vec2 &t2, Vec2 &t3)
     return out;
 }
 
-void draw_barycentric(Image &image, Vec2 &t1, Vec2 &t2, Vec2 &t3)
+void draw_barycentric(Image &image, DepthBuffer &depth, Vec2 &t1, Vec2 &t2, Vec2 &t3)
 {
-    DDA(image, t1, t2);
-    DDA(image, t2, t3);
-    DDA(image, t3, t1);
+    uint32_t minu = std::min({t1.u, t2.u, t3.u}), minv = std::min({t1.v, t2.v, t3.v});
+    uint32_t maxu = std::max({t1.u, t2.u, t3.u}), maxv = std::max({t1.v, t2.v, t3.v});
+
+    for (uint32_t v = minv; v < maxv; ++v)
+    {
+        for (uint32_t u = minu; u < maxu; ++u)
+        {
+            Vec2 bary = get_barycentric({u, v}, t1, t2, t3);
+
+            if (bary.u >= 0 && bary.v >= 0 && bary.w >= 0)
+            {
+                float z = 1 / (bary.u / t1.w + bary.v / t2.w + bary.w / t3.w);
+                if (z < depth.at(u, v))
+                {
+                    depth.at(u, v) = z;
+
+                    Color color(bary.u, bary.v, bary.w);
+                    image.set_pixel(u, v, color);
+                }
+            }
+        }
+    }
 }

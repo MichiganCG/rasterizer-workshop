@@ -12,8 +12,9 @@ struct Vec2
 
 	Vec2() : u(0), v(0), w(1) {}
 	Vec2(float u, float v) : u(u), v(v), w(1) {}
+	Vec2(uint32_t u, uint32_t v) : u((float)u), v((float)v), w(1) {}
 	Vec2(float u, float v, float w) : u(u), v(v), w(w) {}
-	Vec2(const Vec2 &other) : u(other.u), v(other.v), w(1) {}
+	Vec2(const Vec2 &other) : u(other.u), v(other.v), w(other.w) {}
 
 	Vec2 &operator=(const Vec2 &);
 	Vec2 &operator+=(const Vec2 &);
@@ -68,7 +69,7 @@ struct Vec3
 	Vec3 &operator/=(float);
 
 	friend std::ostream &operator<<(std::ostream &, const Vec3 &);
-	
+
 	static const Vec3 RIGHT;
 	static const Vec3 UP;
 	static const Vec3 FORWARD;
