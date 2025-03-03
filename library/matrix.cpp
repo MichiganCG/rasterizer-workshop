@@ -63,11 +63,6 @@ Vec3 operator*(const Matrix4 &lhs, const Vec3 &rhs)
     vector.z = rhs.x * lhs.at(2, 0) + rhs.y * lhs.at(2, 1) + rhs.z * lhs.at(2, 2) + rhs.w * lhs.at(2, 3);
     vector.w = rhs.x * lhs.at(3, 0) + rhs.y * lhs.at(3, 1) + rhs.z * lhs.at(3, 2) + rhs.w * lhs.at(3, 3);
 
-    if (vector.w != 0) {
-        vector /= vector.w;
-        vector.w = 1;
-    }
-
     return vector;
 }
 
