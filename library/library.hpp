@@ -19,7 +19,18 @@ struct Color
 	explicit Color(float value = 0.0f) : r(value), g(value), b(value) {}
 
 	float r, g, b;
+
+	Color &operator=(const Color &rhs);
+	Color &operator+=(const Color &rhs);
+	Color &operator-=(const Color &rhs);
+	Color &operator*=(const Color &rhs);
+	Color &operator*=(const float);
 };
+
+Color operator+(Color lhs, const Color &rhs);
+Color operator-(Color lhs, const Color &rhs);
+Color operator*(Color lhs, const Color &rhs);
+Color operator*(Color lhs, const float);
 
 /**
  * Returns if a value is very close to zero.
@@ -51,12 +62,29 @@ public:
 	 */
 	void write_file(const std::string &path) const;
 
+	uint32_t get_width() const { return width; }
+	uint32_t get_height() const { return height; }
+
 private:
 	uint32_t get_index(uint32_t x, uint32_t y) const { return x + width * y; }
 
 	uint32_t width;
 	uint32_t height;
 	std::vector<Color> pixels;
+};
+
+class DepthBuffer
+{
+private:
+	uint32_t width, height;
+	std::vector<float> data;
+
+public:
+	DepthBuffer(uint32_t width, uint32_t height) : width(width), height(height), data(width * height, Infinity) {}
+	DepthBuffer(Image &image) : width(image.get_width()), height(image.get_height()), data(width * height, Infinity) {}
+
+	float at(uint32_t x, uint32_t y) const { return data[y * width + x]; };
+	float &at(uint32_t x, uint32_t y) { return data[y * width + x]; };
 };
 
 /**

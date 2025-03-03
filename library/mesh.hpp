@@ -18,19 +18,6 @@ struct Plane
     Vec3 normal;
 };
 
-class DepthBuffer
-{
-private:
-    uint32_t width, height;
-    std::vector<float> data;
-
-public:
-    DepthBuffer(uint32_t width, uint32_t height) : width(width), height(height), data(width * height, Infinity) {}
-
-    float at(uint32_t x, uint32_t y) const { return data[y * width + x]; };
-    float &at(uint32_t x, uint32_t y) { return data[y * width + x]; };
-};
-
 /**
  * A collection of faces and vertices.
  */
@@ -40,7 +27,7 @@ public:
     /**
      * Default constructor.
      */
-    Mesh() {}
+    Mesh() = delete;
 
     /**
      * Constructs the mesh by loading the given file.
@@ -91,6 +78,27 @@ private:
     std::vector<Vec2> textures;
 
     std::vector<Face> faces;
+};
+
+class Triangle
+{
+    int indices[3];
+    std::vector<Vec2> &points;
+    std::vector<Vec3> &vertices;
+    std::vector<Vec3> &normals;
+
+public:
+    Triangle() = default;
+    Triangle(size_t index, std::vector<Vec2> &points, std::vector<Vec3> &vertices, std::vector<Vec3> &normals) : points(points), vertices(vertices), normals(normals)
+    {
+        indices[0] = 0;
+        indices[1] = index;
+        indices[2] = index + 1;
+    }
+
+    const Vec2 &point(size_t i) const { return points[indices[i]]; }
+    const Vec3 &vertex(size_t i) const { return vertices[indices[i]]; }
+    const Vec3 &normal(size_t i) const { return normals[indices[i]]; }
 };
 
 /**

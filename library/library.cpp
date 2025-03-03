@@ -15,6 +15,56 @@
 using Random = std::default_random_engine;
 thread_local std::unique_ptr<Random> thread_random;
 
+Color &Color::operator=(const Color &other)
+{
+    if (this == &other)
+        return *this;
+    r = other.r;
+    g = other.g;
+    b = other.b;
+    return *this;
+}
+
+Color &Color::operator+=(const Color &rhs)
+{
+    r += rhs.r;
+    g += rhs.g;
+    b += rhs.b;
+    return *this;
+}
+
+Color operator+(Color lhs, const Color &rhs) { return (lhs += rhs); }
+
+Color &Color::operator-=(const Color &rhs)
+{
+    r -= rhs.r;
+    g -= rhs.g;
+    b -= rhs.b;
+    return *this;
+}
+
+Color operator-(Color lhs, const Color &rhs) { return (lhs -= rhs); }
+
+Color &Color::operator*=(const Color &rhs)
+{
+    r *= rhs.r;
+    g *= rhs.g;
+    b *= rhs.b;
+    return *this;
+}
+
+Color operator*(Color lhs, const Color &rhs) { return (lhs *= rhs); }
+
+Color &Color::operator*=(const float rhs)
+{
+    r *= rhs;
+    g *= rhs;
+    b *= rhs;
+    return *this;
+}
+
+Color operator*(Color lhs, const float rhs) { return (lhs *= rhs); }
+
 void Image::write_file(const std::string& path) const
 {
 	std::vector<uint8_t> data;

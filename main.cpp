@@ -24,10 +24,17 @@ const std::vector<Plane> clipping_planes = {
 int main()
 {
 	Image image(ImageWidth, ImageHeight);
-	DepthBuffer depth(ImageWidth, ImageHeight);
+	DepthBuffer depth(image);
 
 	// Load models
 	Mesh model("uv_sphere.obj");
+	Material material("material.mtl");
+
+	std::vector<DirectionalLight> lights = {
+		{normalize({1, 1, 1}), {1, 0, 0}},
+		{normalize({-1, 1, 1}), {0, 1, 0}},
+		{normalize({-1, -1, 1}), {0, 0, 1}},
+	};
 
 	// Set the object's transformation
 	Vec3 object_position(0, 0, -5);
@@ -53,10 +60,8 @@ int main()
 		for (size_t i = 0; i < face.size; ++i)
 		{
 			vertices[i] = m_total * face.get_vertex(i);
-
 			normals[i] = m_model * face.get_normal(i);
-			float d = dot(normals[i], Vec3::FORWARD);
-			if (d >= 0)
+			if (normals[i].z >= 0)
 				display = true;
 		}
 
@@ -79,7 +84,8 @@ int main()
 		// Split polygon into triangles using Fan Triangulation: https://en.wikipedia.org/wiki/Fan_triangulation
 		for (size_t i = 0; i < points.size() - 1; ++i)
 		{
-			draw_barycentric(image, depth, points[0], points[i], points[i + 1], normals[0], normals[i], normals[i + 1]);
+			Triangle triangle(i, points, vertices, normals);
+			draw_barycentric(image, depth, material, lights, triangle);
 		}
 	}
 
