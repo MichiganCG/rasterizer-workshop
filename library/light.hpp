@@ -34,6 +34,7 @@ class LightCollection
     std::vector<Light *> lights;
 
 public:
+    void push_back(Light *light) { lights.push_back(light); }
     void push_back(DirectionalLight *light) { lights.push_back(light); }
 
     std::vector<Light *>::iterator begin() { return lights.begin(); }

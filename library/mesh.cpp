@@ -132,11 +132,11 @@ void Mesh::fix_normals()
     }
 }
 
-std::vector<Vec4> clipping_planes = {
-    //{-1, 0, 0},
-    //{1, 0, 0},
-    //{0, -1, 0},
-    //{0, 1, 0},
+const std::vector<Vec4> clipping_planes = {
+    {-0.5, 0, 0},
+    {0.5, 0, 0},
+    {0, -0.5, 0},
+    {0, 0.5, 0},
     {0, 0, -1},
     {0, 0, 1},
 };
@@ -173,6 +173,7 @@ void sutherland_hodgman_clip(std::vector<Vertex> &vertex_list)
                     float a = d0 / (d0 - d1);
                     intersect.point = start->point * (1.0f - a) + end->point * (a);
                     intersect.normal = start->normal * (1.0f - a) + end->normal * (a);
+                    intersect.texture = start->texture * (1.0f - a) + end->texture * (a);
                     out_list.push_back(intersect);
                 }
             }
@@ -182,6 +183,7 @@ void sutherland_hodgman_clip(std::vector<Vertex> &vertex_list)
                 float a = d0 / (d0 - d1);
                 intersect.point = start->point * (1.0f - a) + end->point * (a);
                 intersect.normal = start->normal * (1.0f - a) + end->normal * (a);
+                intersect.texture = start->texture * (1.0f - a) + end->texture * (a);
                 out_list.push_back(intersect);
                 out_list.push_back(*end);
             }
