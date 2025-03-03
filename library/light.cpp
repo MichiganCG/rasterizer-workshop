@@ -59,18 +59,17 @@ void Material::load_file(const std::string &file_name)
     }
 }
 
-Color Material::get_color(Vec3 &point, Vec3 &normal, std::vector<DirectionalLight> &lights)
+Color Material::get_color(Vec3 &point, Vec3 &normal, LightCollection &lights)
 {
     if (normal.x == 0 && normal.y == 0 && normal.z == 0)
         return Color(1);
 
     Color diffuse_sum, specular_sum, color;
 
-    for (auto &light : lights)
+    for (Light *light : lights)
     {
-    diffuse_sum += light.color * std::max(0.0f, dot(normal, light.direction));
-    specular_sum += light.color * std::pow(std::max(0.0f, dot(normal, normalize(point + light.direction))), shininess);
-
+        diffuse_sum += light->color * std::max(0.0f, dot(normal, light->direction));
+        specular_sum += light->color * std::pow(std::max(0.0f, dot(normal, normalize(point + light->direction))), shininess);
     }
 
     color = ambient + diffuse * diffuse_sum + specular * specular_sum;
@@ -125,7 +124,7 @@ void fill_barycentric(Image &image, DepthBuffer &depth, const Vec2 &p0, const Ve
     {
         for (uint32_t v = minv; v <= maxv; ++v)
         {
-            Vec2 pixel(u, v);
+            Vec2 pixel(u + 0.5f, v + 0.5f);
 
             Vec2 edge2 = pixel - p0;
             float d20 = dot(edge2, edge0);
@@ -152,16 +151,16 @@ void fill_barycentric(Image &image, DepthBuffer &depth, const Vec2 &p0, const Ve
     }
 }
 
-void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, std::vector<DirectionalLight> &lights, Triangle &triangle)
+void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightCollection &lights, Triangle &triangle)
 {
     const Vec2 &p0 = triangle.point(0), &p1 = triangle.point(1), &p2 = triangle.point(2);
     const Vec3 &v0 = triangle.vertex(0), &v1 = triangle.vertex(1), &v2 = triangle.vertex(2);
     const Vec3 &n0 = triangle.normal(0), &n1 = triangle.normal(1), &n2 = triangle.normal(2);
 
-    uint32_t minu = std::min({p0.u, p1.u, p2.u});
-    uint32_t maxu = std::max({p0.u, p1.u, p2.u});
-    uint32_t minv = std::min({p0.v, p1.v, p2.v});
-    uint32_t maxv = std::max({p0.v, p1.v, p2.v});
+    uint32_t minu = std::max(std::min({p0.u, p1.u, p2.u}), 0.0f);
+    uint32_t maxu = std::min(std::max({p0.u, p1.u, p2.u}), image.get_width() - 1.0f);
+    uint32_t minv = std::max(std::min({p0.v, p1.v, p2.v}), 0.0f);
+    uint32_t maxv = std::min(std::max({p0.v, p1.v, p2.v}), image.get_height() - 1.0f);
 
     Vec2 edge0 = p1 - p0, edge1 = p2 - p0;
     float d00 = dot(edge0, edge0);
@@ -176,7 +175,7 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, std::vect
     {
         for (uint32_t v = minv; v <= maxv; ++v)
         {
-            Vec2 pixel(u, v);
+            Vec2 pixel(u + 0.5f, v + 0.5f);
 
             Vec2 edge2 = pixel - p0;
             float d20 = dot(edge2, edge0);
@@ -195,7 +194,7 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, std::vect
                 {
                     depth.at(u, v) = z;
 
-                    Vec3 point = (v0 * a + v1 * b + v2 * c);
+                    Vec3 point = v0 * a + v1 * b + v2 * c;
                     Vec3 normal = normalize(n0 * a + n1 * b + n2 * c);
                     Color color = mat.get_color(point, normal, lights);
                     image.set_pixel(u, v, color);
@@ -204,4 +203,3 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, std::vect
         }
     }
 }
-

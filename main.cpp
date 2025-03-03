@@ -13,12 +13,12 @@ const uint32_t ImageHeight = 540;
 const float aspect_ratio = (float)ImageWidth / (float)ImageHeight;
 
 const std::vector<Plane> clipping_planes = {
-	{{-1, 0, 0}, {1, 0, 0, 0}},
-	{{1, 0, 0}, {-1, 0, 0, 0}},
-	{{0, -1, 0}, {0, 1, 0, 0}},
-	{{0, 1, 0}, {0, -1, 0, 0}},
+	{{-5, 0, 0}, {1, 0, 0, 0}},
+	{{5, 0, 0}, {-1, 0, 0, 0}},
+	{{0, -5, 0}, {0, 1, 0, 0}},
+	{{0, 5, 0}, {0, -1, 0, 0}},
 	{{0, 0, -1}, {0, 0, 1, 0}},
-	{{0, 0, 1}, {0, 0, -1, 0}},
+	{{0, 0, 5}, {0, 0, -1, 0}},
 };
 
 int main()
@@ -27,21 +27,29 @@ int main()
 	DepthBuffer depth(image);
 
 	// Load models
-	Mesh model("uv_sphere.obj");
+	Mesh model("utah_teapot.obj");
 	Material material("material.mtl");
 
-	std::vector<DirectionalLight> lights = {
-		{normalize({1, 1, 1}), {1, 0, 0}},
-		{normalize({-1, 1, 1}), {0, 1, 0}},
-		{normalize({-1, -1, 1}), {0, 0, 1}},
-	};
+	LightCollection lights;
+	DirectionalLight l1({{1, 0, 0}, normalize({1, 1, 1})});
+	lights.push_back(&l1);
+	DirectionalLight l2({{0, 1, 0}, normalize({-1, 1, 1})});
+	lights.push_back(&l2);
+	DirectionalLight l3({{0, 0, 1}, normalize({0, -1, 1})});
+	lights.push_back(&l3);
 
 	// Set the object's transformation
-	Vec3 object_position(0, 0, -5);
-	Quaternion object_rotation({0, 1, 2}, 1.5);
+	Vec3 object_position(0, -1, -8);
+	Quaternion object_rotation({1, 1, 0}, 0.5);
 	Matrix4 m_model;
 	rotate(m_model, object_rotation);
 	translate(m_model, object_position);
+
+	Vec3 camera_position(0, 0, 0);
+	Quaternion camera_rotation({0, 0, 0}, 0);
+	Matrix4 m_camera;
+	rotate(m_camera, camera_rotation);
+	translate(m_camera, camera_position);
 
 	// Set the projection matrix
 	Matrix4 m_projection = perspective_projection(90, aspect_ratio, 0.1, 1000);
@@ -49,7 +57,7 @@ int main()
 	// Set the viewspace matrix
 	Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
 
-	Matrix4 m_total = m_projection * m_model;
+	Matrix4 m_total = m_projection * m_camera * m_model;
 
 	for (auto &face : model)
 	{
@@ -61,7 +69,7 @@ int main()
 		{
 			vertices[i] = m_total * face.get_vertex(i);
 			normals[i] = m_model * face.get_normal(i);
-			if (normals[i].z >= 0)
+			if (normals[i].z >= -0.5)
 				display = true;
 		}
 
@@ -69,7 +77,7 @@ int main()
 			continue;
 
 		// Clip triangles to be bounded within [-1, 1] on all axes.
-		vertices = sutherland_hodgman(vertices, clipping_planes);
+		sutherland_hodgman(vertices, clipping_planes);
 
 		if (vertices.size() == 0) // Skip triangles that are not on the screen
 			continue;

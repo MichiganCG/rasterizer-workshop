@@ -49,7 +49,7 @@ public:
         std::vector<int> normal_indices;
 
         Face() = delete;
-        Face(const Mesh *mesh, size_t size) : owner(mesh), size(size), vertex_indices(size), texture_indices(size), normal_indices(size) {}
+        Face(const Mesh *mesh, size_t size) : owner(mesh), size(size), vertex_indices(size) {}
 
         const Vec3 &get_vertex(size_t i) const { return owner->vertices[vertex_indices[i]]; }
         const Vec2 &get_texture(size_t i) const { return owner->textures[texture_indices[i]]; }
@@ -74,10 +74,31 @@ public:
 
 private:
     std::vector<Vec3> vertices;
-    std::vector<Vec3> normals;
     std::vector<Vec2> textures;
+    std::vector<Vec3> normals;
 
     std::vector<Face> faces;
+
+    void fix_normals()
+    {
+        for (auto &face : faces)
+        {
+            if (face.normal_indices.size() == 0)
+            {
+                const Vec3 &v0 = face.get_vertex(0), &v1 = face.get_vertex(1), &v2 = face.get_vertex(2);
+
+                // Compute face normal
+                Vec3 normal = normalize(cross(v1 - v0, v2 - v0));
+                normal.w = 0;
+
+                int index = (int)normals.size();
+                normals.push_back(normal);
+
+                for (size_t i = 0; i < face.size; ++i)
+                    face.normal_indices.push_back(index);
+            }
+        }
+    }
 };
 
 class Triangle
@@ -103,6 +124,6 @@ public:
 
 /**
  * Clips the given polygon using the Sutherland-Hodgman algorithm.
- * @returns A list of clipped vertices
+ * Modifies the 'input_list' with the clipped vertices.
  */
-std::vector<Vec3> sutherland_hodgman(std::vector<Vec3> &input_list, const std::vector<Plane> &clipping_planes);
+void sutherland_hodgman(std::vector<Vec3> &input_list, const std::vector<Plane> &clipping_planes);

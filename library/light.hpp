@@ -10,10 +10,34 @@
 #include "mesh.hpp"
 #include "library.hpp"
 
-struct DirectionalLight
+class Light
 {
-    Vec3 direction;
+public:
     Color color;
+    Vec3 direction;
+
+    Light(Color color, Vec3 direction) : color(color), direction(direction) {}
+    virtual ~Light() = default;
+};
+
+class DirectionalLight : public Light
+{
+public:
+    DirectionalLight(Color color, Vec3 direction) : Light(color, direction) {}
+};
+
+/**
+ * A collection of lights in the scene.
+ */
+class LightCollection
+{
+    std::vector<Light *> lights;
+
+public:
+    void push_back(DirectionalLight *light) { lights.push_back(light); }
+
+    std::vector<Light *>::iterator begin() { return lights.begin(); }
+    std::vector<Light *>::iterator end() { return lights.end(); }
 };
 
 /**
@@ -30,7 +54,7 @@ public:
 
     void load_file(const std::string &file_name);
 
-    Color get_color(Vec3 &point, Vec3 &normal, std::vector<DirectionalLight> &lights);
+    Color get_color(Vec3 &point, Vec3 &normal, LightCollection &lights);
 };
 
 /**
@@ -47,4 +71,4 @@ void fill_barycentric(Image &image, DepthBuffer &depth, const Vec2 &p0, const Ve
  * Uses barycentric coordinates to fill a triangle.
  * Uses the material and light sources provided to determine color.
  */
-void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, std::vector<DirectionalLight> &lights, Triangle &triangle);
+void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightCollection &lights, Triangle &triangle);

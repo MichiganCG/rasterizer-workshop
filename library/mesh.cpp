@@ -84,7 +84,7 @@ void Mesh::load_file(const std::string &file_name)
                             // Cases: v/t, v/t/n
                             int texture_index;
                             element_ss >> texture_index;
-                            face.texture_indices[i] = texture_index - 1;
+                            face.texture_indices.push_back(texture_index - 1);
                         }
 
                         if (!element_ss.eof() && element_ss.peek() == '/')
@@ -92,7 +92,7 @@ void Mesh::load_file(const std::string &file_name)
                             // Cases: v//n, v/t/n
                             int normal_index;
                             element_ss >> ignore >> normal_index;
-                            face.normal_indices[i] = normal_index - 1;
+                            face.normal_indices.push_back(normal_index - 1);
                         }
                     }
                 }
@@ -102,6 +102,8 @@ void Mesh::load_file(const std::string &file_name)
             }
         }
         file.close();
+
+        fix_normals();
     }
     else
     {
@@ -112,7 +114,7 @@ void Mesh::load_file(const std::string &file_name)
 // Checks if the point is on the same side of the plane as the normal.
 inline bool infront(const Vec3 &point, const Plane &plane) { return dot(plane.normal, point - plane.point) >= 0; }
 
-std::vector<Vec3> sutherland_hodgman(std::vector<Vec3> &input_list, const std::vector<Plane> &clipping_planes)
+void sutherland_hodgman(std::vector<Vec3> &input_list, const std::vector<Plane> &clipping_planes)
 {
     std::vector<Vec3> out_list = input_list;
 
@@ -122,7 +124,7 @@ std::vector<Vec3> sutherland_hodgman(std::vector<Vec3> &input_list, const std::v
         out_list.clear();
 
         if (input_list.size() == 0)
-            return out_list;
+            std::swap(input_list, out_list);
 
         Vec3 *start = &input_list[input_list.size() - 1];
         for (size_t j = 0; j < input_list.size(); ++j)
@@ -145,5 +147,5 @@ std::vector<Vec3> sutherland_hodgman(std::vector<Vec3> &input_list, const std::v
             start = end;
         }
     }
-    return out_list;
+    std::swap(input_list, out_list);
 }
