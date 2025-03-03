@@ -59,14 +59,11 @@ void Material::load_file(const std::string &file_name)
     }
 }
 
-Color Material::get_color(Vec3 &point, Vec3 &normal, LightCollection &lights)
+Color Material::get_color(const Vec3 &point, const Vec3 &normal, LightCollection &lights)
 {
-    if (normal.x == 0 && normal.y == 0 && normal.z == 0)
-        return Color(1);
-
     Color diffuse_sum, specular_sum, color;
 
-    for (Light *light : lights)
+    for (const Light *light : lights)
     {
         diffuse_sum += light->color * std::max(0.0f, dot(normal, light->direction));
         specular_sum += light->color * std::pow(std::max(0.0f, dot(normal, normalize(point + light->direction))), shininess);
@@ -79,11 +76,11 @@ Color Material::get_color(Vec3 &point, Vec3 &normal, LightCollection &lights)
     return color;
 }
 
-void draw_line(Image &image, Vec2 &start, Vec2 &end)
+void draw_line(Image &image, Vec3 &start, Vec3 &end)
 {
     float u, v, du, dv, step;
-    du = end.u - start.u;
-    dv = end.v - start.v;
+    du = end.x - start.x;
+    dv = end.y - start.y;
 
     if (std::abs(du) >= std::abs(dv))
         step = std::abs(du);
@@ -92,8 +89,8 @@ void draw_line(Image &image, Vec2 &start, Vec2 &end)
 
     du = du / step;
     dv = dv / step;
-    u = start.u;
-    v = start.v;
+    u = start.x;
+    v = start.y;
     int i = 0;
     while (i <= step)
     {
@@ -106,28 +103,28 @@ void draw_line(Image &image, Vec2 &start, Vec2 &end)
 
 void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vertex &vertex0, const Vertex &vertex1, const Vertex &vertex2)
 {
-    const Vec2 &s0 = vertex0.screen, &s1 = vertex1.screen, &s2 = vertex2.screen;
+    const Vec3 &s0 = vertex0.screen, &s1 = vertex1.screen, &s2 = vertex2.screen;
 
-    uint32_t minu = std::clamp(std::min({s0.u, s1.u, s2.u}), 0.0f, image.get_width() - 1.0f);
-    uint32_t maxu = std::clamp(std::max({s0.u, s1.u, s2.u}), 0.0f, image.get_width() - 1.0f);
-    uint32_t minv = std::clamp(std::min({s0.v, s1.v, s2.v}), 0.0f, image.get_height() - 1.0f);
-    uint32_t maxv = std::clamp(std::max({s0.v, s1.v, s2.v}), 0.0f, image.get_height() - 1.0f);
+    uint32_t minu = std::clamp(std::min({s0.x, s1.x, s2.x}), 0.0f, image.get_width() - 1.0f);
+    uint32_t maxu = std::clamp(std::max({s0.x, s1.x, s2.x}), 0.0f, image.get_width() - 1.0f);
+    uint32_t minv = std::clamp(std::min({s0.y, s1.y, s2.y}), 0.0f, image.get_height() - 1.0f);
+    uint32_t maxv = std::clamp(std::max({s0.y, s1.y, s2.y}), 0.0f, image.get_height() - 1.0f);
 
-    Vec2 edge0 = s1 - s0, edge1 = s2 - s0;
+    Vec3 edge0 = s1 - s0, edge1 = s2 - s0;
     float d00 = dot(edge0, edge0);
     float d01 = dot(edge0, edge1);
     float d11 = dot(edge1, edge1);
     float area = d00 * d11 - d01 * d01;
 
-    float z0 = 1.0f / s0.w, z1 = 1.0f / s1.w, z2 = 1.0f / s2.w;
+    float z0 = 1.0f / s0.z, z1 = 1.0f / s1.z, z2 = 1.0f / s2.z;
 
     for (uint32_t u = minu; u <= maxu; ++u)
     {
         for (uint32_t v = minv; v <= maxv; ++v)
         {
-            Vec2 pixel(u + 0.5f, v + 0.5f);
+            Vec3 pixel(u + 0.5f, v + 0.5f);
 
-            Vec2 edge2 = pixel - s0;
+            Vec3 edge2 = pixel - s0;
             float d20 = dot(edge2, edge0);
             float d21 = dot(edge2, edge1);
 
@@ -153,30 +150,30 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vert
 
 void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightCollection &lights, const Vertex &vertex0, const Vertex &vertex1, const Vertex &vertex2)
 {
-    const Vec3 &p0 = vertex0.point, &p1 = vertex1.point, &p2 = vertex2.point;
-    const Vec3 &n0 = vertex0.normal, &n1 = vertex1.normal, &n2 = vertex2.normal;
-    const Vec2 &s0 = vertex0.screen, &s1 = vertex1.screen, &s2 = vertex2.screen;
+    const Vec4 &p0 = vertex0.point, &p1 = vertex1.point, &p2 = vertex2.point;
+    const Vec4 &n0 = vertex0.normal, &n1 = vertex1.normal, &n2 = vertex2.normal;
+    const Vec3 &s0 = vertex0.screen, &s1 = vertex1.screen, &s2 = vertex2.screen;
 
-    uint32_t minu = std::clamp(std::min({s0.u, s1.u, s2.u}), 0.0f, image.get_width() - 1.0f);
-    uint32_t maxu = std::clamp(std::max({s0.u, s1.u, s2.u}), 0.0f, image.get_width() - 1.0f);
-    uint32_t minv = std::clamp(std::min({s0.v, s1.v, s2.v}), 0.0f, image.get_height() - 1.0f);
-    uint32_t maxv = std::clamp(std::max({s0.v, s1.v, s2.v}), 0.0f, image.get_height() - 1.0f);
+    uint32_t minu = std::clamp(std::min({s0.x, s1.x, s2.x}), 0.0f, image.get_width() - 1.0f);
+    uint32_t maxu = std::clamp(std::max({s0.x, s1.x, s2.x}), 0.0f, image.get_width() - 1.0f);
+    uint32_t minv = std::clamp(std::min({s0.y, s1.y, s2.y}), 0.0f, image.get_height() - 1.0f);
+    uint32_t maxv = std::clamp(std::max({s0.y, s1.y, s2.y}), 0.0f, image.get_height() - 1.0f);
 
-    Vec2 edge0 = s1 - s0, edge1 = s2 - s0;
+    Vec3 edge0 = s1 - s0, edge1 = s2 - s0;
     float d00 = dot(edge0, edge0);
     float d01 = dot(edge0, edge1);
     float d11 = dot(edge1, edge1);
     float area = d00 * d11 - d01 * d01;
 
-    float z0 = 1.0f / s0.w, z1 = 1.0f / s1.w, z2 = 1.0f / s2.w;
+    float z0 = 1.0f / s0.z, z1 = 1.0f / s1.z, z2 = 1.0f / s2.z;
 
     for (uint32_t u = minu; u <= maxu; ++u)
     {
         for (uint32_t v = minv; v <= maxv; ++v)
         {
-            Vec2 pixel(u + 0.5f, v + 0.5f);
+            Vec3 pixel(u + 0.5f, v + 0.5f);
 
-            Vec2 edge2 = pixel - s0;
+            Vec3 edge2 = pixel - s0;
             float d20 = dot(edge2, edge0);
             float d21 = dot(edge2, edge1);
 
@@ -193,8 +190,8 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightColl
                 {
                     depth.at(u, v) = z;
 
-                    Vec3 point = p0 * a + p1 * b + p2 * c;
-                    Vec3 normal = normalize(n0 * a + n1 * b + n2 * c);
+                    Vec4 point = p0 * a + p1 * b + p2 * c;
+                    Vec4 normal = normalize(n0 * a + n1 * b + n2 * c);
                     Color color = mat.get_color(point, normal, lights);
                     image.set_pixel(u, v, color);
                 }

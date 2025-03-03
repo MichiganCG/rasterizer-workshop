@@ -111,11 +111,32 @@ void Mesh::load_file(const std::string &file_name)
     }
 }
 
-std::vector<Vec3> clipping_planes = {
-    {-1, 0, 0},
-    {1, 0, 0},
-    {0, -1, 0},
-    {0, 1, 0},
+void Mesh::fix_normals()
+{
+    for (auto &face : faces)
+    {
+        if (face.normal_indices.size() == 0)
+        {
+            const Vec4 &v0 = face.get_vertex(0), &v1 = face.get_vertex(1), &v2 = face.get_vertex(2);
+
+            // Compute face normal
+            Vec4 normal = normalize(cross(v1 - v0, v2 - v0));
+            normal.w = 0;
+
+            int index = (int)normals.size();
+            normals.push_back(normal);
+
+            for (size_t i = 0; i < face.size; ++i)
+                face.normal_indices.push_back(index);
+        }
+    }
+}
+
+std::vector<Vec4> clipping_planes = {
+    //{-1, 0, 0},
+    //{1, 0, 0},
+    //{0, -1, 0},
+    //{0, 1, 0},
     {0, 0, -1},
     {0, 0, 1},
 };
@@ -124,7 +145,7 @@ void sutherland_hodgman_clip(std::vector<Vertex> &vertex_list)
 {
     std::vector<Vertex> out_list = vertex_list;
 
-    for (const Vec3 &normal : clipping_planes)
+    for (const Vec4 &plane : clipping_planes)
     {
         std::swap(vertex_list, out_list);
         out_list.clear();
@@ -137,8 +158,8 @@ void sutherland_hodgman_clip(std::vector<Vertex> &vertex_list)
         {
             Vertex *end = &vertex_list[j];
 
-            float d0 = dot(start->point, normal) + start->point.w;
-            float d1 = dot(end->point, normal) + end->point.w;
+            float d0 = dot(start->point, plane);
+            float d1 = dot(end->point, plane);
 
             if (d0 > 0)
             {

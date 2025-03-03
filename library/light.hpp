@@ -16,7 +16,7 @@ public:
     Color color;
     Vec3 direction;
 
-    Light(Color color, Vec3 direction) : color(color), direction(direction) {}
+    Light(Color color, Vec3 direction) : color(color), direction(normalize(direction)) {}
     virtual ~Light() = default;
 };
 
@@ -54,13 +54,13 @@ public:
 
     void load_file(const std::string &file_name);
 
-    Color get_color(Vec3 &point, Vec3 &normal, LightCollection &lights);
+    Color get_color(const Vec3 &point, const Vec3 &normal, LightCollection &lights);
 };
 
 /**
  * Uses the Digital Differential Analyzer (DDA) method to draw a line from 'start' to 'end'.
  */
-void draw_line(Image &image, Vec2 &start, Vec2 &end);
+void draw_line(Image &image, const Vec3 &start, const Vec3 &end);
 
 /**
  * Uses barycentric coordinates to fill a triangle.

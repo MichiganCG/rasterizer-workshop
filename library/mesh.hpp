@@ -11,10 +11,10 @@
 
 struct Vertex
 {
-    Vec3 point;
-    Vec3 normal;
-    Vec2 screen;
-    Vec2 texture;
+    Vec4 point;
+    Vec4 normal;
+    Vec3 screen;
+    Vec3 texture;
 };
 
 /**
@@ -50,9 +50,9 @@ public:
         Face() = delete;
         Face(const Mesh *mesh, size_t size) : owner(mesh), size(size), vertex_indices(size) {}
 
-        const Vec3 &get_vertex(size_t i) const { return owner->vertices[vertex_indices[i]]; }
-        const Vec2 &get_texture(size_t i) const { return owner->textures[texture_indices[i]]; }
-        const Vec3 &get_normal(size_t i) const { return owner->normals[normal_indices[i]]; }
+        const Vec4 &get_vertex(size_t i) const { return owner->vertices[vertex_indices[i]]; }
+        const Vec3 &get_texture(size_t i) const { return owner->textures[texture_indices[i]]; }
+        const Vec4 &get_normal(size_t i) const { return owner->normals[normal_indices[i]]; }
     };
 
     /**
@@ -72,32 +72,13 @@ public:
     std::vector<Face>::iterator end() { return faces.end(); }
 
 private:
-    std::vector<Vec3> vertices;
-    std::vector<Vec2> textures;
-    std::vector<Vec3> normals;
+    std::vector<Vec4> vertices;
+    std::vector<Vec3> textures;
+    std::vector<Vec4> normals;
 
     std::vector<Face> faces;
 
-    void fix_normals()
-    {
-        for (auto &face : faces)
-        {
-            if (face.normal_indices.size() == 0)
-            {
-                const Vec3 &v0 = face.get_vertex(0), &v1 = face.get_vertex(1), &v2 = face.get_vertex(2);
-
-                // Compute face normal
-                Vec3 normal = normalize(cross(v1 - v0, v2 - v0));
-                normal.w = 0;
-
-                int index = (int)normals.size();
-                normals.push_back(normal);
-
-                for (size_t i = 0; i < face.size; ++i)
-                    face.normal_indices.push_back(index);
-            }
-        }
-    }
+    void fix_normals();
 };
 
 /**
