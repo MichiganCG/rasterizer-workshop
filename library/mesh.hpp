@@ -32,7 +32,7 @@ public:
 };
 
 /**
- * A collection of triangle faces and vertices.
+ * A collection of faces and vertices.
  */
 class Mesh
 {
@@ -51,38 +51,23 @@ public:
         load_file(file_name);
     }
 
-    struct Triangle
+    /**
+     * A struct containing a list of vertices, texture coordinates, and normals.
+     */
+    struct Face
     {
         const Mesh *owner;
-        int vertex_indices[3];
-        int texture_indices[3];
-        int normal_indices[3];
+        size_t size;
+        std::vector<int> vertex_indices;
+        std::vector<int> texture_indices;
+        std::vector<int> normal_indices;
 
-        Triangle(const Mesh *mesh) : owner(mesh) {}
+        Face() = delete;
+        Face(const Mesh *mesh, size_t size) : owner(mesh), size(size), vertex_indices(size), texture_indices(size), normal_indices(size) {}
+
         const Vec3 &get_vertex(size_t i) const { return owner->vertices[vertex_indices[i]]; }
         const Vec2 &get_texture(size_t i) const { return owner->textures[texture_indices[i]]; }
         const Vec3 &get_normal(size_t i) const { return owner->normals[normal_indices[i]]; }
-
-        void set_vertices(int v0, int v1, int v2)
-        {
-            vertex_indices[0] = v0;
-            vertex_indices[1] = v1;
-            vertex_indices[2] = v2;
-        }
-
-        void set_textures(int t0, int t1, int t2)
-        {
-            texture_indices[0] = t0;
-            texture_indices[1] = t1;
-            texture_indices[2] = t2;
-        }
-
-        void set_normals(int n0, int n1, int n2)
-        {
-            normal_indices[0] = n0;
-            normal_indices[1] = n1;
-            normal_indices[2] = n2;
-        }
     };
 
     /**
@@ -90,23 +75,28 @@ public:
      */
     void load_file(const std::string &file_name);
 
-    size_t size() { return triangles.size(); }
+    size_t size() const { return faces.size(); }
 
-    const Triangle &at(size_t i) const { return triangles[i]; }
-    Triangle &at(size_t i) { return triangles[i]; }
+    const Face &at(size_t i) const { return faces[i]; }
+    Face &at(size_t i) { return faces[i]; }
 
-    const Triangle &operator[](size_t i) const { return at(i); }
-    Triangle &operator[](size_t i) { return at(i); }
+    const Face &operator[](size_t i) const { return at(i); }
+    Face &operator[](size_t i) { return at(i); }
 
-    std::vector<Triangle>::iterator begin() { return triangles.begin(); }
-    std::vector<Triangle>::iterator end() { return triangles.end(); }
+    std::vector<Face>::iterator begin() { return faces.begin(); }
+    std::vector<Face>::iterator end() { return faces.end(); }
 
 private:
     std::vector<Vec3> vertices;
     std::vector<Vec3> normals;
     std::vector<Vec2> textures;
 
-    std::vector<Triangle> triangles;
+    std::vector<Face> faces;
+};
+
+struct Triangle
+{
+    Vec2 &v0, &v1, &v2;
 };
 
 /**
@@ -116,12 +106,11 @@ private:
 std::vector<Vec3> sutherland_hodgman(std::vector<Vec3> &input_list, const std::vector<Plane> &clipping_planes);
 
 /**
- * Digital Differential Analyzer.
- * Draws a line from 'start' to 'end'.
+ * Uses the Digital Differential Analyzer method to draw a line from 'start' to 'end'.
  */
-void draw_DDA(Image &image, Vec2 &start, Vec2 &end);
+void draw_line(Image &image, Vec2 &start, Vec2 &end);
 
 /**
  * Uses barycentric coordinates to fill a triangle.
  */
-void draw_barycentric(Image &image, DepthBuffer &depth, Vec2 &t1, Vec2 &t2, Vec2 &t3);
+void draw_barycentric(Image &image, DepthBuffer &depth, Triangle &triangle);

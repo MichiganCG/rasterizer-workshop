@@ -50,22 +50,28 @@ void Mesh::load_file(const std::string &file_name)
 
             if (key == "f") // face element
             {
-                std::string element;
+                std::vector<std::string> elements;
 
-                size_t count = 0;
-                std::vector<int> vertex_indices;
-                std::vector<int> texture_indices;
-                std::vector<int> normal_indices;
+                size_t size = 0;
 
-                while (ss >> element)
+                while (!ss.eof())
                 {
-                    ++count;
+                    std::string element;
+                    ss >> element;
+                    elements.push_back(element);
+                    ++size;
+                }
+
+                Face face(this, size);
+
+                for (size_t i = 0; i < size; ++i)
+                {
                     // Cases: v, v/t, v//n, v/t/n
-                    std::stringstream element_ss(element);
+                    std::stringstream element_ss(elements[i]);
 
                     int vertex_index;
                     element_ss >> vertex_index;
-                    vertex_indices.push_back(vertex_index - 1);
+                    face.vertex_indices[i] = vertex_index - 1;
 
                     if (!element_ss.eof() && element_ss.peek() == '/')
                     {
@@ -78,7 +84,7 @@ void Mesh::load_file(const std::string &file_name)
                             // Cases: v/t, v/t/n
                             int texture_index;
                             element_ss >> texture_index;
-                            texture_indices.push_back(texture_index - 1);
+                            face.texture_indices[i] = texture_index - 1;
                         }
 
                         if (!element_ss.eof() && element_ss.peek() == '/')
@@ -86,23 +92,12 @@ void Mesh::load_file(const std::string &file_name)
                             // Cases: v//n, v/t/n
                             int normal_index;
                             element_ss >> ignore >> normal_index;
-                            normal_indices.push_back(normal_index - 1);
+                            face.normal_indices[i] = normal_index - 1;
                         }
                     }
                 }
 
-                // Split polygon into triangles using Fan Triangulation: https://en.wikipedia.org/wiki/Fan_triangulation
-                for (size_t i = 1; i < count - 1; ++i)
-                {
-                    Triangle triangle(this);
-                    triangle.set_vertices(vertex_indices[0], vertex_indices[i], vertex_indices[i + 1]);
-                    if (!texture_indices.empty())
-                        triangle.set_textures(texture_indices[0], texture_indices[i], texture_indices[i + 1]);
-                    if (!normal_indices.empty())
-                        triangle.set_normals(normal_indices[0], normal_indices[i], normal_indices[i + 1]);
-
-                    triangles.push_back(triangle);
-                }
+                faces.push_back(face);
                 continue;
             }
         }
@@ -153,7 +148,7 @@ std::vector<Vec3> sutherland_hodgman(std::vector<Vec3> &input_list, const std::v
     return out_list;
 }
 
-void draw_DDA(Image &image, Vec2 &start, Vec2 &end)
+void draw_line(Image &image, Vec2 &start, Vec2 &end)
 {
     float u, v, du, dv, step;
     du = end.u - start.u;
@@ -178,43 +173,51 @@ void draw_DDA(Image &image, Vec2 &start, Vec2 &end)
     }
 }
 
-Vec2 get_barycentric(Vec2 p, Vec2 &t1, Vec2 &t2, Vec2 &t3)
+void draw_barycentric(Image &image, DepthBuffer &depth, Triangle &triangle)
 {
-    Vec2 v0 = t2 - t1, v1 = t3 - t1, v2 = p - t1;
-    float d00 = dot(v0, v0);
-    float d01 = dot(v0, v1);
-    float d11 = dot(v1, v1);
-    float d20 = dot(v2, v0);
-    float d21 = dot(v2, v1);
-    float denom = d00 * d11 - d01 * d01; // Area of full triangle
-    Vec2 out;
-    out.v = (d11 * d20 - d01 * d21) / denom;
-    out.w = (d00 * d21 - d01 * d20) / denom;
-    out.u = 1.0f - out.v - out.w;
-    return out;
-}
+    Vec2 &v0 = triangle.v0, &v1 = triangle.v1, &v2 = triangle.v2;
 
-void draw_barycentric(Image &image, DepthBuffer &depth, Vec2 &t1, Vec2 &t2, Vec2 &t3)
-{
-    uint32_t minu = std::min({t1.u, t2.u, t3.u}), minv = std::min({t1.v, t2.v, t3.v});
-    uint32_t maxu = std::max({t1.u, t2.u, t3.u}), maxv = std::max({t1.v, t2.v, t3.v});
+    uint32_t minu = std::min({v0.u, v1.u, v2.u});
+    uint32_t maxu = std::max({v0.u, v1.u, v2.u});
+    uint32_t minv = std::min({v0.v, v1.v, v2.v});
+    uint32_t maxv = std::max({v0.v, v1.v, v2.v});
 
-    for (uint32_t v = minv; v < maxv; ++v)
+    uint32_t du = maxu - minu + 1;
+    uint32_t dv = maxv - minv + 1;
+
+    Vec2 edge0 = v1 - v0, edge1 = v2 - v0;
+    float d00 = dot(edge0, edge0);
+    float d01 = dot(edge0, edge1);
+    float d11 = dot(edge1, edge1);
+
+    float area = d00 * d11 - d01 * d01;
+
+    float z0 = 1.0f / v0.w, z1 = 1.0f / v1.w, z2 = 1.0f / v2.w;
+
+    for (uint32_t i = 0; i < du * dv; ++i)
     {
-        for (uint32_t u = minu; u < maxu; ++u)
+        uint32_t u = i % du + minu;
+        uint32_t v = i / du + minv;
+        Vec2 pixel(u, v);
+
+        Vec2 edge2 = pixel - v0;
+        float d20 = dot(edge2, edge0);
+        float d21 = dot(edge2, edge1);
+
+        float b = (d11 * d20 - d01 * d21) / area;
+        float c = (d00 * d21 - d01 * d20) / area;
+        float a = 1.0f - b - c;
+
+        if (a >= 0 && b >= 0 && c >= 0)
         {
-            Vec2 bary = get_barycentric({u, v}, t1, t2, t3);
-
-            if (bary.u >= 0 && bary.v >= 0 && bary.w >= 0)
+            float inverse_z = a * z0 + b * z1 + c * z2;
+            float z = 1 / inverse_z;
+            if (z <= depth.at(u, v))
             {
-                float z = 1 / (bary.u / t1.w + bary.v / t2.w + bary.w / t3.w);
-                if (z < depth.at(u, v))
-                {
-                    depth.at(u, v) = z;
+                depth.at(u, v) = z;
 
-                    Color color(bary.u, bary.v, bary.w);
-                    image.set_pixel(u, v, color);
-                }
+                Color color(a, b, c);
+                image.set_pixel(u, v, color);
             }
         }
     }
