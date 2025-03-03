@@ -111,41 +111,61 @@ void Mesh::load_file(const std::string &file_name)
     }
 }
 
-// Checks if the point is on the same side of the plane as the normal.
-inline bool infront(const Vec3 &point, const Plane &plane) { return dot(plane.normal, point - plane.point) >= 0; }
+std::vector<Vec3> clipping_planes = {
+    {-1, 0, 0},
+    {1, 0, 0},
+    {0, -1, 0},
+    {0, 1, 0},
+    {0, 0, -1},
+    {0, 0, 1},
+};
 
-void sutherland_hodgman(std::vector<Vec3> &input_list, const std::vector<Plane> &clipping_planes)
+void sutherland_hodgman_clip(std::vector<Vertex> &vertex_list)
 {
-    std::vector<Vec3> out_list = input_list;
+    std::vector<Vertex> out_list = vertex_list;
 
-    for (const Plane &plane : clipping_planes)
+    for (const Vec3 &normal : clipping_planes)
     {
-        std::swap(input_list, out_list);
+        std::swap(vertex_list, out_list);
         out_list.clear();
 
-        if (input_list.size() == 0)
-            std::swap(input_list, out_list);
+        if (vertex_list.size() == 0)
+            return;
 
-        Vec3 *start = &input_list[input_list.size() - 1];
-        for (size_t j = 0; j < input_list.size(); ++j)
+        Vertex *start = &vertex_list[vertex_list.size() - 1];
+        for (size_t j = 0; j < vertex_list.size(); ++j)
         {
-            Vec3 *end = &input_list[j];
+            Vertex *end = &vertex_list[j];
 
-            std::optional<Vec3> hit = intersect_plane(plane.point, plane.normal, *start, *end);
-            if (infront(*start, plane))
+            float d0 = dot(start->point, normal) + start->point.w;
+            float d1 = dot(end->point, normal) + end->point.w;
+
+            if (d0 > 0)
             {
-                if (infront(*end, plane))
+                if (d1 > 0)
+                {
                     out_list.push_back(*end);
+                }
                 else
-                    out_list.push_back(*hit);
+                {
+                    Vertex intersect;
+                    float a = d0 / (d0 - d1);
+                    intersect.point = start->point * (1.0f - a) + end->point * (a);
+                    intersect.normal = start->normal * (1.0f - a) + end->normal * (a);
+                    out_list.push_back(intersect);
+                }
             }
-            else if (infront(*end, plane))
+            else if (d1 > 0)
             {
-                out_list.push_back(*hit);
+                Vertex intersect;
+                float a = d0 / (d0 - d1);
+                intersect.point = start->point * (1.0f - a) + end->point * (a);
+                intersect.normal = start->normal * (1.0f - a) + end->normal * (a);
+                out_list.push_back(intersect);
                 out_list.push_back(*end);
             }
             start = end;
         }
     }
-    std::swap(input_list, out_list);
+    std::swap(vertex_list, out_list);
 }

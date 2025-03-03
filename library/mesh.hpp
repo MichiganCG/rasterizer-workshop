@@ -9,13 +9,12 @@
 #include "vectors.hpp"
 #include "library.hpp"
 
-/**
- * A plane is defined by a point and normal vector.
- */
-struct Plane
+struct Vertex
 {
     Vec3 point;
     Vec3 normal;
+    Vec2 screen;
+    Vec2 texture;
 };
 
 /**
@@ -101,29 +100,8 @@ private:
     }
 };
 
-class Triangle
-{
-    int indices[3];
-    std::vector<Vec2> &points;
-    std::vector<Vec3> &vertices;
-    std::vector<Vec3> &normals;
-
-public:
-    Triangle() = default;
-    Triangle(size_t index, std::vector<Vec2> &points, std::vector<Vec3> &vertices, std::vector<Vec3> &normals) : points(points), vertices(vertices), normals(normals)
-    {
-        indices[0] = 0;
-        indices[1] = index;
-        indices[2] = index + 1;
-    }
-
-    const Vec2 &point(size_t i) const { return points[indices[i]]; }
-    const Vec3 &vertex(size_t i) const { return vertices[indices[i]]; }
-    const Vec3 &normal(size_t i) const { return normals[indices[i]]; }
-};
-
 /**
  * Clips the given polygon using the Sutherland-Hodgman algorithm.
- * Modifies the 'input_list' with the clipped vertices.
+ * Modifies the 'vertex_list'.
  */
-void sutherland_hodgman(std::vector<Vec3> &input_list, const std::vector<Plane> &clipping_planes);
+void sutherland_hodgman_clip(std::vector<Vertex> &vertex_list);
