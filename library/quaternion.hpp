@@ -41,24 +41,24 @@ public:
      * Applies the rotation of this quaternion to the vector `<1, 0, 0>`.
      * @returns The right direction vector.
      */
-    Vec3 right();
+    Vec4 right();
 
     /**
      * Applies the rotation of this quaternion to the vector `<0, 1, 0>`.
      * @returns The up direction vector.
      */
-    Vec3 up();
+    Vec4 up();
 
     /**
      * Applies the rotation of this quaternion to the vector `<0, 0, 1>`.
      * @returns The forward direction vector.
      */
-    Vec3 forward();
+    Vec4 forward();
 
     /**
      * @returns The imaginary component (bivector) of this quaternion
      */
-    Vec3 bivector();
+    Vec4 bivector();
 
     /**
      * Computes the axis-angle representation of this rotation.

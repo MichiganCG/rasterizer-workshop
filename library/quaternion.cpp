@@ -30,33 +30,36 @@ Quaternion &Quaternion::operator=(const Quaternion &other) &
     return *this;
 }
 
-Vec3 Quaternion::right()
+Vec4 Quaternion::right()
 {
     return {
         1 - (2 * (y * y + z * z)),
         2 * (x * y + w * z),
-        2 * (x * z - w * y)};
+        2 * (x * z - w * y),
+        0};
 }
 
-Vec3 Quaternion::up()
+Vec4 Quaternion::up()
 {
     return {
         2 * (x * y - w * z),
         1 - (2 * (x * x + z * z)),
-        2 * (y * z + w * x)};
+        2 * (y * z + w * x),
+        0};
 }
 
-Vec3 Quaternion::forward()
+Vec4 Quaternion::forward()
 {
     return {
         2 * (x * z + w * y),
         2 * (y * z - w * x),
-        1 - (2 * (x * x + y * y))};
+        1 - (2 * (x * x + y * y)),
+        0};
 }
 
-Vec3 Quaternion::bivector()
+Vec4 Quaternion::bivector()
 {
-    return {x, y, z};
+    return {x, y, z, 0};
 }
 
 void Quaternion::axis_angle(Vec3 &axis_out, float &angle_out)
@@ -83,8 +86,6 @@ Quaternion &Quaternion::operator*=(const Quaternion &rhs)
     return (*this = quaternion);
 }
 
-Quaternion operator*(Quaternion lhs, Quaternion rhs) { return (lhs *= rhs); }
-
 Quaternion &Quaternion::operator*=(float rhs)
 {
     w *= rhs;
@@ -94,6 +95,7 @@ Quaternion &Quaternion::operator*=(float rhs)
     return *this;
 }
 
+Quaternion operator*(Quaternion lhs, Quaternion rhs) { return (lhs *= rhs); }
 Quaternion operator*(Quaternion lhs, float rhs) { return (lhs *= rhs); }
 
 std::ostream &operator<<(std::ostream &os, const Quaternion &rhs)
