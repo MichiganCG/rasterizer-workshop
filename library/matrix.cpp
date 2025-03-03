@@ -25,8 +25,6 @@ Matrix4 &Matrix4::operator+=(const Matrix4 &other)
     return *this;
 }
 
-Matrix4 operator+(Matrix4 lhs, const Matrix4 &rhs) { return (lhs += rhs); }
-
 Matrix4 &Matrix4::operator-=(const Matrix4 &other)
 {
     for (size_t i = 0; i < 16; ++i)
@@ -34,8 +32,6 @@ Matrix4 &Matrix4::operator-=(const Matrix4 &other)
 
     return *this;
 }
-
-Matrix4 operator-(Matrix4 lhs, const Matrix4 &rhs) { return (lhs -= rhs); }
 
 Matrix4 &Matrix4::operator*=(const Matrix4 &rhs)
 {
@@ -53,22 +49,14 @@ Matrix4 &Matrix4::operator*=(const Matrix4 &rhs)
     return (*this = matrix);
 }
 
-Matrix4 operator*(Matrix4 lhs, const Matrix4 &rhs) { return (lhs *= rhs); }
-
-Vec3 operator*(const Matrix4 &lhs, const Vec3 &rhs)
+Vec4 operator*(const Matrix4 &lhs, const Vec4 &rhs)
 {
-    Vec3 vector;
+    Vec4 vector;
     vector.x = rhs.x * lhs.at(0, 0) + rhs.y * lhs.at(0, 1) + rhs.z * lhs.at(0, 2) + rhs.w * lhs.at(0, 3);
     vector.y = rhs.x * lhs.at(1, 0) + rhs.y * lhs.at(1, 1) + rhs.z * lhs.at(1, 2) + rhs.w * lhs.at(1, 3);
     vector.z = rhs.x * lhs.at(2, 0) + rhs.y * lhs.at(2, 1) + rhs.z * lhs.at(2, 2) + rhs.w * lhs.at(2, 3);
     vector.w = rhs.x * lhs.at(3, 0) + rhs.y * lhs.at(3, 1) + rhs.z * lhs.at(3, 2) + rhs.w * lhs.at(3, 3);
-
     return vector;
-}
-
-Vec3 operator*(const Vec3 &lhs, const Matrix4 &rhs)
-{
-    return rhs * lhs;
 }
 
 Matrix4 &Matrix4::operator*=(float rhs)
@@ -80,7 +68,11 @@ Matrix4 &Matrix4::operator*=(float rhs)
     return *this;
 }
 
+Matrix4 operator+(Matrix4 lhs, const Matrix4 &rhs) { return (lhs += rhs); }
+Matrix4 operator-(Matrix4 lhs, const Matrix4 &rhs) { return (lhs -= rhs); }
+Matrix4 operator*(Matrix4 lhs, const Matrix4 &rhs) { return (lhs *= rhs); }
 Matrix4 operator*(Matrix4 lhs, float rhs) { return (lhs *= rhs); }
+Vec4 operator*(const Vec4 &lhs, const Matrix4 &rhs) { return rhs * lhs; }
 
 std::ostream &operator<<(std::ostream &os, const Matrix4 &rhs)
 {

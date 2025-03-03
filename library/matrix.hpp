@@ -102,8 +102,8 @@ Matrix4 operator-(Matrix4 lhs, const Matrix4 &rhs);
 Matrix4 operator*(Matrix4 lhs, const Matrix4 &rhs);
 Matrix4 operator*(Matrix4 lhs, float rhs);
 
-Vec3 operator*(const Matrix4 &lhs, const Vec3 &rhs);
-Vec3 operator*(const Vec3 &lhs, const Matrix4 &rhs);
+Vec4 operator*(const Matrix4 &lhs, const Vec4 &rhs);
+Vec4 operator*(const Vec4 &lhs, const Matrix4 &rhs);
 
 /**
  * Creates a rotation matrix that looks from the eye to the target.
