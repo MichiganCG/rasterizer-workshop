@@ -37,7 +37,6 @@ public:
 class Mesh
 {
 public:
-
     /**
      * Default constructor.
      */
@@ -94,23 +93,8 @@ private:
     std::vector<Face> faces;
 };
 
-struct Triangle
-{
-    Vec2 &v0, &v1, &v2;
-};
-
 /**
  * Clips the given polygon using the Sutherland-Hodgman algorithm.
  * @returns A list of clipped vertices
  */
 std::vector<Vec3> sutherland_hodgman(std::vector<Vec3> &input_list, const std::vector<Plane> &clipping_planes);
-
-/**
- * Uses the Digital Differential Analyzer method to draw a line from 'start' to 'end'.
- */
-void draw_line(Image &image, Vec2 &start, Vec2 &end);
-
-/**
- * Uses barycentric coordinates to fill a triangle.
- */
-void draw_barycentric(Image &image, DepthBuffer &depth, Triangle &triangle);

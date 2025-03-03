@@ -2,6 +2,7 @@
 #include "library/quaternion.hpp"
 #include "library/matrix.hpp"
 #include "library/mesh.hpp"
+#include "library/light.hpp"
 #include "library/library.hpp"
 
 #include <string>
@@ -16,7 +17,7 @@ const std::vector<Plane> clipping_planes = {
 	{{1, 0, 0}, {-1, 0, 0, 0}},
 	{{0, -1, 0}, {0, 1, 0, 0}},
 	{{0, 1, 0}, {0, -1, 0, 0}},
-	{{0, 0, 0}, {0, 0, 1, 0}},
+	{{0, 0, -1}, {0, 0, 1, 0}},
 	{{0, 0, 1}, {0, 0, -1, 0}},
 };
 
@@ -26,17 +27,18 @@ int main()
 	DepthBuffer depth(ImageWidth, ImageHeight);
 
 	// Load models
-	Mesh model("model.obj");
+	Mesh model("uv_sphere.obj");
 
 	// Set the object's transformation
 	Vec3 object_position(0, 0, -5);
-	Quaternion object_rotation({0, 1, 0}, 0.5);
+	Quaternion object_rotation({0, 1, 2}, 1.5);
 	Matrix4 m_model;
 	rotate(m_model, object_rotation);
 	translate(m_model, object_position);
 
 	// Set the projection matrix
 	Matrix4 m_projection = perspective_projection(90, aspect_ratio, 0.1, 1000);
+
 	// Set the viewspace matrix
 	Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
 
@@ -45,14 +47,23 @@ int main()
 	for (auto &face : model)
 	{
 		std::vector<Vec3> vertices(face.size);
-		std::vector<Color> colors(face.size);
+		std::vector<Vec3> normals(face.size);
 		// Transform vertices from model space to clip space
+		bool display = false;
 		for (size_t i = 0; i < face.size; ++i)
 		{
 			vertices[i] = m_total * face.get_vertex(i);
+
+			normals[i] = m_model * face.get_normal(i);
+			float d = dot(normals[i], Vec3::FORWARD);
+			if (d >= 0)
+				display = true;
 		}
 
-		// Clip triangles to be bounded within [-1, 1] on the x- and y-axes, and between [0, 1] on the z-axis.
+		if (!display)
+			continue;
+
+		// Clip triangles to be bounded within [-1, 1] on all axes.
 		vertices = sutherland_hodgman(vertices, clipping_planes);
 
 		if (vertices.size() == 0) // Skip triangles that are not on the screen
@@ -68,8 +79,7 @@ int main()
 		// Split polygon into triangles using Fan Triangulation: https://en.wikipedia.org/wiki/Fan_triangulation
 		for (size_t i = 0; i < points.size() - 1; ++i)
 		{
-			Triangle triangle(points[0], points[i], points[i + 1]);
-			draw_barycentric(image, depth, triangle);
+			draw_barycentric(image, depth, points[0], points[i], points[i + 1], normals[0], normals[i], normals[i + 1]);
 		}
 	}
 
