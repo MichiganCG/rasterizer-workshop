@@ -9,11 +9,12 @@ Quaternion::Quaternion(float w, float x, float y, float z) : w(w), x(x), y(y), z
 
 Quaternion::Quaternion(const Vec3 &axis, float angle) : Quaternion()
 {
+    Vec3 normal_axis = normalize(axis);
     w = std::cos(angle * 0.5);
     float sin_half = std::sin(angle * 0.5);
-    x = axis.x * sin_half;
-    y = axis.y * sin_half;
-    z = axis.z * sin_half;
+    x = normal_axis.x * sin_half;
+    y = normal_axis.y * sin_half;
+    z = normal_axis.z * sin_half;
 }
 
 Quaternion::Quaternion(const Quaternion &other) : w(other.w), x(other.x), y(other.y), z(other.z) {}
@@ -69,7 +70,7 @@ void Quaternion::axis_angle(Vec3 &axis_out, float &angle_out)
 
 Quaternion &Quaternion::rotate(const Vec3 &axis, float angle)
 {
-    return (*this *= Quaternion(normalize(axis), angle));
+    return (*this *= Quaternion(axis, angle));
 }
 
 Quaternion &Quaternion::operator*=(const Quaternion &rhs)

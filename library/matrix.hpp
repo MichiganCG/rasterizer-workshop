@@ -129,6 +129,17 @@ Matrix4 rotate(const Quaternion &rotation);
 Matrix4 quick_inverse(const Matrix4 &input);
 
 /**
+ * Creates a symmetric orthographic projection matrix.
+ *
+ * This matrix is used to convert from view space to clip space orthographically.
+ * @param right The right side of the viewing volume.
+ * @param top   The top side of the viewing volume.
+ * @param near  The distance to the 'near' clipping plane through the negative z-axis.
+ * @param far   The distance to the 'far' clipping plane through the negative z-axis.
+ */
+Matrix4 orthographic_projection(float right, float top, float near, float far);
+
+/**
  * Creates a symmetric frustum using horizontal FOV.
  *
  * This matrix is used to convert from view space to clip space.

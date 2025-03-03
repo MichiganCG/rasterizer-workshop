@@ -186,6 +186,17 @@ Matrix4 quick_inverse(const Matrix4 &input)
     return matrix;
 }
 
+Matrix4 orthographic_projection(float right, float top, float near, float far)
+{
+    Matrix4 matrix;
+    matrix.at(0, 0) = 1 / right;
+    matrix.at(1, 1) = 1 / top;
+    matrix.at(2, 2) = -2 / (far - near);
+    matrix.at(2, 3) = -(far + near) / (far - near);
+    matrix.at(3, 3) = 1;
+    return matrix;
+}
+
 Matrix4 perspective_projection(float fov, float aspect_ratio, float near, float far)
 {
     const float DEG2RAD = std::acos(-1.0f) / 180;
