@@ -133,17 +133,17 @@ void Mesh::fix_normals()
 }
 
 const std::vector<Vec4> clipping_planes = {
-    {-0.5, 0, 0},
-    {0.5, 0, 0},
-    {0, -0.5, 0},
-    {0, 0.5, 0},
-    {0, 0, -1},
-    {0, 0, 1},
+    {-1, 0, 0}, // left
+    {1, 0, 0},  // right
+    {0, -1, 0}, // bottom
+    {0, 1, 0},  // top
+    {0, 0, -1}, // near
+    {0, 0, 1},  // far
 };
 
-void sutherland_hodgman_clip(std::vector<Vertex> &vertex_list)
+void sutherland_hodgman(std::vector<VertexData> &vertex_list)
 {
-    std::vector<Vertex> out_list = vertex_list;
+    std::vector<VertexData> out_list = vertex_list;
 
     for (const Vec4 &plane : clipping_planes)
     {
@@ -153,13 +153,13 @@ void sutherland_hodgman_clip(std::vector<Vertex> &vertex_list)
         if (vertex_list.size() == 0)
             return;
 
-        Vertex *start = &vertex_list[vertex_list.size() - 1];
+        VertexData *start = &vertex_list[vertex_list.size() - 1];
         for (size_t j = 0; j < vertex_list.size(); ++j)
         {
-            Vertex *end = &vertex_list[j];
+            VertexData *end = &vertex_list[j];
 
-            float d0 = dot(start->point, plane);
-            float d1 = dot(end->point, plane);
+            float d0 = dot(start->position, plane);
+            float d1 = dot(end->position, plane);
 
             if (d0 > 0)
             {
@@ -169,21 +169,21 @@ void sutherland_hodgman_clip(std::vector<Vertex> &vertex_list)
                 }
                 else
                 {
-                    Vertex intersect;
+                    VertexData intersect;
                     float a = d0 / (d0 - d1);
-                    intersect.point = start->point * (1.0f - a) + end->point * (a);
+                    intersect.position = start->position * (1.0f - a) + end->position * (a);
+                    intersect.texture_coordinate = start->texture_coordinate * (1.0f - a) + end->texture_coordinate * (a);
                     intersect.normal = start->normal * (1.0f - a) + end->normal * (a);
-                    intersect.texture = start->texture * (1.0f - a) + end->texture * (a);
                     out_list.push_back(intersect);
                 }
             }
             else if (d1 > 0)
             {
-                Vertex intersect;
+                VertexData intersect;
                 float a = d0 / (d0 - d1);
-                intersect.point = start->point * (1.0f - a) + end->point * (a);
+                intersect.position = start->position * (1.0f - a) + end->position * (a);
+                intersect.texture_coordinate = start->texture_coordinate * (1.0f - a) + end->texture_coordinate * (a);
                 intersect.normal = start->normal * (1.0f - a) + end->normal * (a);
-                intersect.texture = start->texture * (1.0f - a) + end->texture * (a);
                 out_list.push_back(intersect);
                 out_list.push_back(*end);
             }

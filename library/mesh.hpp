@@ -9,12 +9,12 @@
 #include "vectors.hpp"
 #include "library.hpp"
 
-struct Vertex
+struct VertexData
 {
-    Vec4 point;
+    Vec4 position;
     Vec4 normal;
-    Vec3 screen;
-    Vec3 texture;
+    Vec3 screen_coordinate;
+    Vec3 texture_coordinate;
 };
 
 /**
@@ -23,32 +23,26 @@ struct Vertex
 class Mesh
 {
 public:
-    /**
-     * Default constructor.
-     */
     Mesh() = delete;
 
     /**
      * Constructs the mesh by loading the given file.
      */
-    Mesh(const std::string &file_name)
-    {
-        load_file(file_name);
-    }
+    Mesh(const std::string &file_name) { load_file(file_name); }
 
     /**
      * A struct containing a list of vertices, texture coordinates, and normals.
      */
     struct Face
     {
-        const Mesh *owner;
         size_t size;
+        const Mesh *owner;
         std::vector<int> vertex_indices;
         std::vector<int> texture_indices;
         std::vector<int> normal_indices;
 
         Face() = delete;
-        Face(const Mesh *mesh, size_t size) : owner(mesh), size(size), vertex_indices(size) {}
+        Face(const Mesh *mesh, size_t size) : size(size), owner(mesh), vertex_indices(size) {}
 
         const Vec4 &get_vertex(size_t i) const { return owner->vertices[vertex_indices[i]]; }
         const Vec3 &get_texture(size_t i) const { return owner->textures[texture_indices[i]]; }
@@ -85,4 +79,4 @@ private:
  * Clips the given polygon using the Sutherland-Hodgman algorithm.
  * Modifies the 'vertex_list'.
  */
-void sutherland_hodgman_clip(std::vector<Vertex> &vertex_list);
+void sutherland_hodgman(std::vector<VertexData> &vertex_list);

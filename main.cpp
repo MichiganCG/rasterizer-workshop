@@ -18,10 +18,11 @@ int main()
 	DepthBuffer depth(image);
 
 	Matrix4 m_projection = perspective_projection(90, aspect_ratio, 0.1, 100);
+	// Matrix4 m_projection = orthographic_projection(3 * aspect_ratio, 3, 0.1, 100);
 	Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
 
 	// Load models
-	Mesh model("cube.obj");
+	Mesh model("uv_sphere.obj");
 	Material material("material.mtl");
 
 	// Set the object's transformation
@@ -43,21 +44,17 @@ int main()
 
 	for (auto &face : model)
 	{
-		std::vector<Vertex> vertices(face.size);
+		std::vector<VertexData> vertices(face.size);
 
 		// Transform vertices from model space to clip space
 		for (size_t i = 0; i < face.size; ++i)
 		{
-			vertices[i].point = m_total * face.get_vertex(i);
+			vertices[i].position = m_total * face.get_vertex(i);
 			vertices[i].normal = m_model * face.get_normal(i);
 		}
 
-		Vec4 normal = cross(vertices[1].point - vertices[0].point, vertices[2].point - vertices[0].point);
-		if (normal.z < 0)
-			continue;
-
 		// Clip triangles to be bounded within [-w, w] on all axes.
-		sutherland_hodgman_clip(vertices);
+		sutherland_hodgman(vertices);
 
 		if (vertices.size() == 0) // Skip triangles that are not on the screen
 			continue;
@@ -65,14 +62,14 @@ int main()
 		// Move triangles from clip space to NDC and then screen space.
 		for (size_t i = 0; i < vertices.size(); ++i)
 		{
-			Vertex &vertex = vertices[i];
-			if (vertex.point.w != 0)
+			VertexData &vertex = vertices[i];
+			if (vertex.position.w != 0)
 			{
-				vertex.point /= vertex.point.w;
-				vertex.point.w = 1;
+				vertex.position /= vertex.position.w;
+				vertex.position.w = 1;
 			}
 
-			vertex.screen = m_screen * vertex.point;
+			vertex.screen_coordinate = m_screen * vertex.position;
 			// vertex.screen.w = std::clamp(vertex.screen.w, -1.0f, 1.0f);
 		}
 

@@ -101,9 +101,9 @@ void draw_line(Image &image, Vec3 &start, Vec3 &end)
     }
 }
 
-void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vertex &vertex0, const Vertex &vertex1, const Vertex &vertex2)
+void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const VertexData &vertex0, const VertexData &vertex1, const VertexData &vertex2)
 {
-    const Vec3 &s0 = vertex0.screen, &s1 = vertex1.screen, &s2 = vertex2.screen;
+    const Vec3 &s0 = vertex0.screen_coordinate, &s1 = vertex1.screen_coordinate, &s2 = vertex2.screen_coordinate;
 
     uint32_t minu = std::clamp(std::min({s0.x, s1.x, s2.x}), 0.0f, image.get_width() - 1.0f);
     uint32_t maxu = std::clamp(std::max({s0.x, s1.x, s2.x}), 0.0f, image.get_width() - 1.0f);
@@ -148,11 +148,11 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vert
     }
 }
 
-void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightCollection &lights, const Vertex &vertex0, const Vertex &vertex1, const Vertex &vertex2)
+void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightCollection &lights, const VertexData &vertex0, const VertexData &vertex1, const VertexData &vertex2)
 {
-    const Vec4 &p0 = vertex0.point, &p1 = vertex1.point, &p2 = vertex2.point;
+    const Vec4 &p0 = vertex0.position, &p1 = vertex1.position, &p2 = vertex2.position;
     const Vec4 &n0 = vertex0.normal, &n1 = vertex1.normal, &n2 = vertex2.normal;
-    const Vec3 &s0 = vertex0.screen, &s1 = vertex1.screen, &s2 = vertex2.screen;
+    const Vec3 &s0 = vertex0.screen_coordinate, &s1 = vertex1.screen_coordinate, &s2 = vertex2.screen_coordinate;
 
     uint32_t minu = std::clamp(std::min({s0.x, s1.x, s2.x}), 0.0f, image.get_width() - 1.0f);
     uint32_t maxu = std::clamp(std::max({s0.x, s1.x, s2.x}), 0.0f, image.get_width() - 1.0f);

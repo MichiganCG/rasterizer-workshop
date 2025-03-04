@@ -66,10 +66,10 @@ void draw_line(Image &image, const Vec3 &start, const Vec3 &end);
 /**
  * Uses barycentric coordinates to fill a triangle.
  */
-void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vertex &vertex0, const Vertex &vertex1, const Vertex &vertex2);
+void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const VertexData &vertex0, const VertexData &vertex1, const VertexData &vertex2);
 
 /**
  * Uses barycentric coordinates to fill a triangle.
  * Uses the material and light sources provided to determine color.
  */
-void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightCollection &lights, const Vertex &vertex0, const Vertex &vertex1, const Vertex &vertex2);
+void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightCollection &lights, const VertexData &vertex0, const VertexData &vertex1, const VertexData &vertex2);
