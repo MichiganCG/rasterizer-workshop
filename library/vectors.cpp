@@ -111,6 +111,7 @@ float abs_dot(const Vec3 &lhs, const Vec3 &rhs) { return std::abs(dot(lhs, rhs))
 float magnitude_squared(const Vec3 &input) { return dot(input, input); }
 float magnitude(const Vec3 &input) { return std::sqrt(magnitude_squared(input)); }
 
+const Vec4 Vec4::ZERO = Vec4(0, 0, 0, 0);
 const Vec4 Vec4::RIGHT = Vec4(1, 0, 0, 0);
 const Vec4 Vec4::UP = Vec4(0, 1, 0, 0);
 const Vec4 Vec4::FORWARD = Vec4(0, 0, 1, 0);

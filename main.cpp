@@ -17,30 +17,26 @@ int main()
 	Image image(ImageWidth, ImageHeight);
 	DepthBuffer depth(image);
 
-	Matrix4 m_projection = perspective_projection(90, aspect_ratio, 0.1, 100);
+	Matrix4 m_projection = perspective_projection(70, aspect_ratio, 0.1, 100);
 	// Matrix4 m_projection = orthographic_projection(3 * aspect_ratio, 3, 0.1, 100);
 	Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
 
-	// Load models
-	Mesh model("cube.obj");
+	// Load models and lights
+	Mesh mesh("suzanne.obj");
 	Material material("material.mtl");
 
-	// Set the object's transformation
-	Vec4 object_position(0, 0, -4);
-	Quaternion object_rotation({1, 0.5, 0}, 1.2);
+	LightCollection lights;
+	DirectionalLight l1({1, 0.5, 0.5}, {-1, -1, -1});
+	lights.push_back(&l1);
 
-	Matrix4 m_model = translate(object_position) * rotate(object_rotation) * scale({0.7, 2, 0.5});
+	// Set the object's transformation
+	Vec4 object_position(0, 0, -5);
+	Quaternion object_rotation({1, 1, -1}, Pi / 4);
+
+	Matrix4 m_model = translate(object_position) * rotate(object_rotation) * scale({1, 1, 1});
 	Matrix4 m_total = m_projection * m_model;
 
-	LightCollection lights;
-	DirectionalLight l1({1, 0, 0}, {1, 1, 1});
-	DirectionalLight l2({0, 1, 0}, {-1, 1, 1});
-	DirectionalLight l3({0, 0.5, 0.5}, {0, -1, 1});
-	lights.push_back(&l1);
-	lights.push_back(&l2);
-	lights.push_back(&l3);
-
-	for (auto &face : model)
+	for (auto &face : mesh)
 	{
 		std::vector<VertexData> vertices(face.size);
 
@@ -51,13 +47,13 @@ int main()
 			vertices[i].normal = m_model * face.get_normal(i);
 		}
 
-		// Clip triangles to be bounded within [-w, w] on all axes.
+		// Clip triangles to be bounded within [-w, w] on all axes
 		sutherland_hodgman(vertices);
 
 		if (vertices.size() == 0) // Skip triangles that are not on the screen
 			continue;
 
-		// Move triangles from clip space to NDC and then screen space.
+		// Move triangles from clip space to screen space
 		for (size_t i = 0; i < vertices.size(); ++i)
 		{
 			VertexData &vertex = vertices[i];
@@ -68,14 +64,11 @@ int main()
 			}
 
 			vertex.screen_coordinate = m_screen * vertex.position;
-			// vertex.screen.w = std::clamp(vertex.screen.w, -1.0f, 1.0f);
 		}
 
-		// Split polygon into triangles using Fan Triangulation: https://en.wikipedia.org/wiki/Fan_triangulation
+		// Split polygon into triangles using fan triangulation: https://en.wikipedia.org/wiki/Fan_triangulation
 		for (size_t i = 0; i < vertices.size() - 1; ++i)
 		{
-			// Color color(1);
-			// draw_barycentric(image, depth, color, vertices[0], vertices[i], vertices[i + 1]);
 			draw_barycentric(image, depth, material, lights, vertices[0], vertices[i], vertices[i + 1]);
 		}
 	}

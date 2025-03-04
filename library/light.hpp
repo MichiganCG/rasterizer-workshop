@@ -12,18 +12,24 @@
 
 class Light
 {
-public:
     Color color;
-    Vec3 direction;
 
-    Light(Color color, Vec3 direction) : color(color), direction(normalize(direction)) {}
+public:
+    Light(Color color) : color(color) {}
     virtual ~Light() = default;
+
+    virtual const Color &get_color() const { return color; };
+    virtual const Vec4 &get_direction(const Vec4 &position) const { std::ignore = position; return Vec4::ZERO; };
 };
 
 class DirectionalLight : public Light
 {
+    Vec4 direction;
+
 public:
-    DirectionalLight(Color color, Vec3 direction) : Light(color, direction) {}
+    DirectionalLight(Color color, Vec4 direction) : Light(color), direction(-normalize(direction)) {}
+
+    const Vec4 &get_direction(const Vec4 &position) const override;
 };
 
 /**
@@ -55,7 +61,7 @@ public:
 
     void load_file(const std::string &file_name);
 
-    Color get_color(const Vec3 &point, const Vec3 &normal, LightCollection &lights);
+    Color get_color(const Vec4 &point, const Vec4 &normal, LightCollection &lights);
 };
 
 /**

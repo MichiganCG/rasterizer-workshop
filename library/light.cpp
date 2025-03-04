@@ -1,5 +1,28 @@
 #include "light.hpp"
 
+const Vec4 &DirectionalLight::get_direction(const Vec4 &position) const
+{
+    std::ignore = position;
+    return direction;
+}
+
+Color Material::get_color(const Vec4 &point, const Vec4 &normal, LightCollection &lights)
+{
+    Color diffuse_sum, specular_sum, color;
+
+    for (const Light *light : lights)
+    {
+        diffuse_sum += light->get_color() * std::max(0.0f, dot(normal, light->get_direction(point)));
+        specular_sum += light->get_color() * std::pow(std::max(0.0f, dot(normal, normalize(point + light->get_direction(point)))), shininess);
+    }
+
+    color = ambient + diffuse * diffuse_sum + specular * specular_sum;
+    color.r = std::min(1.0f, color.r);
+    color.g = std::min(1.0f, color.g);
+    color.b = std::min(1.0f, color.b);
+    return color;
+}
+
 void Material::load_file(const std::string &file_name)
 {
     std::fstream file;
@@ -57,23 +80,6 @@ void Material::load_file(const std::string &file_name)
     {
         std::cerr << "Error: Unable to open file " << file_name << std::endl;
     }
-}
-
-Color Material::get_color(const Vec3 &point, const Vec3 &normal, LightCollection &lights)
-{
-    Color diffuse_sum, specular_sum, color;
-
-    for (const Light *light : lights)
-    {
-        diffuse_sum += light->color * std::max(0.0f, dot(normal, light->direction));
-        specular_sum += light->color * std::pow(std::max(0.0f, dot(normal, normalize(point + light->direction))), shininess);
-    }
-
-    color = ambient + diffuse * diffuse_sum + specular * specular_sum;
-    color.r = std::min(1.0f, color.r);
-    color.g = std::min(1.0f, color.g);
-    color.b = std::min(1.0f, color.b);
-    return color;
 }
 
 void draw_line(Image &image, Vec3 &start, Vec3 &end)

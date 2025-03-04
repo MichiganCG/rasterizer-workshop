@@ -132,6 +132,7 @@ struct Vec4
 
 	friend std::ostream &operator<<(std::ostream &os, const Vec4 &rhs);
 
+	static const Vec4 ZERO; // The vector `<0, 0, 0, 0>`
 	static const Vec4 RIGHT;   // The vector `<1, 0, 0, 0>`
 	static const Vec4 UP;	   // The vector `<0, 1, 0, 0>`
 	static const Vec4 FORWARD; // The vector `<0, 0, 1, 0>`
