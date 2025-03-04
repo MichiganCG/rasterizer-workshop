@@ -154,6 +154,21 @@ Matrix4 rotate(const Quaternion &rotation)
     return matrix;
 }
 
+void scale(Matrix4 &matrix, const Vec3 &scales)
+{
+    matrix.at(0, 0) *= scales.x;
+    matrix.at(1, 1) *= scales.y;
+    matrix.at(2, 2) *= scales.z;
+}
+
+Matrix4 scale(const Vec3 &scales)
+{
+    Matrix4 matrix;
+    matrix.identity();
+    scale(matrix, scales);
+    return matrix;
+}
+
 Matrix4 quick_inverse(const Matrix4 &input)
 {
     Matrix4 matrix;

@@ -120,6 +120,9 @@ Matrix4 translate(const Vec3 &translation);
 void rotate(Matrix4 &matrix, const Quaternion &rotation);
 Matrix4 rotate(const Quaternion &rotation);
 
+void scale(Matrix4 &matrix, const Vec3 &scales);
+Matrix4 scale(const Vec3 &scales);
+
 /**
  * Quickly inverts a translation and rotation matrix.
  * Because these matrices have a specific format, we can simply transpose the

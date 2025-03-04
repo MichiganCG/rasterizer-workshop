@@ -22,22 +22,20 @@ int main()
 	Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
 
 	// Load models
-	Mesh model("uv_sphere.obj");
+	Mesh model("cube.obj");
 	Material material("material.mtl");
 
 	// Set the object's transformation
 	Vec4 object_position(0, 0, -4);
-	Quaternion object_rotation({1, 1, 0}, 0.7);
-	Matrix4 m_model;
-	rotate(m_model, object_rotation);
-	translate(m_model, object_position);
+	Quaternion object_rotation({1, 0.5, 0}, 1.2);
 
+	Matrix4 m_model = translate(object_position) * rotate(object_rotation) * scale({0.7, 2, 0.5});
 	Matrix4 m_total = m_projection * m_model;
 
 	LightCollection lights;
 	DirectionalLight l1({1, 0, 0}, {1, 1, 1});
 	DirectionalLight l2({0, 1, 0}, {-1, 1, 1});
-	DirectionalLight l3({0, 0, 1}, {0, -1, 1});
+	DirectionalLight l3({0, 0.5, 0.5}, {0, -1, 1});
 	lights.push_back(&l1);
 	lights.push_back(&l2);
 	lights.push_back(&l3);
