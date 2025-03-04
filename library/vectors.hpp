@@ -19,6 +19,11 @@ struct Vec3
 	/**
 	 * Constructs a point with the given components.
 	 */
+	Vec3(float value) : x(value), y(value), z(value) {}
+
+	/**
+	 * Constructs a point with the given components.
+	 */
 	Vec3(float u, float v) : x(u), y(v), z(0) {}
 
 	/**
