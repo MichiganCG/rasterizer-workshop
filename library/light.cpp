@@ -15,7 +15,7 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, LightCollection
         specular_sum += light->get_color() * std::pow(std::max(0.0f, dot(normal, normalize(point + light->get_direction()))), shininess);
     }
 
-    color = ambient + diffuse * diffuse_sum + specular * specular_sum;
+    color = ambient * 0.01f + diffuse * diffuse_sum + specular * specular_sum;
     color.r = std::min(1.0f, color.r);
     color.g = std::min(1.0f, color.g);
     color.b = std::min(1.0f, color.b);
