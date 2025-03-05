@@ -18,8 +18,9 @@ public:
     Light(Color color) : color(color) {}
     virtual ~Light() = default;
 
-    virtual const Color &get_color() const { return color; };
-    virtual const Vec4 &get_direction() const { return Vec4::ZERO; };
+    virtual const Color &get_color() const { return color; }
+    virtual Vec4 get_direction(const Vec4 &point) const { return Vec4::ZERO; }
+    virtual float get_attenuation(const Vec4 &point) const { return 1; }
 };
 
 class DirectionalLight : public Light
@@ -29,7 +30,10 @@ class DirectionalLight : public Light
 public:
     DirectionalLight(Color color, Vec4 direction) : Light(color), direction(-normalize(direction)) {}
 
-    const Vec4 &get_direction() const override;
+    /**
+     * Returns the direction from the object to the light.
+     */
+    Vec4 get_direction(const Vec4 &point) const override;
 };
 
 /**
@@ -37,9 +41,15 @@ public:
  */
 class LightCollection
 {
+    Color ambient;
     std::vector<Light *> lights;
 
 public:
+    LightCollection() : ambient{0.01, 0.01, 0.01} {}
+    LightCollection(const Color &ambient) : ambient{ambient} {}
+
+    const Color &get_ambient() { return ambient; }
+
     void push_back(Light *light) { lights.push_back(light); }
     void push_back(DirectionalLight *light) { lights.push_back(light); }
 

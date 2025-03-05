@@ -1,7 +1,8 @@
 #include "light.hpp"
 
-const Vec4 &DirectionalLight::get_direction() const
+Vec4 DirectionalLight::get_direction(const Vec4 &point) const
 {
+    std::ignore = point;
     return direction;
 }
 
@@ -11,11 +12,19 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, LightCollection
 
     for (const Light *light : lights)
     {
-        diffuse_sum += light->get_color() * std::max(0.0f, dot(normal, light->get_direction()));
-        specular_sum += light->get_color() * std::pow(std::max(0.0f, dot(normal, normalize(point + light->get_direction()))), shininess);
+        const Color &color = light->get_color();
+        const float attenuation = light->get_attenuation(point);
+        // https://web.stanford.edu/class/ee267/lectures/lecture3.pdf
+        const Vec4 L = light->get_direction(point); // normalized vector pointing twoards the light source
+        const Vec4 &N = normal;                     // normalized surface normal
+        const Vec4 V = normalize(point);            // normalized vector pointing towards the viewer
+        const Vec4 R = N * dot(N, L) * 2 - L;       // normalized reflection on surface normal
+
+        diffuse_sum += color * std::max(0.0f, dot(N, L)) * attenuation;
+        specular_sum += color * std::pow(std::max(0.0f, dot(R, V)), shininess) * attenuation;
     }
 
-    color = ambient * 0.01f + diffuse * diffuse_sum + specular * specular_sum;
+    color = ambient * lights.get_ambient() + diffuse * diffuse_sum + specular * specular_sum;
     color.r = std::min(1.0f, color.r);
     color.g = std::min(1.0f, color.g);
     color.b = std::min(1.0f, color.b);
