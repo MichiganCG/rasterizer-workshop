@@ -23,6 +23,10 @@ public:
     virtual float get_attenuation(const Vec4 &point) const { return 1; }
 };
 
+/**
+ * A light source that is infinitely far away from the surface.
+ * Assumes that the light rays are all parallel.
+ */
 class DirectionalLight : public Light
 {
     Vec4 direction;
@@ -30,10 +34,38 @@ class DirectionalLight : public Light
 public:
     DirectionalLight(Color color, Vec4 direction) : Light(color), direction(-normalize(direction)) {}
 
-    /**
-     * Returns the direction from the object to the light.
-     */
     Vec4 get_direction(const Vec4 &point) const override;
+};
+
+/**
+ * A light source at a specific point.
+ */
+class PointLight : public Light
+{
+    float k;
+    Vec4 position;
+
+public:
+    PointLight(Color color, float k, Vec4 position) : Light(color), k(k), position(position) {}
+
+    Vec4 get_direction(const Vec4 &point) const override;
+    float get_attenuation(const Vec4 &point) const override;
+};
+
+/**
+ * A light source at a specific point, shining in the given direction and angle.
+ */
+class SpotLight : public Light
+{
+    float angle, taper;
+    Vec4 direction;
+    Vec4 position;
+
+public:
+    SpotLight(Color color, float angle, float taper, Vec4 direction, Vec4 position) : Light(color), angle(std::cos(angle)), taper(taper), direction(normalize(direction)), position(position) {}
+
+    Vec4 get_direction(const Vec4 &point) const override;
+    float get_attenuation(const Vec4 &point) const override;
 };
 
 /**

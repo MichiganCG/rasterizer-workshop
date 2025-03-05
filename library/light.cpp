@@ -6,6 +6,27 @@ Vec4 DirectionalLight::get_direction(const Vec4 &point) const
     return direction;
 }
 
+Vec4 PointLight::get_direction(const Vec4 &point) const
+{
+    return normalize(position - point);
+}
+
+float PointLight::get_attenuation(const Vec4 &point) const
+{
+    return 1.0f / magnitude_squared(position - point) * k;
+}
+
+Vec4 SpotLight::get_direction(const Vec4 &point) const
+{
+    return normalize(position - point);
+}
+
+float SpotLight::get_attenuation(const Vec4 &point) const
+{
+    float light_fall_off = std::max(0.0f, dot(normalize(point - position), direction) - angle) / (1.0f - angle);
+    return std::pow(light_fall_off, taper);
+}
+
 Color Material::get_color(const Vec4 &point, const Vec4 &normal, LightCollection &lights)
 {
     Color diffuse_sum, specular_sum, color;
@@ -21,7 +42,7 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, LightCollection
         const Vec4 R = N * dot(N, L) * 2 - L;       // normalized reflection on surface normal
 
         diffuse_sum += color * std::max(0.0f, dot(N, L)) * attenuation;
-        specular_sum += color * std::pow(std::max(0.0f, dot(R, V)), shininess) * attenuation;
+        specular_sum += color * std::pow(std::max(0.0f, dot(-R, V)), shininess) * attenuation;
     }
 
     color = ambient * lights.get_ambient() + diffuse * diffuse_sum + specular * specular_sum;
@@ -164,7 +185,7 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vert
 
 void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightCollection &lights, const VertexData &vertex0, const VertexData &vertex1, const VertexData &vertex2)
 {
-    const Vec4 &p0 = vertex0.position, &p1 = vertex1.position, &p2 = vertex2.position;
+    const Vec4 &p0 = vertex0.world, &p1 = vertex1.world, &p2 = vertex2.world;
     const Vec4 &n0 = vertex0.normal, &n1 = vertex1.normal, &n2 = vertex2.normal;
     const Vec3 &s0 = vertex0.screen_coordinate, &s1 = vertex1.screen_coordinate, &s2 = vertex2.screen_coordinate;
 
@@ -197,15 +218,15 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightColl
 
             if (a >= 0 && b >= 0 && c >= 0)
             {
-                float inverse_z = a * z0 + b * z1 + c * z2;
-                float z = 1 / inverse_z;
+                float az = a * z0, bz = b * z1, cz = c * z2;
+                float z = 1 / (az + bz + cz);
 
                 if (z <= depth.at(u, v))
                 {
                     depth.at(u, v) = z;
 
-                    Vec4 point = p0 * a + p1 * b + p2 * c;
-                    Vec4 normal = normalize(n0 * a + n1 * b + n2 * c);
+                    Vec4 point = (p0 * az + p1 * bz + p2 * cz) * z;
+                    Vec4 normal = normalize(n0 * az + n1 * bz + n2 * cz);
                     Color color = mat.get_color(point, normal, lights);
                     image.set_pixel(u, v, color);
                 }

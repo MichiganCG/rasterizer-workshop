@@ -11,10 +11,11 @@
 
 struct VertexData
 {
-    Vec4 position;
-    Vec4 normal;
     Vec3 screen_coordinate;
     Vec3 texture_coordinate;
+    Vec4 world;
+    Vec4 clip;
+    Vec4 normal;
 };
 
 /**

@@ -158,8 +158,8 @@ void sutherland_hodgman(std::vector<VertexData> &vertex_list)
         {
             VertexData *end = &vertex_list[j];
 
-            float d0 = dot(start->position, plane);
-            float d1 = dot(end->position, plane);
+            float d0 = dot(start->clip, plane);
+            float d1 = dot(end->clip, plane);
 
             if (d0 > 0)
             {
@@ -171,7 +171,7 @@ void sutherland_hodgman(std::vector<VertexData> &vertex_list)
                 {
                     VertexData intersect;
                     float a = d0 / (d0 - d1);
-                    intersect.position = start->position * (1.0f - a) + end->position * (a);
+                    intersect.clip = start->clip * (1.0f - a) + end->clip * (a);
                     intersect.texture_coordinate = start->texture_coordinate * (1.0f - a) + end->texture_coordinate * (a);
                     intersect.normal = start->normal * (1.0f - a) + end->normal * (a);
                     out_list.push_back(intersect);
@@ -181,7 +181,7 @@ void sutherland_hodgman(std::vector<VertexData> &vertex_list)
             {
                 VertexData intersect;
                 float a = d0 / (d0 - d1);
-                intersect.position = start->position * (1.0f - a) + end->position * (a);
+                intersect.clip = start->clip * (1.0f - a) + end->clip * (a);
                 intersect.texture_coordinate = start->texture_coordinate * (1.0f - a) + end->texture_coordinate * (a);
                 intersect.normal = start->normal * (1.0f - a) + end->normal * (a);
                 out_list.push_back(intersect);

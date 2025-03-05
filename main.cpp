@@ -36,10 +36,12 @@ int main()
 	Material metal("metallic.mtl");
 
 	LightCollection lights;
-	DirectionalLight l1({1, 0.5, 0.5}, {-1, -1, -1});
+	DirectionalLight l1({0.2, 0.5, 0.79}, {-1, -1, -1, 0});
 	lights.push_back(&l1);
-	DirectionalLight l2({0, 0.5, 1}, {0, 1, -1});
+	PointLight l2({1, 0, 0}, 2, {0, 0.5, -4.5});
 	lights.push_back(&l2);
+	SpotLight l3({0.6, 0.8, 0.5}, 0.2, 1, {-1, 0.5, -1, 0}, {5, -3, 0});
+	lights.push_back(&l3);
 
 	// Define our objects
 	std::vector<Object> objects;
@@ -49,7 +51,6 @@ int main()
 	for (Object &object : objects)
 	{
 		Matrix4 m_model = translate(object.position) * rotate(object.rotation) * scale(object.scale);
-		Matrix4 m_total = m_projection * m_model;
 
 		for (auto &face : object.mesh)
 		{
@@ -58,7 +59,9 @@ int main()
 			// Transform vertices from model space to clip space
 			for (size_t i = 0; i < face.size; ++i)
 			{
-				vertices[i].position = m_total * face.get_vertex(i);
+				vertices[i].world = m_model * face.get_vertex(i);
+				vertices[i].clip = m_projection * vertices[i].world;
+
 				vertices[i].normal = m_model * face.get_normal(i);
 			}
 
@@ -72,13 +75,13 @@ int main()
 			for (size_t i = 0; i < vertices.size(); ++i)
 			{
 				VertexData &vertex = vertices[i];
-				if (vertex.position.w != 0)
+				if (vertex.clip.w != 0)
 				{
-					vertex.position /= vertex.position.w;
-					vertex.position.w = 1;
+					vertex.clip /= vertex.clip.w;
+					vertex.clip.w = 1;
 				}
 
-				vertex.screen_coordinate = m_screen * vertex.position;
+				vertex.screen_coordinate = m_screen * vertex.clip;
 			}
 
 			// Split polygon into triangles using fan triangulation: https://en.wikipedia.org/wiki/Fan_triangulation
