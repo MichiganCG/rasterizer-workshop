@@ -141,6 +141,16 @@ const std::vector<Vec4> clipping_planes = {
     {0, 0, 1},  // far
 };
 
+VertexData interpolate(const VertexData &start, const VertexData &end, float a)
+{
+    VertexData intersect;
+    intersect.world = start.world * (1.0f - a) + end.world * (a);
+    intersect.clip = start.clip * (1.0f - a) + end.clip * (a);
+    intersect.texture_coordinate = start.texture_coordinate * (1.0f - a) + end.texture_coordinate * (a);
+    intersect.normal = start.normal * (1.0f - a) + end.normal * (a);
+    return intersect;
+}
+
 void sutherland_hodgman(std::vector<VertexData> &vertex_list)
 {
     std::vector<VertexData> out_list = vertex_list;
@@ -169,22 +179,14 @@ void sutherland_hodgman(std::vector<VertexData> &vertex_list)
                 }
                 else
                 {
-                    VertexData intersect;
                     float a = d0 / (d0 - d1);
-                    intersect.clip = start->clip * (1.0f - a) + end->clip * (a);
-                    intersect.texture_coordinate = start->texture_coordinate * (1.0f - a) + end->texture_coordinate * (a);
-                    intersect.normal = start->normal * (1.0f - a) + end->normal * (a);
-                    out_list.push_back(intersect);
+                    out_list.push_back(interpolate(*start, *end, a));
                 }
             }
             else if (d1 > 0)
             {
-                VertexData intersect;
                 float a = d0 / (d0 - d1);
-                intersect.clip = start->clip * (1.0f - a) + end->clip * (a);
-                intersect.texture_coordinate = start->texture_coordinate * (1.0f - a) + end->texture_coordinate * (a);
-                intersect.normal = start->normal * (1.0f - a) + end->normal * (a);
-                out_list.push_back(intersect);
+                out_list.push_back(interpolate(*start, *end, a));
                 out_list.push_back(*end);
             }
             start = end;

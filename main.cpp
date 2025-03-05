@@ -27,11 +27,11 @@ int main()
 	DepthBuffer depth(image);
 
 	Matrix4 m_projection = perspective_projection(70, aspect_ratio, 0.1, 100);
-	// Matrix4 m_projection = orthographic_projection(3 * aspect_ratio, 3, 0.1, 100);
 	Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
 
 	// Load models and lights
 	Mesh mesh("uv_sphere.obj");
+	Mesh plane("plane.obj");
 	Material material("material.mtl");
 	Material metal("metallic.mtl");
 
@@ -40,13 +40,14 @@ int main()
 	lights.push_back(&l1);
 	PointLight l2({1, 0, 0}, 2, {0, 0.5, -4.5});
 	lights.push_back(&l2);
-	SpotLight l3({0.6, 0.8, 0.5}, 0.2, 1, {-1, 0.5, -1, 0}, {5, -3, 0});
+	SpotLight l3({0.6, 0.8, 0.5}, 0.3, 1, {1, -0.5, -1, 0}, {-5, 3, 0});
 	lights.push_back(&l3);
 
 	// Define our objects
 	std::vector<Object> objects;
 	objects.push_back({{-1.2, 0, -5}, {}, {1}, mesh, material});
 	objects.push_back({{1.2, 0, -5}, {}, {1}, mesh, metal});
+	objects.push_back({{0, -1, -5}, {}, {12}, plane, material});
 
 	for (Object &object : objects)
 	{
