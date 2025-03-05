@@ -1,8 +1,7 @@
 #include "light.hpp"
 
-const Vec4 &DirectionalLight::get_direction(const Vec4 &position) const
+const Vec4 &DirectionalLight::get_direction() const
 {
-    std::ignore = position;
     return direction;
 }
 
@@ -12,8 +11,8 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, LightCollection
 
     for (const Light *light : lights)
     {
-        diffuse_sum += light->get_color() * std::max(0.0f, dot(normal, light->get_direction(point)));
-        specular_sum += light->get_color() * std::pow(std::max(0.0f, dot(normal, normalize(point + light->get_direction(point)))), shininess);
+        diffuse_sum += light->get_color() * std::max(0.0f, dot(normal, light->get_direction()));
+        specular_sum += light->get_color() * std::pow(std::max(0.0f, dot(normal, normalize(point + light->get_direction()))), shininess);
     }
 
     color = ambient + diffuse * diffuse_sum + specular * specular_sum;

@@ -12,6 +12,15 @@ const uint32_t ImageWidth = 960;
 const uint32_t ImageHeight = 540;
 const float aspect_ratio = (float)ImageWidth / (float)ImageHeight;
 
+struct Object
+{
+	Vec4 position;
+	Quaternion rotation;
+	Vec3 scale;
+	Mesh &mesh;
+	Material &material;
+};
+
 int main()
 {
 	Image image(ImageWidth, ImageHeight);
@@ -22,57 +31,63 @@ int main()
 	Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
 
 	// Load models and lights
-	Mesh mesh("suzanne.obj");
+	Mesh mesh("uv_sphere.obj");
 	Material material("material.mtl");
+	Material metal("metallic.mtl");
 
 	LightCollection lights;
 	DirectionalLight l1({1, 0.5, 0.5}, {-1, -1, -1});
 	lights.push_back(&l1);
+	DirectionalLight l2({0, 0.5, 1}, {0, 1, -1});
+	lights.push_back(&l2);
 
-	// Set the object's transformation
-	Vec4 object_position(0, 0, -5);
-	Quaternion object_rotation({1, 1, -1}, Pi / 4);
+	// Define our objects
+	std::vector<Object> objects;
+	objects.push_back({{-1.2, 0, -5}, {}, {1}, mesh, material});
+	objects.push_back({{1.2, 0, -5}, {}, {1}, mesh, metal});
 
-	Matrix4 m_model = translate(object_position) * rotate(object_rotation) * scale({1, 1, 1});
-	Matrix4 m_total = m_projection * m_model;
-
-	for (auto &face : mesh)
+	for (Object &object : objects)
 	{
-		std::vector<VertexData> vertices(face.size);
+		Matrix4 m_model = translate(object.position) * rotate(object.rotation) * scale(object.scale);
+		Matrix4 m_total = m_projection * m_model;
 
-		// Transform vertices from model space to clip space
-		for (size_t i = 0; i < face.size; ++i)
+		for (auto &face : object.mesh)
 		{
-			vertices[i].position = m_total * face.get_vertex(i);
-			vertices[i].normal = m_model * face.get_normal(i);
-		}
+			std::vector<VertexData> vertices(face.size);
 
-		// Clip triangles to be bounded within [-w, w] on all axes
-		sutherland_hodgman(vertices);
-
-		if (vertices.size() == 0) // Skip triangles that are not on the screen
-			continue;
-
-		// Move triangles from clip space to screen space
-		for (size_t i = 0; i < vertices.size(); ++i)
-		{
-			VertexData &vertex = vertices[i];
-			if (vertex.position.w != 0)
+			// Transform vertices from model space to clip space
+			for (size_t i = 0; i < face.size; ++i)
 			{
-				vertex.position /= vertex.position.w;
-				vertex.position.w = 1;
+				vertices[i].position = m_total * face.get_vertex(i);
+				vertices[i].normal = m_model * face.get_normal(i);
 			}
 
-			vertex.screen_coordinate = m_screen * vertex.position;
-		}
+			// Clip triangles to be bounded within [-w, w] on all axes
+			sutherland_hodgman(vertices);
 
-		// Split polygon into triangles using fan triangulation: https://en.wikipedia.org/wiki/Fan_triangulation
-		for (size_t i = 0; i < vertices.size() - 1; ++i)
-		{
-			draw_barycentric(image, depth, material, lights, vertices[0], vertices[i], vertices[i + 1]);
+			if (vertices.size() == 0) // Skip triangles that are not on the screen
+				continue;
+
+			// Move triangles from clip space to screen space
+			for (size_t i = 0; i < vertices.size(); ++i)
+			{
+				VertexData &vertex = vertices[i];
+				if (vertex.position.w != 0)
+				{
+					vertex.position /= vertex.position.w;
+					vertex.position.w = 1;
+				}
+
+				vertex.screen_coordinate = m_screen * vertex.position;
+			}
+
+			// Split polygon into triangles using fan triangulation: https://en.wikipedia.org/wiki/Fan_triangulation
+			for (size_t i = 0; i < vertices.size() - 1; ++i)
+			{
+				draw_barycentric(image, depth, object.material, lights, vertices[0], vertices[i], vertices[i + 1]);
+			}
 		}
 	}
-
 	image.write_file("output.png");
 
 	return 0;

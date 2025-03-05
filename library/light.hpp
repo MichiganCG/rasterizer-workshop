@@ -19,7 +19,7 @@ public:
     virtual ~Light() = default;
 
     virtual const Color &get_color() const { return color; };
-    virtual const Vec4 &get_direction(const Vec4 &position) const { std::ignore = position; return Vec4::ZERO; };
+    virtual const Vec4 &get_direction() const { return Vec4::ZERO; };
 };
 
 class DirectionalLight : public Light
@@ -29,7 +29,7 @@ class DirectionalLight : public Light
 public:
     DirectionalLight(Color color, Vec4 direction) : Light(color), direction(-normalize(direction)) {}
 
-    const Vec4 &get_direction(const Vec4 &position) const override;
+    const Vec4 &get_direction() const override;
 };
 
 /**
