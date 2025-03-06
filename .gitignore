@@ -243,3 +243,6 @@ xcuserdata/
 **/xcshareddata/WorkspaceSettings.xcsettings
 
 # End of https://www.toptal.com/developers/gitignore/api/c++,macos,xcode,windows,jetbrains+all,visualstudiocode,cmake
+
+!model/*.obj
+!material/*.mtl

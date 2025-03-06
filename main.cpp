@@ -30,10 +30,11 @@ int main()
 	Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
 
 	// Load models and lights
-	Mesh mesh("uv_sphere.obj");
-	Mesh plane("plane.obj");
-	Material material("material.mtl");
-	Material metal("metallic.mtl");
+	Mesh mesh("model/uv_sphere.obj");
+	Mesh plane("model/plane.obj");
+
+	Material material("material/material.mtl");
+	Material metal("material/metallic.mtl");
 
 	LightCollection lights;
 	DirectionalLight l1({0.2, 0.5, 0.79}, {-1, -1, -1, 0});
