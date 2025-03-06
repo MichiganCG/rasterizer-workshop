@@ -54,12 +54,12 @@ int main()
 	{
 		Matrix4 m_model = translate(object.position) * rotate(object.rotation) * scale(object.scale);
 
-		for (auto &face : object.mesh)
+		for (Mesh::Face &face : object.mesh)
 		{
-			std::vector<VertexData> vertices(face.size);
+			std::vector<VertexData> vertices(face.size());
 
 			// Transform vertices from model space to clip space
-			for (size_t i = 0; i < face.size; ++i)
+			for (size_t i = 0; i < face.size(); ++i)
 			{
 				vertices[i].world = m_model * face.get_vertex(i);
 				vertices[i].clip = m_projection * vertices[i].world;

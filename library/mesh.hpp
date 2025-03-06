@@ -36,14 +36,16 @@ public:
      */
     struct Face
     {
-        size_t size;
+        size_t count;
         const Mesh *owner;
         std::vector<int> vertex_indices;
         std::vector<int> texture_indices;
         std::vector<int> normal_indices;
 
         Face() = delete;
-        Face(const Mesh *mesh, size_t size) : size(size), owner(mesh), vertex_indices(size) {}
+        Face(const Mesh *mesh, size_t size) : count(size), owner(mesh), vertex_indices(size) {}
+
+        size_t size() const { return count; }
 
         const Vec4 &get_vertex(size_t i) const { return owner->vertices[vertex_indices[i]]; }
         const Vec3 &get_texture(size_t i) const { return owner->textures[texture_indices[i]]; }
