@@ -30,7 +30,7 @@ int main()
 	Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
 
 	// Load models and lights
-	Mesh mesh("model/uv_sphere.obj");
+	Mesh sphere("model/uv_sphere.obj");
 	Mesh plane("model/plane.obj");
 
 	Material material("material/material.mtl");
@@ -46,8 +46,8 @@ int main()
 
 	// Define our objects
 	std::vector<Object> objects;
-	objects.push_back({{-1.2, 0, -5}, {}, {1}, mesh, material});
-	objects.push_back({{1.2, 0, -5}, {}, {1}, mesh, metal});
+	objects.push_back({{-1.2, 0, -5}, {}, {1}, sphere, material});
+	objects.push_back({{1.2, 0, -5}, {}, {1}, sphere, metal});
 	objects.push_back({{0, -1, -5}, {}, {12}, plane, material});
 
 	for (Object &object : objects)
