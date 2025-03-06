@@ -126,7 +126,7 @@ void Mesh::fix_normals()
             int index = (int)normals.size();
             normals.push_back(normal);
 
-            for (size_t i = 0; i < face.size; ++i)
+            for (size_t i = 0; i < face.size(); ++i)
                 face.normal_indices.push_back(index);
         }
     }
