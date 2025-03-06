@@ -34,7 +34,7 @@ int main()
 	Mesh plane("model/plane.obj");
 
 	Material material("material/material.mtl");
-	Material metal("material/metallic.mtl");
+	Material metal("material/metal.mtl");
 
 	LightCollection lights;
 	DirectionalLight l1({0.2, 0.5, 0.79}, {-1, -1, -1, 0});
