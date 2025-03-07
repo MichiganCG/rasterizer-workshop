@@ -30,11 +30,12 @@ int main()
 	Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
 
 	// Load models and lights
+	Mesh cube("model/cube.obj");
 	Mesh sphere("model/uv_sphere.obj");
 	Mesh plane("model/plane.obj");
 
 	Material material("material/material.mtl");
-	Material metal("material/metal.mtl");
+	Material tile("material/tiles074.mtl");
 
 	LightCollection lights;
 	DirectionalLight l1({0.2, 0.5, 0.79}, {-1, -1, -1, 0});
@@ -47,7 +48,7 @@ int main()
 	// Define our objects
 	std::vector<Object> objects;
 	objects.push_back({{-1.2, 0, -5}, {}, {1}, sphere, material});
-	objects.push_back({{1.2, 0, -5}, {}, {1}, sphere, metal});
+	objects.push_back({{1.2, 0, -5}, {}, {0.8}, cube, tile});
 	objects.push_back({{0, -1, -5}, {}, {12}, plane, material});
 
 	for (Object &object : objects)
@@ -65,6 +66,8 @@ int main()
 				vertices[i].clip = m_projection * vertices[i].world;
 
 				vertices[i].normal = m_model * face.get_normal(i);
+
+				vertices[i].texture_coordinate = face.get_texture(i);
 			}
 
 			// Clip triangles to be bounded within [-w, w] on all axes
