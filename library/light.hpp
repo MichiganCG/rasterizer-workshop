@@ -94,16 +94,18 @@ public:
  */
 class Material
 {
+    bool textured;
     float shininess;
     Color ambient, diffuse, specular;
+    Image texture;
 
 public:
-    Material() : shininess(0), ambient{0}, diffuse{0}, specular{0} {}
-    Material(const std::string &file_name) { load_file(file_name); }
+    Material() : textured(false), shininess(0), ambient{0}, diffuse{0}, specular{0} {}
+    Material(const std::string &file_name) : textured(false) { load_file(file_name); }
 
     void load_file(const std::string &file_name);
 
-    Color get_color(const Vec4 &point, const Vec4 &normal, LightCollection &lights);
+    Color get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &texture_coordinates, LightCollection &lights);
 };
 
 /**

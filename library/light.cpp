@@ -1,5 +1,7 @@
 #include "light.hpp"
 
+#include <iostream>
+
 Vec4 DirectionalLight::get_direction(const Vec4 &point) const
 {
     std::ignore = point;
@@ -27,9 +29,9 @@ float SpotLight::get_attenuation(const Vec4 &point) const
     return std::pow(light_fall_off, taper);
 }
 
-Color Material::get_color(const Vec4 &point, const Vec4 &normal, LightCollection &lights)
+Color Material::get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv, LightCollection &lights)
 {
-    Color diffuse_sum, specular_sum, color;
+    Color diffuse_sum, specular_sum;
 
     for (const Light *light : lights)
     {
@@ -45,7 +47,10 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, LightCollection
         specular_sum += color * std::pow(std::max(0.0f, dot(R, V)), shininess) * attenuation;
     }
 
-    color = ambient * lights.get_ambient() + diffuse * diffuse_sum + specular * specular_sum;
+    Color diff = textured ? texture.get_pixel(uv.x, uv.y) : diffuse;
+
+    Color color;
+    color = ambient * lights.get_ambient() + diff * diffuse_sum + specular * specular_sum;
     color.r = std::min(1.0f, color.r);
     color.g = std::min(1.0f, color.g);
     color.b = std::min(1.0f, color.b);
@@ -101,6 +106,14 @@ void Material::load_file(const std::string &file_name)
                 ss >> r >> g >> b;
                 specular = {r, g, b};
                 continue;
+            }
+
+            if (key == "map_Kd") // texture image
+            {
+                std::string path;
+                ss >> path;
+                texture.load_file(path);
+                textured = true;
             }
         }
         file.close();
@@ -188,6 +201,7 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightColl
     const Vec4 &p0 = vertex0.world, &p1 = vertex1.world, &p2 = vertex2.world;
     const Vec4 &n0 = vertex0.normal, &n1 = vertex1.normal, &n2 = vertex2.normal;
     const Vec3 &s0 = vertex0.screen_coordinate, &s1 = vertex1.screen_coordinate, &s2 = vertex2.screen_coordinate;
+    const Vec3 &t0 = vertex0.texture_coordinate, &t1 = vertex1.texture_coordinate, &t2 = vertex2.texture_coordinate;
 
     uint32_t minu = std::clamp(std::min({s0.x, s1.x, s2.x}), 0.0f, image.get_width() - 1.0f);
     uint32_t maxu = std::clamp(std::max({s0.x, s1.x, s2.x}), 0.0f, image.get_width() - 1.0f);
@@ -226,8 +240,9 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightColl
                     depth.at(u, v) = z;
 
                     Vec4 point = (p0 * az + p1 * bz + p2 * cz) * z;
+                    Vec3 texture = (t0 * az + t1 * bz + t2 * cz) * z;
                     Vec4 normal = normalize(n0 * az + n1 * bz + n2 * cz);
-                    Color color = mat.get_color(point, normal, lights);
+                    Color color = mat.get_color(point, normal, texture, lights);
                     image.set_pixel(u, v, color);
                 }
             }

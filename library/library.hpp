@@ -52,10 +52,12 @@ float random_float();
 class Image
 {
 public:
+	Image() : width(0), height(0), pixels(0) {}
 	Image(uint32_t width, uint32_t height) : width(width), height(height), pixels(width * height) {}
 	Image(const std::string &path) { load_file(path); }
 
 	Color get_pixel(uint32_t x, uint32_t y) const { return pixels[get_index(x, y)]; }
+	Color get_pixel(float x, float y) const { return pixels[get_index(static_cast<uint32_t>(x * width), static_cast<uint32_t>(y * height))]; }
 	void set_pixel(uint32_t x, uint32_t y, Color color) { pixels[get_index(x, y)] = color; }
 
 	/**
