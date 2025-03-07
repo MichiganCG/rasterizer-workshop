@@ -53,6 +53,7 @@ class Image
 {
 public:
 	Image(uint32_t width, uint32_t height) : width(width), height(height), pixels(width * height) {}
+	Image(const std::string &path) { load_file(path); }
 
 	Color get_pixel(uint32_t x, uint32_t y) const { return pixels[get_index(x, y)]; }
 	void set_pixel(uint32_t x, uint32_t y, Color color) { pixels[get_index(x, y)] = color; }
@@ -61,6 +62,7 @@ public:
 	 * Outputs this image as a PNG image file.
 	 */
 	void write_file(const std::string &path) const;
+	void load_file(const std::string &path);
 
 	uint32_t get_width() const { return width; }
 	uint32_t get_height() const { return height; }
