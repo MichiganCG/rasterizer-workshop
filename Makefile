@@ -1,4 +1,4 @@
-OUT    := raster
+OUT    := rasterizer
 CXX    := g++
 FLAGS  := -std=c++20 -Wall
 COMMAND = $(CXX) $(FLAGS) $^ -o
