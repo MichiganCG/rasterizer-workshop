@@ -62,7 +62,7 @@ int main()
 
 	// Set objects
 	std::vector<Object> objects;
-	objects.push_back({{1.2, 0, -5}, {}, {0.8}, cube, tile});
+	objects.push_back({{1.2, 0, -5}, {{0, 1, 0}, Pi/3}, {0.8}, cube, tile});
 	objects.push_back({{-1.2, 0, -5}, {}, {1}, sphere, material});
 	objects.push_back({{0, -1, -5}, {}, {12}, plane, material});
 
@@ -110,9 +110,15 @@ int main()
 			{
 				Vertex &vertex = vertices[j];
 				Vec4 &clip = vertex.clip;
-				if (clip.w != 0)
-					clip /= clip.w;
+
+				float temp = clip.w;
+				if (temp != 0) {
+					temp = 1.0f / temp;
+					clip *= temp;
+				}
+
 				vertex.screen = m_screen * clip;
+				clip.w = temp;
 			}
 
 			// Reform triangles using fan triangulation

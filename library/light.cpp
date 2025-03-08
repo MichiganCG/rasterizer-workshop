@@ -231,22 +231,22 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vert
 void draw_barycentric(Image &image, DepthBuffer &depth, Material &material, LightCollection &lights, const Vertex &v0, const Vertex &v1, const Vertex &v2)
 {
     float z0 = 1.0f / v0.screen.z, z1 = 1.0f / v1.screen.z, z2 = 1.0f / v2.screen.z;
-    //float w0 = 1.0f / v0.clip.w, w1 = 1.0f / v1.clip.w, w2 = 1.0f / v2.clip.w;
+    float w0 = v0.clip.w, w1 = v1.clip.w, w2 = v2.clip.w;
 
     auto draw = [&](uint32_t u, uint32_t v, float a, float b, float c)
     {
-        float az = a * z0, bz = b * z1, cz = c * z2;
-        float z = 1 / (az + bz + cz);
-
+        float z = 1 / (a * z0 + b * z1 + c * z2);
         // Check if this pixel is closer to the screen
         if (z <= depth.at(u, v))
         {
             depth.at(u, v) = z;
 
+            float aw = a * w0, bw = b * w1, cw = c * w2;
+            float w = 1 / (aw + bw + cw);
             // Interpolate across all of the vertex values
-            Vec4 world = (v0.world * az + v1.world * bz + v2.world * cz) * z;
-            Vec3 texture = (v0.texture * az + v1.texture * bz + v2.texture * cz) * z;
-            Vec4 normal = normalize(v0.normal * az + v1.normal * bz + v2.normal * cz);
+            Vec4 world = (v0.world * aw + v1.world * bw + v2.world * cw) * w;
+            Vec3 texture = (v0.texture * aw + v1.texture * bw + v2.texture * cw) * w;
+            Vec4 normal = normalize(v0.normal * aw + v1.normal * bw + v2.normal * cw);
 
             // Set the color using the material and light
             Color color = material.get_color(world, normal, texture, lights);
