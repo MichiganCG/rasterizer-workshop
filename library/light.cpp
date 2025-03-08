@@ -33,6 +33,7 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv,
 {
     Color diffuse_sum, specular_sum;
 
+    // Compute the sum of the diffuse and specular light from each light source
     for (const Light *light : lights)
     {
         const Color &color = light->get_color();
@@ -47,10 +48,12 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv,
         specular_sum += color * std::pow(std::max(0.0f, dot(R, V)), shininess) * attenuation;
     }
 
-    Color diff = textured ? texture.get_pixel(uv.x, uv.y) : diffuse;
+    // Use the texture's color if there is one
+    Color diffuse_color = textured ? texture.get_pixel(uv.x, uv.y) : diffuse;
 
     Color color;
-    color = ambient * lights.get_ambient() + diff * diffuse_sum + specular * specular_sum;
+    // Phong lighting model: Sum of ambient, diffuse, and specular light
+    color = ambient * lights.get_ambient() + diffuse_color * diffuse_sum + specular * specular_sum;
     color.r = std::min(1.0f, color.r);
     color.g = std::min(1.0f, color.g);
     color.b = std::min(1.0f, color.b);
@@ -230,18 +233,24 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightColl
             float c = (d00 * d21 - d01 * d20) / area;
             float a = 1.0f - b - c;
 
+            // Check if this pixel is in the triangle
             if (a >= 0 && b >= 0 && c >= 0)
             {
                 float az = a * z0, bz = b * z1, cz = c * z2;
                 float z = 1 / (az + bz + cz);
 
+                // Check if this pixel is the closest so far
                 if (z <= depth.at(u, v))
                 {
+                    // Set the depth buffer with the closer value
                     depth.at(u, v) = z;
 
+                    // Interpolate across all of the vertex values
                     Vec4 point = (p0 * az + p1 * bz + p2 * cz) * z;
                     Vec3 texture = (t0 * az + t1 * bz + t2 * cz) * z;
                     Vec4 normal = normalize(n0 * az + n1 * bz + n2 * cz);
+
+                    // Set the color using the material and light
                     Color color = mat.get_color(point, normal, texture, lights);
                     image.set_pixel(u, v, color);
                 }
