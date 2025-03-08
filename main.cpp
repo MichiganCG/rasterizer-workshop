@@ -99,6 +99,12 @@ int main()
 				vertices[t].texture = mesh.get_texture(triangle[t]);
 			}
 
+			// Backface culling
+			Vec4 view_vector = -normalize(vertices[0].world);
+			Vec4 normal_vector = cross(vertices[1].world - vertices[0].world, vertices[2].world - vertices[0].world);
+			if (dot(view_vector, normal_vector) < 0)
+				continue;
+
 			// Clip triangles such that they are bounded within [-w, w] on all axes
 			sutherland_hodgman(vertices);
 
@@ -118,6 +124,7 @@ int main()
 				}
 
 				vertex.screen = m_screen * clip;
+
 				clip.w = temp;
 			}
 
