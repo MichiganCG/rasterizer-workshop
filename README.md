@@ -30,4 +30,8 @@ Run the script:
 ./rasterizer
 ```
 
-It will produce the file `output.png`.
+It will produce the image file `output.png`.
+
+## License
+
+This project is licensed under the [GNU GPLv3](COPYING).
