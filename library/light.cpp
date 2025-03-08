@@ -241,8 +241,13 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Material &material, Ligh
         {
             depth.at(u, v) = z;
 
+            /*
+             * Correct for the perspective.
+             * https://www.cs.ucr.edu/~craigs/courses/2020-fall-cs-130/lectures/perspective-correct-interpolation.pdf
+             */ 
             float aw = a * w0, bw = b * w1, cw = c * w2;
             float w = 1 / (aw + bw + cw);
+
             // Interpolate across all of the vertex values
             Vec4 world = (v0.world * aw + v1.world * bw + v2.world * cw) * w;
             Vec3 texture = (v0.texture * aw + v1.texture * bw + v2.texture * cw) * w;
