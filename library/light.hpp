@@ -27,63 +27,7 @@
 #include "mesh.hpp"
 #include "library.hpp"
 
-class Light
-{
-    Color color;
-
-public:
-    Light(Color color) : color(color) {}
-    virtual ~Light() = default;
-
-    virtual const Color &get_color() const { return color; }
-    virtual Vec4 get_direction(const Vec4 &point) const { return Vec4::ZERO; }
-    virtual float get_attenuation(const Vec4 &point) const { return 1; }
-};
-
-/**
- * A light source that is infinitely far away from the surface.
- * Assumes that the light rays are all parallel.
- */
-class DirectionalLight : public Light
-{
-    Vec4 direction;
-
-public:
-    DirectionalLight(Color color, Vec4 direction) : Light(color), direction(-normalize(direction)) {}
-
-    Vec4 get_direction(const Vec4 &point) const override;
-};
-
-/**
- * A light source at a specific point.
- */
-class PointLight : public Light
-{
-    float k;
-    Vec4 position;
-
-public:
-    PointLight(Color color, float k, Vec4 position) : Light(color), k(k), position(position) {}
-
-    Vec4 get_direction(const Vec4 &point) const override;
-    float get_attenuation(const Vec4 &point) const override;
-};
-
-/**
- * A light source at a specific point, shining in the given direction and angle.
- */
-class SpotLight : public Light
-{
-    float angle, taper;
-    Vec4 direction;
-    Vec4 position;
-
-public:
-    SpotLight(Color color, float angle, float taper, Vec4 direction, Vec4 position) : Light(color), angle(std::cos(angle)), taper(taper), direction(normalize(direction)), position(position) {}
-
-    Vec4 get_direction(const Vec4 &point) const override;
-    float get_attenuation(const Vec4 &point) const override;
-};
+class Light;
 
 /**
  * A collection of lights in the scene.
@@ -100,10 +44,67 @@ public:
     const Color &get_ambient() { return ambient; }
 
     void push_back(Light *light) { lights.push_back(light); }
-    void push_back(DirectionalLight *light) { lights.push_back(light); }
 
     std::vector<Light *>::iterator begin() { return lights.begin(); }
     std::vector<Light *>::iterator end() { return lights.end(); }
+};
+
+class Light
+{
+    Color color;
+
+public:
+    Light(LightCollection &lights, Color color) : color(color) { lights.push_back(this); }
+    virtual ~Light() = default;
+
+    virtual const Color &get_color() const { return color; }
+    virtual Vec4 get_direction(const Vec4 &point) const { return Vec4::ZERO; }
+    virtual float get_attenuation(const Vec4 &point) const { return 1; }
+};
+
+/**
+ * A light source that is infinitely far away from the surface.
+ * Assumes that the light rays are all parallel.
+ */
+class DirectionalLight : public Light
+{
+    Vec4 direction;
+
+public:
+    DirectionalLight(LightCollection &lights, Color color, Vec4 direction) : Light(lights, color), direction(-normalize(direction)) {}
+
+    Vec4 get_direction(const Vec4 &point) const override;
+};
+
+/**
+ * A light source at a specific point.
+ */
+class PointLight : public Light
+{
+    float k;
+    Vec4 position;
+
+public:
+    PointLight(LightCollection &lights, Color color, float k, Vec4 position) : Light(lights, color), k(k), position(position) {}
+
+    Vec4 get_direction(const Vec4 &point) const override;
+    float get_attenuation(const Vec4 &point) const override;
+};
+
+/**
+ * A light source at a specific point, shining in the given direction and angle.
+ */
+class SpotLight : public Light
+{
+    float angle, taper;
+    Vec4 direction;
+    Vec4 position;
+
+public:
+    SpotLight(LightCollection &lights, Color color, float angle, float taper, Vec4 direction, Vec4 position) : Light(lights, color), angle(std::cos(angle)), taper(taper), direction(normalize(direction)), position(position) {}
+
+    Vec4 get_direction(const Vec4 &point) const override;
+    float get_attenuation(const Vec4 &point) const override;
 };
 
 /**
@@ -133,10 +134,10 @@ void draw_line(Image &image, const Vec3 &start, const Vec3 &end);
 /**
  * Uses barycentric coordinates to fill a triangle.
  */
-void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const VertexData &vertex0, const VertexData &vertex1, const VertexData &vertex2);
+void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vertex &v0, const Vertex &v1, const Vertex &v2);
 
 /**
  * Uses barycentric coordinates to fill a triangle.
  * Uses the material and light sources provided to determine color.
  */
-void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightCollection &lights, const VertexData &vertex0, const VertexData &vertex1, const VertexData &vertex2);
+void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightCollection &lights, const Vertex &v0, const Vertex &v1, const Vertex &v2);

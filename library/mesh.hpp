@@ -26,77 +26,79 @@
 #include "vectors.hpp"
 #include "library.hpp"
 
-struct VertexData
+class Mesh;
+
+/**
+ * A set of indexes.
+ */
+struct Triangle
 {
-    Vec3 screen_coordinate;
-    Vec3 texture_coordinate;
-    Vec4 world;
-    Vec4 clip;
-    Vec4 normal;
+    const Mesh *owner;
+    int indices[3];
+
+    Triangle() = delete;
+    Triangle(const Mesh *mesh, int i1, int i2, int i3) : owner(mesh), indices{i1, i2, i3} {}
+
+    int at(size_t i) const { return indices[i]; }
+    int operator[](size_t i) const { return indices[i]; }
+
+	friend std::ostream &operator<<(std::ostream &os, const Triangle &rhs);
 };
+
 
 /**
  * A collection of faces and vertices.
  */
 class Mesh
 {
+private:
+    size_t count;
+    std::vector<Vec4> vertices;
+    std::vector<Vec3> textures;
+    std::vector<Vec4> normals;
+
+    /**
+     * A vertex buffer containing 3 indices per face.
+     */
+    std::vector<int> elements;
+
 public:
     Mesh() = delete;
 
     /**
-     * Constructs the mesh by loading the given file.
+     * Constructs the mesh from the given file.
      */
     Mesh(const std::string &file_name) { load_file(file_name); }
-
-    /**
-     * A struct containing a list of vertices, texture coordinates, and normals.
-     */
-    struct Face
-    {
-        size_t count;
-        const Mesh *owner;
-        std::vector<int> vertex_indices;
-        std::vector<int> texture_indices;
-        std::vector<int> normal_indices;
-
-        Face() = delete;
-        Face(const Mesh *mesh, size_t size) : count(size), owner(mesh), vertex_indices(size) {}
-
-        size_t size() const { return count; }
-
-        const Vec4 &get_vertex(size_t i) const { return owner->vertices[vertex_indices[i]]; }
-        const Vec3 &get_texture(size_t i) const { return owner->textures[texture_indices[i]]; }
-        const Vec4 &get_normal(size_t i) const { return owner->normals[normal_indices[i]]; }
-    };
 
     /**
      * Loads the faces of the mesh using a Wavefront .obj file.
      */
     void load_file(const std::string &file_name);
 
-    size_t size() const { return faces.size(); }
+    size_t size() const { return count; }
+    size_t vertex_size() const { return vertices.size(); }
 
-    const Face &at(size_t i) const { return faces[i]; }
-    Face &at(size_t i) { return faces[i]; }
+    Triangle at(size_t i) const
+    {
+        size_t index = i * 3;
+        return {this, elements[index + 0], elements[index + 1], elements[index + 2]};
+    }
 
-    const Face &operator[](size_t i) const { return at(i); }
-    Face &operator[](size_t i) { return at(i); }
+    Triangle operator[](size_t i) const { return at(i); }
 
-    std::vector<Face>::iterator begin() { return faces.begin(); }
-    std::vector<Face>::iterator end() { return faces.end(); }
+    const Vec4 &get_vertex(size_t i) const { return vertices[i]; }
+    const Vec3 &get_texture(size_t i) const { return textures[i]; }
+    const Vec4 &get_normal(size_t i) const { return normals[i]; }
+};
 
-private:
-    std::vector<Vec4> vertices;
-    std::vector<Vec3> textures;
-    std::vector<Vec4> normals;
-
-    std::vector<Face> faces;
-
-    void fix_normals();
+struct Vertex
+{
+    Vec4 world, clip, normal;
+    Vec3 screen, texture;
 };
 
 /**
- * Clips the given polygon using the Sutherland-Hodgman algorithm.
- * Modifies the 'vertex_list'.
+ * Clips the given vertices using the Sutherland-Hodgman algorithm.
+ * Modifies `input_list`.
  */
-void sutherland_hodgman(std::vector<VertexData> &vertex_list);
+void sutherland_hodgman(std::vector<Vertex> &input_list);

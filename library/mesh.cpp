@@ -20,8 +20,30 @@
 #include <optional>
 #include <iostream>
 
+std::ostream &operator<<(std::ostream &os, const Triangle &rhs)
+{
+    os << "( " << rhs[0] << " " << rhs[1] << " " << rhs[2] << " )";
+    return os;
+}
+
+// https://stackoverflow.com/a/9237226
+void remove_duplicates(std::vector<std::string> &arr)
+{
+    std::sort(arr.begin(), arr.end());
+    arr.erase(std::unique(arr.begin(), arr.end()), arr.end());
+}
+
 void Mesh::load_file(const std::string &file_name)
 {
+    count = 0;
+
+    std::vector<Vec4> cached_vertices;
+    std::vector<Vec3> cached_textures;
+    std::vector<Vec4> cached_normals;
+
+    std::vector<std::string> faces;
+    std::vector<std::string> corrected_index_mapping;
+
     std::fstream file;
     std::string line;
 
@@ -45,7 +67,7 @@ void Mesh::load_file(const std::string &file_name)
             {
                 float x, y, z;
                 ss >> x >> y >> z;
-                vertices.push_back({x, y, z});
+                cached_vertices.push_back({x, y, z, 1});
                 continue;
             }
 
@@ -53,7 +75,7 @@ void Mesh::load_file(const std::string &file_name)
             {
                 float u, v;
                 ss >> u >> v;
-                textures.push_back({u, v});
+                cached_textures.push_back({u, v});
                 continue;
             }
 
@@ -61,91 +83,130 @@ void Mesh::load_file(const std::string &file_name)
             {
                 float x, y, z;
                 ss >> x >> y >> z;
-                normals.push_back({x, y, z, 0});
+                cached_normals.push_back({x, y, z, 0});
                 continue;
             }
 
             if (key == "f") // face element
             {
-                std::vector<std::string> elements;
+                // Assumes that each face has at least 3 vertices
+                size_t temp = 0;
+                std::string face;
+                std::getline(ss, face);
 
-                size_t size = 0;
-
-                while (!ss.eof())
-                {
-                    std::string element;
-                    ss >> element;
-                    elements.push_back(element);
-                    ++size;
-                }
-
-                Face face(this, size);
-
-                for (size_t i = 0; i < size; ++i)
-                {
-                    // Cases: v, v/t, v//n, v/t/n
-                    std::stringstream element_ss(elements[i]);
-
-                    int vertex_index;
-                    element_ss >> vertex_index;
-                    face.vertex_indices[i] = vertex_index - 1;
-
-                    if (!element_ss.eof() && element_ss.peek() == '/')
-                    {
-                        // Cases: v/t, v//n, v/t/n
-                        char ignore;
-                        element_ss >> ignore;
-
-                        if (!element_ss.eof() && element_ss.peek() != '/')
-                        {
-                            // Cases: v/t, v/t/n
-                            int texture_index;
-                            element_ss >> texture_index;
-                            face.texture_indices.push_back(texture_index - 1);
-                        }
-
-                        if (!element_ss.eof() && element_ss.peek() == '/')
-                        {
-                            // Cases: v//n, v/t/n
-                            int normal_index;
-                            element_ss >> ignore >> normal_index;
-                            face.normal_indices.push_back(normal_index - 1);
-                        }
-                    }
-                }
-
+                // push back the whole line for later processing
                 faces.push_back(face);
+
+                // push back each index set for re-indexing
+                std::stringstream fss(face);
+                while (!fss.eof())
+                {
+                    std::string index;
+                    fss >> index;
+                    corrected_index_mapping.push_back(index);
+                    // count the number of faces
+                    ++temp;
+                }
+                if (temp < 3)
+                    throw std::runtime_error("Error when reading .obj.");
+
+                count += temp - 2;
                 continue;
             }
         }
         file.close();
 
-        fix_normals();
+        /*
+         * Wavefront .obj files allow for more complexity than vertex arrays.
+         * Each attribute (vertex, texture, normal) can have its own index.
+         * In our vertex array, we want each element (a shared vertex, texture,
+         * and normal) to have the same index.
+         *
+         * 1. Remove any duplicate elements. This gives us a vector
+         *    where the element's index in the vector is its new index.
+         * 2. Add all of the unique elements to the mesh in order.
+         * 3. Add triplets of indices to the vertex array using the new indices.
+         */
+        remove_duplicates(corrected_index_mapping);
+        size_t index_count = corrected_index_mapping.size();
+
+        vertices.resize(index_count);
+        textures.resize(index_count);
+        normals.resize(index_count);
+
+        for (size_t i = 0; i < index_count; ++i)
+        {
+            // Cases: v, v/t, v//n, v/t/n
+            std::stringstream ess(corrected_index_mapping[i]);
+
+            int vertex_index;
+            ess >> vertex_index;
+            vertices[i] = cached_vertices[vertex_index - 1];
+
+            if (!ess.eof() && ess.peek() == '/')
+            {
+                // Cases: v/t, v//n, v/t/n
+                char slash;
+                ess >> slash;
+
+                if (!ess.eof() && ess.peek() != '/')
+                {
+                    // Cases: v/t, v/t/n
+                    int texture_index;
+                    ess >> texture_index;
+                    textures[i] = cached_textures[texture_index - 1];
+                }
+
+                if (!ess.eof() && ess.peek() == '/')
+                {
+                    // Cases: v//n, v/t/n
+                    int normal_index;
+                    ess >> slash >> normal_index;
+                    normals[i] = cached_normals[normal_index - 1];
+                }
+            }
+        }
+
+        elements.resize(count * 3);
+        size_t offset = 0;
+
+        for (auto &face : faces)
+        {
+            std::stringstream ss(face);
+            std::vector<std::string> face_elements;
+
+            while (!ss.eof())
+            {
+                std::string element;
+                ss >> element;
+                face_elements.push_back(element);
+            }
+
+            std::vector<int> indices;
+            indices.resize(face_elements.size());
+
+            for (size_t i = 0; i < face_elements.size(); ++i)
+            {
+                auto it = std::find(corrected_index_mapping.begin(), corrected_index_mapping.end(), face_elements[i]);
+                if (it == corrected_index_mapping.end())
+                    std::cerr << "Error: Mismatch element in " << file_name << std::endl;
+                int index = std::distance(corrected_index_mapping.begin(), it);
+
+                indices[i] = index;
+            }
+
+            for (size_t i = 1; i < face_elements.size() - 1; ++i)
+            {
+                elements[offset + 0] = indices[0];
+                elements[offset + 1] = indices[i];
+                elements[offset + 2] = indices[i + 1];
+                offset += 3;
+            }
+        }
     }
     else
     {
         std::cerr << "Error: Unable to open file " << file_name << std::endl;
-    }
-}
-
-void Mesh::fix_normals()
-{
-    for (auto &face : faces)
-    {
-        if (face.normal_indices.size() == 0)
-        {
-            const Vec4 &v0 = face.get_vertex(0), &v1 = face.get_vertex(1), &v2 = face.get_vertex(2);
-
-            // Compute face normal
-            Vec4 normal = normalize(cross(v1 - v0, v2 - v0));
-            normal.w = 0;
-
-            int index = (int)normals.size();
-            normals.push_back(normal);
-
-            for (size_t i = 0; i < face.size(); ++i)
-                face.normal_indices.push_back(index);
-        }
     }
 }
 
@@ -158,32 +219,32 @@ const std::vector<Vec4> clipping_planes = {
     {0, 0, 1},  // far
 };
 
-VertexData interpolate(const VertexData &start, const VertexData &end, float a)
+Vertex interpolate(const Vertex &start, const Vertex &end, float amount)
 {
-    VertexData intersect;
-    intersect.world = start.world * (1.0f - a) + end.world * (a);
-    intersect.clip = start.clip * (1.0f - a) + end.clip * (a);
-    intersect.texture_coordinate = start.texture_coordinate * (1.0f - a) + end.texture_coordinate * (a);
-    intersect.normal = start.normal * (1.0f - a) + end.normal * (a);
-    return intersect;
+    Vertex middle;
+    middle.world = start.world * (1 - amount) + end.world * (amount);
+    middle.clip = start.clip * (1 - amount) + end.clip * (amount);
+    middle.normal = start.normal * (1 - amount) + end.normal * (amount);
+    middle.texture = start.texture * (1 - amount) + end.texture * (amount);
+    return middle;
 }
 
-void sutherland_hodgman(std::vector<VertexData> &vertex_list)
+void sutherland_hodgman(std::vector<Vertex> &input_list)
 {
-    std::vector<VertexData> out_list = vertex_list;
+    std::vector<Vertex> out_list = input_list;
 
     for (const Vec4 &plane : clipping_planes)
     {
-        std::swap(vertex_list, out_list);
+        std::swap(input_list, out_list);
         out_list.clear();
 
-        if (vertex_list.size() == 0)
+        if (input_list.size() == 0)
             return;
 
-        VertexData *start = &vertex_list[vertex_list.size() - 1];
-        for (size_t j = 0; j < vertex_list.size(); ++j)
+        Vertex *start = &input_list[input_list.size() - 1];
+        for (size_t j = 0; j < input_list.size(); ++j)
         {
-            VertexData *end = &vertex_list[j];
+            Vertex *end = &input_list[j];
 
             float d0 = dot(start->clip, plane);
             float d1 = dot(end->clip, plane);
@@ -209,5 +270,5 @@ void sutherland_hodgman(std::vector<VertexData> &vertex_list)
             start = end;
         }
     }
-    std::swap(vertex_list, out_list);
+    std::swap(input_list, out_list);
 }

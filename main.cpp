@@ -46,70 +46,82 @@ int main()
 	Matrix4 m_projection = perspective_projection(70, aspect_ratio, 0.1, 100);
 	Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
 
-	// Load models and lights
+	// Load models
 	Mesh cube("model/cube.obj");
 	Mesh sphere("model/uv_sphere.obj");
 	Mesh plane("model/plane.obj");
-
+	// Load materials
 	Material material("material/material.mtl");
 	Material tile("material/tiles074.mtl");
 
+	// Set lights
 	LightCollection lights;
-	DirectionalLight l1({0.2, 0.5, 0.79}, {-1, -1, -1, 0});
-	lights.push_back(&l1);
-	PointLight l2({1, 0, 0}, 2, {0, 0.5, -4.5});
-	lights.push_back(&l2);
-	SpotLight l3({0.6, 0.8, 0.5}, 0.3, 1, {1, -0.5, -1, 0}, {-5, 3, 0});
-	lights.push_back(&l3);
+	DirectionalLight l1(lights, {0.2, 0.5, 0.79}, {-1, -1, -1, 0});
+	PointLight l2(lights, {1, 0, 0}, 2, {0, 0.5, -4.5});
+	SpotLight l3(lights, {0.6, 0.8, 0.5}, 0.3, 1, {1, -0.5, -1, 0}, {-5, 3, 0});
 
-	// Define our objects
+	// Set objects
 	std::vector<Object> objects;
-	objects.push_back({{-1.2, 0, -5}, {}, {1}, sphere, material});
 	objects.push_back({{1.2, 0, -5}, {}, {0.8}, cube, tile});
+	objects.push_back({{-1.2, 0, -5}, {}, {1}, sphere, material});
 	objects.push_back({{0, -1, -5}, {}, {12}, plane, material});
 
 	for (Object &object : objects)
 	{
+		Mesh &mesh = object.mesh;
+		// Define the model matrix
 		Matrix4 m_model = translate(object.position) * rotate(object.rotation) * scale(object.scale);
 
-		for (Mesh::Face &face : object.mesh)
+		std::vector<Vec4> world_vertices(mesh.vertex_size());
+		std::vector<Vec4> world_normals(mesh.vertex_size());
+
+		std::vector<Vec4> clip_vertices(mesh.vertex_size());
+
+		// Transform the model to world space
+		for (size_t i = 0; i < mesh.vertex_size(); ++i)
 		{
-			std::vector<VertexData> vertices(face.size());
+			world_vertices[i] = m_model * mesh.get_vertex(i);
+			world_normals[i] = m_model * mesh.get_normal(i);
 
-			// Transform vertices from model space to clip space
-			for (size_t i = 0; i < face.size(); ++i)
+			clip_vertices[i] = m_projection * world_vertices[i];
+		}
+
+		for (size_t i = 0; i < mesh.size(); ++i)
+		{
+			Triangle triangle = mesh[i];
+			std::vector<Vertex> vertices(3);
+
+			for (size_t t = 0; t < 3; ++t)
 			{
-				vertices[i].world = m_model * face.get_vertex(i);
-				vertices[i].clip = m_projection * vertices[i].world;
-
-				vertices[i].normal = m_model * face.get_normal(i);
-
-				vertices[i].texture_coordinate = face.get_texture(i);
+				vertices[t].world = world_vertices[triangle[t]];
+				vertices[t].clip = clip_vertices[triangle[t]];
+				vertices[t].normal = world_normals[triangle[t]];
+				vertices[t].texture = mesh.get_texture(triangle[t]);
 			}
 
-			// Clip triangles to be bounded within [-w, w] on all axes
+			// Clip triangles such that they are bounded within [-w, w] on all axes
 			sutherland_hodgman(vertices);
 
-			if (vertices.size() == 0) // Skip triangles that are not on the screen
+			if (vertices.size() == 0)
 				continue;
 
-			// Move triangles from clip space to screen space
-			for (size_t i = 0; i < vertices.size(); ++i)
+			// Transform from clip space to screen space
+			for (size_t j = 0; j < vertices.size(); ++j)
 			{
-				VertexData &vertex = vertices[i];
-				if (vertex.clip.w != 0)
-				{
-					vertex.clip /= vertex.clip.w;
-					vertex.clip.w = 1;
-				}
-
-				vertex.screen_coordinate = m_screen * vertex.clip;
+				Vertex &vertex = vertices[j];
+				Vec4 &clip = vertex.clip;
+				if (clip.w != 0)
+					clip /= clip.w;
+				vertex.screen = m_screen * clip;
 			}
 
-			// Split polygon into triangles using fan triangulation: https://en.wikipedia.org/wiki/Fan_triangulation
-			for (size_t i = 0; i < vertices.size() - 1; ++i)
+			// Reform triangles using fan triangulation
+			for (size_t j = 1; j < vertices.size() - 1; ++j)
 			{
-				draw_barycentric(image, depth, object.material, lights, vertices[0], vertices[i], vertices[i + 1]);
+				Vertex &v0 = vertices[0], &v1 = vertices[j], &v2 = vertices[j + 1];
+
+				// Draw each triangle
+				draw_barycentric(image, depth, object.material, lights, v0, v1, v2);
 			}
 		}
 	}

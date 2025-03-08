@@ -169,80 +169,30 @@ void draw_line(Image &image, Vec3 &start, Vec3 &end)
     }
 }
 
-void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const VertexData &vertex0, const VertexData &vertex1, const VertexData &vertex2)
+void iterate_barycentric(uint32_t width, uint32_t height, std::function<void(uint32_t, uint32_t, float, float, float)> func, const Vec3 &v0, const Vec3 &v1, const Vec3 &v2)
 {
-    const Vec3 &s0 = vertex0.screen_coordinate, &s1 = vertex1.screen_coordinate, &s2 = vertex2.screen_coordinate;
+    uint32_t minu = std::clamp(std::min({v0.x, v1.x, v2.x}), 0.0f, static_cast<float>(width));
+    uint32_t maxu = std::clamp(std::max({v0.x, v1.x, v2.x}), 0.0f, static_cast<float>(width));
+    uint32_t minv = std::clamp(std::min({v0.y, v1.y, v2.y}), 0.0f, static_cast<float>(height));
+    uint32_t maxv = std::clamp(std::max({v0.y, v1.y, v2.y}), 0.0f, static_cast<float>(height));
 
-    uint32_t minu = std::clamp(std::min({s0.x, s1.x, s2.x}), 0.0f, image.get_width() - 1.0f);
-    uint32_t maxu = std::clamp(std::max({s0.x, s1.x, s2.x}), 0.0f, image.get_width() - 1.0f);
-    uint32_t minv = std::clamp(std::min({s0.y, s1.y, s2.y}), 0.0f, image.get_height() - 1.0f);
-    uint32_t maxv = std::clamp(std::max({s0.y, s1.y, s2.y}), 0.0f, image.get_height() - 1.0f);
-
-    Vec3 edge0 = s1 - s0, edge1 = s2 - s0;
+    // Precompute values used to find the barycentric coordinates
+    Vec3 edge0 = v1 - v0, edge1 = v2 - v0;
     float d00 = dot(edge0, edge0);
     float d01 = dot(edge0, edge1);
     float d11 = dot(edge1, edge1);
     float area = d00 * d11 - d01 * d01;
 
-    float z0 = 1.0f / s0.z, z1 = 1.0f / s1.z, z2 = 1.0f / s2.z;
-
+    // Check the bounding box of the triangle
     for (uint32_t u = minu; u <= maxu; ++u)
     {
         for (uint32_t v = minv; v <= maxv; ++v)
         {
+            // Get the center of the pixel
             Vec3 pixel(u + 0.5f, v + 0.5f);
 
-            Vec3 edge2 = pixel - s0;
-            float d20 = dot(edge2, edge0);
-            float d21 = dot(edge2, edge1);
-
-            float b = (d11 * d20 - d01 * d21) / area;
-            float c = (d00 * d21 - d01 * d20) / area;
-            float a = 1.0f - b - c;
-
-            if (a >= 0 && b >= 0 && c >= 0)
-            {
-                float inverse_z = a * z0 + b * z1 + c * z2;
-                float z = 1 / inverse_z;
-
-                if (z <= depth.at(u, v))
-                {
-                    depth.at(u, v) = z;
-
-                    image.set_pixel(u, v, color);
-                }
-            }
-        }
-    }
-}
-
-void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightCollection &lights, const VertexData &vertex0, const VertexData &vertex1, const VertexData &vertex2)
-{
-    const Vec4 &p0 = vertex0.world, &p1 = vertex1.world, &p2 = vertex2.world;
-    const Vec4 &n0 = vertex0.normal, &n1 = vertex1.normal, &n2 = vertex2.normal;
-    const Vec3 &s0 = vertex0.screen_coordinate, &s1 = vertex1.screen_coordinate, &s2 = vertex2.screen_coordinate;
-    const Vec3 &t0 = vertex0.texture_coordinate, &t1 = vertex1.texture_coordinate, &t2 = vertex2.texture_coordinate;
-
-    uint32_t minu = std::clamp(std::min({s0.x, s1.x, s2.x}), 0.0f, image.get_width() - 1.0f);
-    uint32_t maxu = std::clamp(std::max({s0.x, s1.x, s2.x}), 0.0f, image.get_width() - 1.0f);
-    uint32_t minv = std::clamp(std::min({s0.y, s1.y, s2.y}), 0.0f, image.get_height() - 1.0f);
-    uint32_t maxv = std::clamp(std::max({s0.y, s1.y, s2.y}), 0.0f, image.get_height() - 1.0f);
-
-    Vec3 edge0 = s1 - s0, edge1 = s2 - s0;
-    float d00 = dot(edge0, edge0);
-    float d01 = dot(edge0, edge1);
-    float d11 = dot(edge1, edge1);
-    float area = d00 * d11 - d01 * d01;
-
-    float z0 = 1.0f / s0.z, z1 = 1.0f / s1.z, z2 = 1.0f / s2.z;
-
-    for (uint32_t u = minu; u <= maxu; ++u)
-    {
-        for (uint32_t v = minv; v <= maxv; ++v)
-        {
-            Vec3 pixel(u + 0.5f, v + 0.5f);
-
-            Vec3 edge2 = pixel - s0;
+            // Compute the barycentric coordinates
+            Vec3 edge2 = pixel - v0;
             float d20 = dot(edge2, edge0);
             float d21 = dot(edge2, edge1);
 
@@ -253,25 +203,56 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightColl
             // Check if this pixel is in the triangle
             if (a >= 0 && b >= 0 && c >= 0)
             {
-                float az = a * z0, bz = b * z1, cz = c * z2;
-                float z = 1 / (az + bz + cz);
-
-                // Check if this pixel is the closest so far
-                if (z <= depth.at(u, v))
-                {
-                    // Set the depth buffer with the closer value
-                    depth.at(u, v) = z;
-
-                    // Interpolate across all of the vertex values
-                    Vec4 point = (p0 * az + p1 * bz + p2 * cz) * z;
-                    Vec3 texture = (t0 * az + t1 * bz + t2 * cz) * z;
-                    Vec4 normal = normalize(n0 * az + n1 * bz + n2 * cz);
-
-                    // Set the color using the material and light
-                    Color color = mat.get_color(point, normal, texture, lights);
-                    image.set_pixel(u, v, color);
-                }
+                func(u, v, a, b, c);
             }
         }
     }
+}
+
+void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vertex &v0, const Vertex &v1, const Vertex &v2)
+{
+    float z0 = 1.0f / v0.screen.z, z1 = 1.0f / v1.screen.z, z2 = 1.0f / v2.screen.z;
+
+    auto draw = [&](uint32_t u, uint32_t v, float a, float b, float c)
+    {
+        float z = 1 / (a * z0 + b * z1 + c * z2);
+        // Check if this pixel is closer to the screen
+        if (z <= depth.at(u, v))
+        {
+            depth.at(u, v) = z;
+
+            image.set_pixel(u, v, color);
+        }
+    };
+
+    iterate_barycentric(image.get_width(), image.get_height(), draw, v0.screen, v1.screen, v2.screen);
+}
+
+void draw_barycentric(Image &image, DepthBuffer &depth, Material &material, LightCollection &lights, const Vertex &v0, const Vertex &v1, const Vertex &v2)
+{
+    float z0 = 1.0f / v0.screen.z, z1 = 1.0f / v1.screen.z, z2 = 1.0f / v2.screen.z;
+    //float w0 = 1.0f / v0.clip.w, w1 = 1.0f / v1.clip.w, w2 = 1.0f / v2.clip.w;
+
+    auto draw = [&](uint32_t u, uint32_t v, float a, float b, float c)
+    {
+        float az = a * z0, bz = b * z1, cz = c * z2;
+        float z = 1 / (az + bz + cz);
+
+        // Check if this pixel is closer to the screen
+        if (z <= depth.at(u, v))
+        {
+            depth.at(u, v) = z;
+
+            // Interpolate across all of the vertex values
+            Vec4 world = (v0.world * az + v1.world * bz + v2.world * cz) * z;
+            Vec3 texture = (v0.texture * az + v1.texture * bz + v2.texture * cz) * z;
+            Vec4 normal = normalize(v0.normal * az + v1.normal * bz + v2.normal * cz);
+
+            // Set the color using the material and light
+            Color color = material.get_color(world, normal, texture, lights);
+            image.set_pixel(u, v, color);
+        }
+    };
+
+    iterate_barycentric(image.get_width(), image.get_height(), draw, v0.screen, v1.screen, v2.screen);
 }
