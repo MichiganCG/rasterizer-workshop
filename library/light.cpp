@@ -67,10 +67,11 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv,
 
     // Use the texture's color if there is one
     Color diffuse_color = texture_map ? texture_map.get_pixel(uv.x, uv.y) : diffuse;
+    Color specular_color = roughness_map ? roughness_map.get_pixel(uv.x, uv.y) : specular;
 
     Color color;
     // Phong lighting model: Sum of ambient, diffuse, and specular light
-    color = ambient * lights.get_ambient() + diffuse_color * diffuse_sum + specular * specular_sum;
+    color = ambient * lights.get_ambient() + diffuse_color * diffuse_sum + specular_color * specular_sum;
     color.r = std::min(1.0f, color.r);
     color.g = std::min(1.0f, color.g);
     color.b = std::min(1.0f, color.b);
@@ -135,12 +136,20 @@ void Material::load_file(const std::string &file_name)
                 texture_map.load_file(path);
             }
 
-            if (key == "map_N") // normal map
+            if (key == "map_Nm") // normal map
             {
                 std::string path;
                 ss >> path;
                 normal_map.load_file(path);
             }
+            
+            if (key == "map_Ks") // roughness map
+            {
+                std::string path;
+                ss >> path;
+                roughness_map.load_file(path);
+            }
+
         }
         file.close();
     }

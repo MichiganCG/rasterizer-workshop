@@ -114,7 +114,7 @@ class Material
 {
     float shininess;
     Color ambient, diffuse, specular;
-    Image texture_map, normal_map;
+    Image texture_map, normal_map, roughness_map;
 
 public:
     Material() : shininess(0), ambient{0}, diffuse{0}, specular{0} {}
@@ -123,7 +123,6 @@ public:
     void load_file(const std::string &file_name);
 
     Color get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv, LightCollection &lights);
-    Color get_color(const Vec4 &point, const Vec4 &normal, const Vec4 &tangent, const Vec4 &bitangent, const Vec3 &uv, LightCollection &lights);
 };
 
 /**

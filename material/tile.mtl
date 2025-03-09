@@ -9,3 +9,4 @@ Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
 Ks 0.500000 0.500000 0.500000
 map_Kd texture/tile_color.png
+map_Ks texture/tile_roughness.png

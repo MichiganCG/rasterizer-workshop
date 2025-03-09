@@ -97,7 +97,7 @@ void Image::write_file(const std::string &path) const
 	{
 		for (uint32_t x = 0; x < width; ++x)
 		{
-			auto &pixel = pixels[(height - y - 1) * width + x];
+			auto &pixel = pixels[y * width + x];
 			data.push_back(convert_single(pixel.r));
 			data.push_back(convert_single(pixel.g));
 			data.push_back(convert_single(pixel.b));
@@ -134,7 +134,7 @@ void Image::load_file(const std::string &path)
 	{
 		for (uint32_t x = 0; x < width; ++x)
 		{
-			size_t index = (height - y - 1) * width + x;
+			size_t index = y * width + x;
 			auto &pixel = pixels[index];
 			pixel.r = convert_single(data[index * 3 + 0]);
 			pixel.g = convert_single(data[index * 3 + 1]);
