@@ -135,7 +135,7 @@ void Image::load_file(const std::string &path)
 		for (uint32_t x = 0; x < width; ++x)
 		{
 			size_t index = (height - y - 1) * width + x;
-			auto &pixel = pixels[y * width + x];
+			auto &pixel = pixels[index];
 			pixel.r = convert_single(data[index * 3 + 0]);
 			pixel.g = convert_single(data[index * 3 + 1]);
 			pixel.b = convert_single(data[index * 3 + 2]);

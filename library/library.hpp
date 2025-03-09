@@ -86,6 +86,8 @@ public:
 	uint32_t get_width() const { return width; }
 	uint32_t get_height() const { return height; }
 
+	explicit operator bool() const { return pixels.capacity() != 0; }
+
 private:
 	uint32_t get_index(uint32_t x, uint32_t y) const { return x + width * y; }
 

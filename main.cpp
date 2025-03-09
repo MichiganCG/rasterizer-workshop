@@ -52,7 +52,7 @@ int main()
 	Mesh plane("model/plane.obj");
 	// Load materials
 	Material material("material/material.mtl");
-	Material tile("material/tiles074.mtl");
+	Material tile("material/tile.mtl");
 
 	// Set lights
 	LightCollection lights;

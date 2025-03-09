@@ -57,7 +57,7 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv,
         const float attenuation = light->get_attenuation(point);
         // https://web.stanford.edu/class/ee267/lectures/lecture3.pdf
         const Vec4 L = light->get_direction(point); // normalized vector pointing twoards the light source
-        const Vec4 &N = normal;                     // normalized surface normal
+        const Vec4 &N = normal;                            // normalized surface normal
         const Vec4 V = normalize(point);            // normalized vector pointing towards the viewer
         const Vec4 R = L - N * dot(N, L) * 2;       // normalized reflection on surface normal
 
@@ -66,7 +66,7 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv,
     }
 
     // Use the texture's color if there is one
-    Color diffuse_color = textured ? texture.get_pixel(uv.x, uv.y) : diffuse;
+    Color diffuse_color = texture_map ? texture_map.get_pixel(uv.x, uv.y) : diffuse;
 
     Color color;
     // Phong lighting model: Sum of ambient, diffuse, and specular light
@@ -132,8 +132,14 @@ void Material::load_file(const std::string &file_name)
             {
                 std::string path;
                 ss >> path;
-                texture.load_file(path);
-                textured = true;
+                texture_map.load_file(path);
+            }
+
+            if (key == "map_N") // normal map
+            {
+                std::string path;
+                ss >> path;
+                normal_map.load_file(path);
             }
         }
         file.close();
@@ -244,7 +250,7 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Material &material, Ligh
             /*
              * Correct for the perspective.
              * https://www.cs.ucr.edu/~craigs/courses/2020-fall-cs-130/lectures/perspective-correct-interpolation.pdf
-             */ 
+             */
             float aw = a * w0, bw = b * w1, cw = c * w2;
             float w = 1 / (aw + bw + cw);
 
