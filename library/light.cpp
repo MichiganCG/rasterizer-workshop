@@ -136,13 +136,6 @@ void Material::load_file(const std::string &file_name)
                 texture_map.load_file(path);
             }
 
-            if (key == "map_Nm") // normal map
-            {
-                std::string path;
-                ss >> path;
-                normal_map.load_file(path);
-            }
-            
             if (key == "map_Ks") // roughness map
             {
                 std::string path;
@@ -150,6 +143,13 @@ void Material::load_file(const std::string &file_name)
                 roughness_map.load_file(path);
             }
 
+            if (key == "map_Nm") // normal map
+            {
+                std::string path;
+                ss >> path;
+                normal_map.load_file(path);
+            }
+            
         }
         file.close();
     }

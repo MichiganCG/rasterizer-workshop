@@ -114,7 +114,7 @@ class Material
 {
     float shininess;
     Color ambient, diffuse, specular;
-    Image texture_map, normal_map, roughness_map;
+    Image texture_map, roughness_map, normal_map;
 
 public:
     Material() : shininess(0), ambient{0}, diffuse{0}, specular{0} {}
