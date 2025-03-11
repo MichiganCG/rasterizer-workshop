@@ -130,6 +130,8 @@ public:
  */
 void draw_line(Image &image, const Vec3 &start, const Vec3 &end);
 
+void iterate_barycentric(uint32_t width, uint32_t height, std::function<void(uint32_t, uint32_t, float, float, float)> func, const Vec3 &v0, const Vec3 &v1, const Vec3 &v2);
+
 /**
  * Uses barycentric coordinates to fill a triangle.
  */
