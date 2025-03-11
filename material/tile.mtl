@@ -1,7 +1,4 @@
-# Blender 4.2.3 LTS MTL File: 'None'
-# www.blender.org
-
-# Texture files taken from https://ambientcg.com/view?id=Tiles074
+# Source of textures: https://ambientcg.com/view?id=Tiles074
 
 newmtl Material
 Ns 50.000000
