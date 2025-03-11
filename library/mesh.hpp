@@ -89,6 +89,8 @@ public:
     const Vec4 &get_vertex(size_t i) const { return vertices[i]; }
     const Vec3 &get_texture(size_t i) const { return textures[i]; }
     const Vec4 &get_normal(size_t i) const { return normals[i]; }
+
+    void smooth_normals();
 };
 
 struct Vertex

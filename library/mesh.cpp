@@ -33,6 +33,29 @@ void remove_duplicates(std::vector<std::string> &arr)
     arr.erase(std::unique(arr.begin(), arr.end()), arr.end());
 }
 
+void Mesh::smooth_normals()
+{
+    for (size_t i = 0; i < normals.size(); ++i)
+        normals[i].w = 0;
+
+    for (size_t i = 0; i < size(); ++i)
+    {
+        Triangle tri = at(i);
+        // Compute the normal of each face and add it to the normal of each vertex
+
+        Vec4 edge1 = vertices[tri[1]] - vertices[tri[0]];
+        Vec4 edge2 = vertices[tri[2]] - vertices[tri[0]];
+        Vec4 normal = cross(edge1, edge2);
+
+        normals[tri[0]] += normal;
+        normals[tri[1]] += normal;
+        normals[tri[2]] += normal;
+    }
+
+    for (size_t i = 0; i < normals.size(); ++i)
+        normals[i] = normalize(normals[i]);
+}
+
 void Mesh::load_file(const std::string &file_name)
 {
     count = 0;
@@ -116,7 +139,7 @@ void Mesh::load_file(const std::string &file_name)
         }
         file.close();
 
-        /*
+        /**
          * Wavefront .obj files allow for more complexity than vertex arrays.
          * Each attribute (vertex, texture, normal) can have its own index.
          * In our vertex array, we want each element (a shared vertex, texture,
@@ -129,6 +152,8 @@ void Mesh::load_file(const std::string &file_name)
          */
         remove_duplicates(corrected_index_mapping);
         size_t index_count = corrected_index_mapping.size();
+
+        bool has_normals = !normals.empty();
 
         vertices.resize(index_count);
         textures.resize(index_count);
@@ -203,6 +228,9 @@ void Mesh::load_file(const std::string &file_name)
                 offset += 3;
             }
         }
+
+        if (!has_normals)
+            smooth_normals();
     }
     else
     {

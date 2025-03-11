@@ -50,6 +50,7 @@ int main()
 	Mesh cube("model/cube.obj");
 	Mesh sphere("model/uv_sphere.obj");
 	Mesh plane("model/plane.obj");
+
 	// Load materials
 	Material material("material/material.mtl");
 	Material tile("material/tile.mtl");
