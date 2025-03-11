@@ -75,7 +75,7 @@ public:
 
 	Color get_pixel(uint32_t x, uint32_t y) const { return pixels[get_index(x, y)]; }
 	Color get_pixel(float x, float y) const { return pixels[get_index(static_cast<uint32_t>(x * width), static_cast<uint32_t>(y * height))]; }
-	void set_pixel(uint32_t x, uint32_t y, Color color) { pixels[get_index(x, height - y - 1)] = color; }
+	void set_pixel(uint32_t x, uint32_t y, Color color) { pixels[get_index(x, y)] = color; }
 
 	/**
 	 * Outputs this image as a PNG image file.
