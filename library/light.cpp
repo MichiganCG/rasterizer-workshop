@@ -17,6 +17,7 @@
 
 #include "light.hpp"
 
+#include <algorithm>
 #include <iostream>
 
 Vec4 DirectionalLight::get_direction(const Vec4 &point) const

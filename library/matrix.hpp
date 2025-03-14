@@ -20,6 +20,7 @@
 #include "vectors.hpp"
 #include "quaternion.hpp"
 
+#include <array>
 #include <cmath>
 #include <ostream>
 
@@ -29,7 +30,7 @@
 class Matrix4
 {
 private:
-    float data[16];
+    std::array<float, 16> data{};
 
     class Proxy
     {
@@ -68,15 +69,15 @@ public:
      * Default constructor.
      * Initializes an empty matrix.
      */
-    Matrix4() : data({0}) {}
+    Matrix4() = default;
 
     /**
      * Copy constructor.
      * Initializes a matrix with the same values.
      */
-    Matrix4(const Matrix4 &);
+    Matrix4(const Matrix4 &other) = default;
 
-    Matrix4 &operator=(const Matrix4 &);
+    Matrix4 &operator=(const Matrix4 &other) = default;
 
     float &at(size_t row, size_t col) { return data[row + col * 4]; }
     float at(size_t row, size_t col) const { return data[row + col * 4]; }
