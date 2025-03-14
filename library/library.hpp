@@ -32,16 +32,16 @@ constexpr float Pi = std::numbers::pi_v<float>;
 
 struct Color
 {
-	Color(float r, float g, float b) : r(r), g(g), b(b) {}
-	explicit Color(float value = 0.0f) : r(value), g(value), b(value) {}
+    Color(float r, float g, float b) : r(r), g(g), b(b) {}
+    explicit Color(float value = 0.0f) : r(value), g(value), b(value) {}
 
-	float r, g, b;
+    float r, g, b;
 
-	Color &operator=(const Color &rhs);
-	Color &operator+=(const Color &rhs);
-	Color &operator-=(const Color &rhs);
-	Color &operator*=(const Color &rhs);
-	Color &operator*=(const float);
+    Color &operator=(const Color &rhs);
+    Color &operator+=(const Color &rhs);
+    Color &operator-=(const Color &rhs);
+    Color &operator*=(const Color &rhs);
+    Color &operator*=(const float);
 };
 
 Color operator+(Color lhs, const Color &rhs);
@@ -69,45 +69,45 @@ float random_float();
 class Image
 {
 public:
-	Image() : width(0), height(0), pixels(0) {}
-	Image(uint32_t width, uint32_t height) : width(width), height(height), pixels(width * height) {}
-	Image(const std::string &path) { load_file(path); }
+    Image() : width(0), height(0), pixels(0) {}
+    Image(uint32_t width, uint32_t height) : width(width), height(height), pixels(width * height) {}
+    Image(const std::string &path) { load_file(path); }
 
-	Color get_pixel(uint32_t x, uint32_t y) const { return pixels[get_index(x, y)]; }
-	Color get_pixel(float x, float y) const { return pixels[get_index(static_cast<uint32_t>(x * width), static_cast<uint32_t>(y * height))]; }
-	void set_pixel(uint32_t x, uint32_t y, Color color) { pixels[get_index(x, y)] = color; }
+    Color get_pixel(uint32_t x, uint32_t y) const { return pixels[get_index(x, y)]; }
+    Color get_pixel(float x, float y) const { return pixels[get_index(static_cast<uint32_t>(x * width), static_cast<uint32_t>(y * height))]; }
+    void set_pixel(uint32_t x, uint32_t y, Color color) { pixels[get_index(x, y)] = color; }
 
-	/**
-	 * Outputs this image as a PNG image file.
-	 */
-	void write_file(const std::string &path) const;
-	void load_file(const std::string &path);
+    /**
+     * Outputs this image as a PNG image file.
+     */
+    void write_file(const std::string &path) const;
+    void load_file(const std::string &path);
 
-	uint32_t get_width() const { return width; }
-	uint32_t get_height() const { return height; }
+    uint32_t get_width() const { return width; }
+    uint32_t get_height() const { return height; }
 
-	explicit operator bool() const { return pixels.capacity() != 0; }
+    explicit operator bool() const { return pixels.capacity() != 0; }
 
 private:
-	uint32_t get_index(uint32_t x, uint32_t y) const { return x + width * y; }
+    uint32_t get_index(uint32_t x, uint32_t y) const { return x + width * y; }
 
-	uint32_t width;
-	uint32_t height;
-	std::vector<Color> pixels;
+    uint32_t width;
+    uint32_t height;
+    std::vector<Color> pixels;
 };
 
 class DepthBuffer
 {
 private:
-	uint32_t width, height;
-	std::vector<float> data;
+    uint32_t width, height;
+    std::vector<float> data;
 
 public:
-	DepthBuffer(uint32_t width, uint32_t height) : width(width), height(height), data(width * height, Infinity) {}
-	DepthBuffer(Image &image) : width(image.get_width()), height(image.get_height()), data(width * height, Infinity) {}
+    DepthBuffer(uint32_t width, uint32_t height) : width(width), height(height), data(width * height, Infinity) {}
+    DepthBuffer(Image &image) : width(image.get_width()), height(image.get_height()), data(width * height, Infinity) {}
 
-	float at(uint32_t x, uint32_t y) const { return data[y * width + x]; };
-	float &at(uint32_t x, uint32_t y) { return data[y * width + x]; };
+    float at(uint32_t x, uint32_t y) const { return data[y * width + x]; };
+    float &at(uint32_t x, uint32_t y) { return data[y * width + x]; };
 };
 
 /**

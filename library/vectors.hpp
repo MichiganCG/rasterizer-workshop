@@ -25,48 +25,48 @@
 
 struct Vec3
 {
-	float x, y, z;
+    float x, y, z;
 
-	/**
-	 * Default constructor.
-	 * Initializes a point at the origin.
-	 */
-	Vec3() : x(0), y(0), z(0) {}
+    /**
+     * Default constructor.
+     * Initializes a point at the origin.
+     */
+    Vec3() : x(0), y(0), z(0) {}
 
-	/**
-	 * Constructs a point with the given components.
-	 */
-	Vec3(float value) : x(value), y(value), z(value) {}
+    /**
+     * Constructs a point with the given components.
+     */
+    Vec3(float value) : x(value), y(value), z(value) {}
 
-	/**
-	 * Constructs a point with the given components.
-	 */
-	Vec3(float u, float v) : x(u), y(v), z(0) {}
+    /**
+     * Constructs a point with the given components.
+     */
+    Vec3(float u, float v) : x(u), y(v), z(0) {}
 
-	/**
-	 * Constructs a point with the given components.
-	 */
-	Vec3(uint32_t u, uint32_t v) : x((float)u), y((float)v), z(0) {}
+    /**
+     * Constructs a point with the given components.
+     */
+    Vec3(uint32_t u, uint32_t v) : x((float)u), y((float)v), z(0) {}
 
-	/**
-	 * Constructs a point with the given components.
-	 */
-	Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
+    /**
+     * Constructs a point with the given components.
+     */
+    Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
 
-	/**
-	 * Copy constructor.
-	 */
-	Vec3(const Vec3 &other) : x(other.x), y(other.y), z(other.z) {}
+    /**
+     * Copy constructor.
+     */
+    Vec3(const Vec3 &other) : x(other.x), y(other.y), z(other.z) {}
 
-	Vec3 &operator=(const Vec3 &rhs);
-	Vec3 &operator+=(const Vec3 &rhs);
-	Vec3 &operator-=(const Vec3 &rhs);
-	Vec3 &operator*=(const Vec3 &rhs);
-	Vec3 &operator/=(const Vec3 &rhs);
-	Vec3 &operator*=(float rhs);
-	Vec3 &operator/=(float rhs);
+    Vec3 &operator=(const Vec3 &rhs);
+    Vec3 &operator+=(const Vec3 &rhs);
+    Vec3 &operator-=(const Vec3 &rhs);
+    Vec3 &operator*=(const Vec3 &rhs);
+    Vec3 &operator/=(const Vec3 &rhs);
+    Vec3 &operator*=(float rhs);
+    Vec3 &operator/=(float rhs);
 
-	friend std::ostream &operator<<(std::ostream &os, const Vec3 &rhs);
+    friend std::ostream &operator<<(std::ostream &os, const Vec3 &rhs);
 };
 
 Vec3 operator+(Vec3 lhs, const Vec3 &rhs);
@@ -120,46 +120,46 @@ Vec3 cross(const Vec3 &lhs, const Vec3 &rhs);
  */
 struct Vec4
 {
-	float x, y, z, w;
+    float x, y, z, w;
 
-	/**
-	 * Default constructor.
-	 * Initializes a point at the origin.
-	 */
-	Vec4() : x(0), y(0), z(0), w(1) {}
+    /**
+     * Default constructor.
+     * Initializes a point at the origin.
+     */
+    Vec4() : x(0), y(0), z(0), w(1) {}
 
-	/**
-	 * Constructs a point with the given components.
-	 */
-	Vec4(float x, float y, float z) : x(x), y(y), z(z), w(1) {}
+    /**
+     * Constructs a point with the given components.
+     */
+    Vec4(float x, float y, float z) : x(x), y(y), z(z), w(1) {}
 
-	/**
-	 * Constructs a vector with the given components.
-	 */
-	Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+    /**
+     * Constructs a vector with the given components.
+     */
+    Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
 
-	/**
-	 * Copy constructor.
-	 * Constructs a copy of the given vector.
-	 */
-	Vec4(const Vec4 &other) : x(other.x), y(other.y), z(other.z), w(other.w) {}
+    /**
+     * Copy constructor.
+     * Constructs a copy of the given vector.
+     */
+    Vec4(const Vec4 &other) : x(other.x), y(other.y), z(other.z), w(other.w) {}
 
-	Vec4 &operator=(const Vec4 &rhs);
-	Vec4 &operator+=(const Vec4 &rhs);
-	Vec4 &operator-=(const Vec4 &rhs);
-	Vec4 &operator*=(const Vec4 &rhs);
-	Vec4 &operator/=(const Vec4 &rhs);
-	Vec4 &operator*=(float rhs);
-	Vec4 &operator/=(float rhs);
+    Vec4 &operator=(const Vec4 &rhs);
+    Vec4 &operator+=(const Vec4 &rhs);
+    Vec4 &operator-=(const Vec4 &rhs);
+    Vec4 &operator*=(const Vec4 &rhs);
+    Vec4 &operator/=(const Vec4 &rhs);
+    Vec4 &operator*=(float rhs);
+    Vec4 &operator/=(float rhs);
 
-	friend std::ostream &operator<<(std::ostream &os, const Vec4 &rhs);
+    friend std::ostream &operator<<(std::ostream &os, const Vec4 &rhs);
 
-	static const Vec4 ZERO; // The vector `<0, 0, 0, 0>`
-	static const Vec4 RIGHT;   // The vector `<1, 0, 0, 0>`
-	static const Vec4 UP;	   // The vector `<0, 1, 0, 0>`
-	static const Vec4 FORWARD; // The vector `<0, 0, 1, 0>`
+    static const Vec4 ZERO; // The vector `<0, 0, 0, 0>`
+    static const Vec4 RIGHT;   // The vector `<1, 0, 0, 0>`
+    static const Vec4 UP;	   // The vector `<0, 1, 0, 0>`
+    static const Vec4 FORWARD; // The vector `<0, 0, 1, 0>`
 
-	operator Vec3() const;
+    operator Vec3() const;
 };
 
 Vec4 operator+(Vec4 lhs, const Vec4 &rhs);

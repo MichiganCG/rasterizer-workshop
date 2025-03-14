@@ -42,7 +42,7 @@ struct Triangle
     int at(size_t i) const { return indices[i]; }
     int operator[](size_t i) const { return indices[i]; }
 
-	friend std::ostream &operator<<(std::ostream &os, const Triangle &rhs);
+    friend std::ostream &operator<<(std::ostream &os, const Triangle &rhs);
 };
 
 
