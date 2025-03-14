@@ -17,23 +17,6 @@
 
 #include "matrix.hpp"
 
-Matrix4::Matrix4(const Matrix4 &other) : Matrix4()
-{
-    for (size_t i = 0; i < 16; ++i)
-        data[i] = other.data[i];
-}
-
-Matrix4 &Matrix4::operator=(const Matrix4 &other)
-{
-    if (this == &other)
-        return *this;
-
-    for (size_t i = 0; i < 16; ++i)
-        data[i] = other.data[i];
-
-    return *this;
-}
-
 Matrix4 &Matrix4::operator+=(const Matrix4 &other)
 {
     for (size_t i = 0; i < 16; ++i)

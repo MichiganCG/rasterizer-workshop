@@ -17,6 +17,7 @@
 
 #include "mesh.hpp"
 
+#include <algorithm>
 #include <optional>
 #include <iostream>
 

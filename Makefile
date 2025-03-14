@@ -13,7 +13,7 @@ $(OUT)_release: main.cpp $(objects)
 	$(COMMAND) $(OUT)_release
 
 $(objects): %.o: $(addprefix library/, %.cpp)
-	$(CC) $(FLAGS) -c $^ -o $@
+	$(CXX) $(FLAGS) -c $^ -o $@
 
 clean:
 	rm -rf *.o $(OUT)*
