@@ -14,14 +14,14 @@ git clone https://github.com/MichiganCG/rasterizer-workshop.git
 
 ## Usage
 
+The file `main.cpp` contains starter code for this workshop. It includes all of the necessary header files and the main function.
+
 To compile the project, use the make command:
 
 ```bash
 make
 # or
 make rasterizer
-# or
-make rasterizer_release # compiles with optimization
 ```
 
 Run the script:
@@ -30,7 +30,39 @@ Run the script:
 ./rasterizer
 ```
 
-It will produce the image file `output.png`.
+It will produce an empty image file named `output.png`.
+
+### Checkpoint Code
+
+The file `main_checkpoint.cpp` contains the code used at the beginning of the third workshop meeting.
+
+To compile the checkpoint, use the make command:
+
+```bash
+make checkpoint
+```
+
+Run the script:
+
+```bash
+./rasterizer_checkpoint
+```
+
+### Release Code
+
+The file `main_release.cpp` contains the completed code from the end of the final workshop meeting.
+
+To compile the release code, use the make command:
+
+```bash
+make release
+```
+
+Run the script:
+
+```bash
+./rasterizer_release
+```
 
 ## License
 

@@ -8,13 +8,13 @@ $(OUT): FLAGS += -g3 -DDEBUG
 $(OUT): main.cpp $(objects)
 	$(COMMAND) $(OUT)
 
-$(OUT)_release: FLAGS += -O3 -DNDEBUG
-$(OUT)_release: main.cpp $(objects)
-	$(COMMAND) $(OUT)_release
-
 checkpoint: FLAGS += -g3 -DDEBUG
 checkpoint: main_checkpoint.cpp $(objects)
-	$(COMMAND) $(OUT)
+	$(COMMAND) $(OUT)_checkpoint
+
+release: FLAGS += -O3 -DNDEBUG
+release: main_release.cpp $(objects)
+	$(COMMAND) $(OUT)_release
 
 $(objects): %.o: $(addprefix library/, %.cpp)
 	$(CXX) $(FLAGS) -c $^ -o $@
