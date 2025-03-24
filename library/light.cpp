@@ -72,7 +72,7 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv,
 
     Color color;
     // Phong lighting model: Sum of ambient, diffuse, and specular light
-    color = ambient * lights.get_ambient() + diffuse_color * diffuse_sum + specular_color * specular_sum;
+    color = ambient * lights.get_ambient_color() + diffuse_color * diffuse_sum + specular_color * specular_sum;
     color.r = std::min(1.0f, color.r);
     color.g = std::min(1.0f, color.g);
     color.b = std::min(1.0f, color.b);

@@ -34,19 +34,23 @@ class Light;
  */
 class LightCollection
 {
-    Color ambient;
-    std::vector<Light *> lights;
+    // We store the ambient light seperately from the other lights since there should 
+    // only be a single source of ambient light.
+    Color ambient_color;
+
+    // A vector of all lights in the scene.
+    std::vector<const Light *> lights;
 
 public:
-    LightCollection() : ambient{0.01, 0.01, 0.01} {}
-    LightCollection(const Color &ambient) : ambient{ambient} {}
+    LightCollection() : ambient_color{0.01, 0.01, 0.01} {}
+    LightCollection(const Color &ambient_color) : ambient_color{ambient_color} {}
 
-    const Color &get_ambient() { return ambient; }
+    const Color &get_ambient_color() { return ambient_color; }
 
-    void push_back(Light *light) { lights.push_back(light); }
+    void push_back(const Light *light) { lights.push_back(light); }
 
-    std::vector<Light *>::iterator begin() { return lights.begin(); }
-    std::vector<Light *>::iterator end() { return lights.end(); }
+    std::vector<const Light *>::iterator begin() { return lights.begin(); }
+    std::vector<const Light *>::iterator end() { return lights.end(); }
 };
 
 class Light
@@ -54,7 +58,7 @@ class Light
     Color color;
 
 public:
-    Light(LightCollection &lights, Color color) : color(color) { lights.push_back(this); }
+    Light(Color color) : color(color) {}
     virtual ~Light() = default;
 
     virtual const Color &get_color() const { return color; }
@@ -68,10 +72,12 @@ public:
  */
 class DirectionalLight : public Light
 {
+    // Stores the negative direction so that faces pointing towards the light 
+    // have a positive dot product.
     Vec4 direction;
 
 public:
-    DirectionalLight(LightCollection &lights, Color color, Vec4 direction) : Light(lights, color), direction(-normalize(direction)) {}
+    DirectionalLight(Color color, Vec4 direction) : Light(color), direction(-normalize(direction)) {}
 
     Vec4 get_direction(const Vec4 &point) const override;
 };
@@ -85,7 +91,7 @@ class PointLight : public Light
     Vec4 position;
 
 public:
-    PointLight(LightCollection &lights, Color color, float k, Vec4 position) : Light(lights, color), k(k), position(position) {}
+    PointLight(Color color, float intensity, Vec4 position) : Light(color), k(intensity), position(position) {}
 
     Vec4 get_direction(const Vec4 &point) const override;
     float get_attenuation(const Vec4 &point) const override;
@@ -101,7 +107,7 @@ class SpotLight : public Light
     Vec4 position;
 
 public:
-    SpotLight(LightCollection &lights, Color color, float angle, float taper, Vec4 direction, Vec4 position) : Light(lights, color), angle(std::cos(angle)), taper(taper), direction(normalize(direction)), position(position) {}
+    SpotLight(Color color, float angle, float taper, Vec4 direction, Vec4 position) : Light(color), angle(std::cos(angle)), taper(taper), direction(normalize(direction)), position(position) {}
 
     Vec4 get_direction(const Vec4 &point) const override;
     float get_attenuation(const Vec4 &point) const override;
