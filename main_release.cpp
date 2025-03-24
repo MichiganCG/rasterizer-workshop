@@ -27,7 +27,7 @@
 
 const uint32_t ImageWidth = 960;
 const uint32_t ImageHeight = 540;
-const float aspect_ratio = (float)ImageWidth / (float)ImageHeight;
+const float AspectRatio = (float)ImageWidth / (float)ImageHeight;
 
 struct Object
 {
@@ -41,9 +41,9 @@ struct Object
 int main()
 {
     Image image(ImageWidth, ImageHeight);
-    DepthBuffer depth(image);
+    DepthBuffer depth(ImageWidth, ImageHeight);
 
-    Matrix4 m_projection = perspective_projection(70, aspect_ratio, 0.1, 100);
+    Matrix4 m_projection = perspective_projection(70, AspectRatio, 0.1, 100);
     Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
 
     // Load models
@@ -55,23 +55,33 @@ int main()
     Material material("material/material.mtl");
     Material tile("material/tile.mtl");
 
+    DirectionalLight blue_light({0.2, 0.5, 0.79}, {-1, -1, -1, 0});
+    PointLight red_light({1, 0, 0}, 2, {0, 0.5, -4.5});
+    SpotLight green_light({0.6, 0.8, 0.5}, 0.3, 1, {1, -0.5, -1, 0}, {-5, 3, 0});
+
     // Set lights
     LightCollection lights;
-    DirectionalLight l1(lights, {0.2, 0.5, 0.79}, {-1, -1, -1, 0});
-    PointLight l2(lights, {1, 0, 0}, 2, {0, 0.5, -4.5});
-    SpotLight l3(lights, {0.6, 0.8, 0.5}, 0.3, 1, {1, -0.5, -1, 0}, {-5, 3, 0});
+    lights.push_back(&blue_light);
+    lights.push_back(&red_light);
+    lights.push_back(&green_light);
+
+    Object ground({0, -1, -5}, {}, {12}, plane, material);
+    Object tile_cube({1.2, 0, -5}, {{0, 1, 0}, Pi/3}, {0.8}, cube, tile);
+    Object white_sphere({-1.2, 0, -5}, {}, {1}, sphere, material);
 
     // Set objects
-    std::vector<Object> objects;
-    objects.push_back({{1.2, 0, -5}, {{0, 1, 0}, Pi/3}, {0.8}, cube, tile});
-    objects.push_back({{-1.2, 0, -5}, {}, {1}, sphere, material});
-    objects.push_back({{0, -1, -5}, {}, {12}, plane, material});
+    std::vector<Object *> objects;
+    objects.push_back(&ground);
+    objects.push_back(&tile_cube);
+    objects.push_back(&white_sphere);
 
-    for (Object &object : objects)
+
+    for (Object *object : objects)
     {
-        Mesh &mesh = object.mesh;
+        Mesh &mesh = object->mesh;
+
         // Define the model matrix
-        Matrix4 m_model = translate(object.position) * rotate(object.rotation) * scale(object.scale);
+        Matrix4 m_model = translate(object->position) * rotate(object->rotation) * scale(object->scale);
 
         std::vector<Vec4> world_vertices(mesh.vertex_size());
         std::vector<Vec4> world_normals(mesh.vertex_size());
@@ -135,7 +145,7 @@ int main()
                 Vertex &v0 = vertices[0], &v1 = vertices[j], &v2 = vertices[j + 1];
 
                 // Draw each triangle
-                draw_barycentric(image, depth, object.material, lights, v0, v1, v2);
+                draw_barycentric(image, depth, object->material, lights, v0, v1, v2);
             }
         }
     }
