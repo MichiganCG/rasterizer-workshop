@@ -217,9 +217,9 @@ void iterate_barycentric(std::function<void(uint32_t, uint32_t, float, float, fl
             float a = 1.0f - b - c;
 
             // Check if this pixel is in the triangle
-            if (a >= 0 && b >= 0 && c >= 0)
+            if (!(a < -1E-5 || b < -1E-5 || c < -1E-5))
             {
-                func(u + 1, v + 1, a, b, c);
+                func(u, v, a, b, c);
             }
         }
     }
