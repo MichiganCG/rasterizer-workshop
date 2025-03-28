@@ -193,6 +193,7 @@ void iterate_barycentric(std::function<void(uint32_t, uint32_t, float, float, fl
     uint32_t maxv = std::max({v0.y, v1.y, v2.y});
 
     // Precompute values used to find the barycentric coordinates
+    // https://gamedev.stackexchange.com/a/23745
     Vec3 edge0 = v1 - v0, edge1 = v2 - v0;
     float d00 = dot(edge0, edge0);
     float d01 = dot(edge0, edge1);
