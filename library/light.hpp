@@ -34,7 +34,7 @@ class Light;
  */
 class LightCollection
 {
-    // We store the ambient light seperately from the other lights since there should 
+    // We store the ambient light seperately from the other lights since there should
     // only be a single source of ambient light.
     Color ambient_color;
 
@@ -72,7 +72,7 @@ public:
  */
 class DirectionalLight : public Light
 {
-    // Stores the negative direction so that faces pointing towards the light 
+    // Stores the negative direction so that faces pointing towards the light
     // have a positive dot product.
     Vec4 direction;
 
@@ -136,7 +136,7 @@ public:
  */
 void draw_line(Image &image, const Vec3 &start, const Vec3 &end);
 
-void iterate_barycentric(uint32_t width, uint32_t height, std::function<void(uint32_t, uint32_t, float, float, float)> func, const Vec3 &v0, const Vec3 &v1, const Vec3 &v2);
+void iterate_barycentric(std::function<void(uint32_t, uint32_t, float, float, float)> func, const Vec3 &v0, const Vec3 &v1, const Vec3 &v2);
 
 /**
  * Uses barycentric coordinates to fill a triangle.

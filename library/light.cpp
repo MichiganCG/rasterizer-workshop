@@ -58,7 +58,7 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv,
         const float attenuation = light->get_attenuation(point);
         // https://web.stanford.edu/class/ee267/lectures/lecture3.pdf
         const Vec4 L = light->get_direction(point); // normalized vector pointing twoards the light source
-        const Vec4 &N = normal;                            // normalized surface normal
+        const Vec4 &N = normal;                     // normalized surface normal
         const Vec4 V = normalize(point);            // normalized vector pointing towards the viewer
         const Vec4 R = L - N * dot(N, L) * 2;       // normalized reflection on surface normal
 
@@ -150,7 +150,6 @@ void Material::load_file(const std::string &file_name)
                 ss >> path;
                 normal_map.load_file(path);
             }
-            
         }
         file.close();
     }
@@ -185,12 +184,13 @@ void draw_line(Image &image, Vec3 &start, Vec3 &end)
     }
 }
 
-void iterate_barycentric(uint32_t width, uint32_t height, std::function<void(uint32_t, uint32_t, float, float, float)> func, const Vec3 &v0, const Vec3 &v1, const Vec3 &v2)
+void iterate_barycentric(std::function<void(uint32_t, uint32_t, float, float, float)> func, const Vec3 &v0, const Vec3 &v1, const Vec3 &v2)
 {
-    uint32_t minu = std::clamp(std::min({v0.x, v1.x, v2.x}), 0.0f, static_cast<float>(width));
-    uint32_t maxu = std::clamp(std::max({v0.x, v1.x, v2.x}), 0.0f, static_cast<float>(width));
-    uint32_t minv = std::clamp(std::min({v0.y, v1.y, v2.y}), 0.0f, static_cast<float>(height));
-    uint32_t maxv = std::clamp(std::max({v0.y, v1.y, v2.y}), 0.0f, static_cast<float>(height));
+    // Get the bounding box of this triangle
+    uint32_t minu = std::min({v0.x, v1.x, v2.x});
+    uint32_t maxu = std::max({v0.x, v1.x, v2.x});
+    uint32_t minv = std::min({v0.y, v1.y, v2.y});
+    uint32_t maxv = std::max({v0.y, v1.y, v2.y});
 
     // Precompute values used to find the barycentric coordinates
     Vec3 edge0 = v1 - v0, edge1 = v2 - v0;
@@ -241,7 +241,7 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vert
         }
     };
 
-    iterate_barycentric(image.get_width(), image.get_height(), draw, v0.screen, v1.screen, v2.screen);
+    iterate_barycentric(draw, v0.screen, v1.screen, v2.screen);
 }
 
 void draw_barycentric(Image &image, DepthBuffer &depth, Material &material, LightCollection &lights, const Vertex &v0, const Vertex &v1, const Vertex &v2)
@@ -275,5 +275,5 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Material &material, Ligh
         }
     };
 
-    iterate_barycentric(image.get_width(), image.get_height(), draw, v0.screen, v1.screen, v2.screen);
+    iterate_barycentric(draw, v0.screen, v1.screen, v2.screen);
 }

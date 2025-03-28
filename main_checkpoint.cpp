@@ -107,7 +107,7 @@ int main()
                 }
             };
 
-            iterate_barycentric(image.get_width(), image.get_height(), draw, v0.screen, v1.screen, v2.screen);
+            iterate_barycentric(draw, v0.screen, v1.screen, v2.screen);
         }
     }
 
