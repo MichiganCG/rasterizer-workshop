@@ -218,8 +218,8 @@ Matrix4 perspective_projection(float fov, float aspect_ratio, float near, float 
 
 Matrix4 viewport(uint32_t width, uint32_t height)
 {
-    float half_width = width / 2;
-    float half_height = height / 2;
+    float half_width = (width - 1) / 2;
+    float half_height = (height - 1) / 2;
 
     Matrix4 matrix;
     matrix.at(0, 0) = half_width;
