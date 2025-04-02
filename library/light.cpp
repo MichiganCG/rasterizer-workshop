@@ -59,11 +59,11 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv,
         // https://web.stanford.edu/class/ee267/lectures/lecture3.pdf
         const Vec4 L = light->get_direction(point); // normalized vector pointing twoards the light source
         const Vec4 &N = normal;                     // normalized surface normal
-        const Vec4 V = normalize(point);            // normalized vector pointing towards the viewer
-        const Vec4 R = L - N * dot(N, L) * 2;       // normalized reflection on surface normal
+        const Vec4 V = -normalize(point);           // normalized vector pointing towards the viewer
+        const Vec4 H = normalize(L + V);       // normalized reflection on surface normal
 
         diffuse_sum += color * std::max(0.0f, dot(N, L)) * attenuation;
-        specular_sum += color * std::pow(std::max(0.0f, dot(R, V)), shininess) * attenuation;
+        specular_sum += color * std::pow(std::max(0.0f, dot(N, H)), shininess) * attenuation;
     }
 
     // Use the texture's color if there is one
