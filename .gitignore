@@ -247,3 +247,4 @@ xcuserdata/
 !model/*.obj
 !material/*.mtl
 !texture/*
+*.bak
