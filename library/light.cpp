@@ -20,6 +20,10 @@
 #include <algorithm>
 #include <iostream>
 
+float saturate(const float value) {
+    return std::min(1.0f, std::max(0.0f, value));
+}
+
 Vec4 DirectionalLight::get_direction(const Vec4 &point) const
 {
     std::ignore = point;
@@ -33,7 +37,8 @@ Vec4 PointLight::get_direction(const Vec4 &point) const
 
 float PointLight::get_attenuation(const Vec4 &point) const
 {
-    return 1.0f / magnitude_squared(position - point) * k;
+    float distance_squared = magnitude_squared(position - point);
+    return intensity / distance_squared;
 }
 
 Vec4 SpotLight::get_direction(const Vec4 &point) const
@@ -43,7 +48,10 @@ Vec4 SpotLight::get_direction(const Vec4 &point) const
 
 float SpotLight::get_attenuation(const Vec4 &point) const
 {
-    float light_fall_off = std::max(0.0f, dot(normalize(point - position), direction) - angle) / (1.0f - angle);
+    float cos_angle = dot(normalize(point - position), direction);
+    if (cos_angle <= max_cos_angle) return 0;
+
+    float light_fall_off = 1.0f - (1.0f - cos_angle) / (1.0f - max_cos_angle);
     return std::pow(light_fall_off, taper);
 }
 
@@ -56,14 +64,18 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv,
     {
         const Color &color = light->get_color();
         const float attenuation = light->get_attenuation(point);
+
         // https://web.stanford.edu/class/ee267/lectures/lecture3.pdf
-        const Vec4 L = light->get_direction(point); // normalized vector pointing twoards the light source
+        const Vec4 L = light->get_direction(point); // normalized vector pointing towards the light source
         const Vec4 &N = normal;                     // normalized surface normal
         const Vec4 V = -normalize(point);           // normalized vector pointing towards the viewer
-        const Vec4 H = normalize(L + V);       // normalized reflection on surface normal
+        const Vec4 H = normalize(L + V);            // normalized reflection on surface normal
 
-        diffuse_sum += color * std::max(0.0f, dot(N, L)) * attenuation;
-        specular_sum += color * std::pow(std::max(0.0f, dot(N, H)), shininess) * attenuation;
+        float diffuse_intensity = saturate(dot(N, L));
+        float specular_intensity = std::pow(saturate(dot(N, H)), shininess);
+
+        diffuse_sum += color * diffuse_intensity * attenuation;
+        specular_sum += color * specular_intensity * attenuation;
     }
 
     // Use the texture's color if there is one

@@ -87,11 +87,11 @@ public:
  */
 class PointLight : public Light
 {
-    float k;
+    float intensity;
     Vec4 position;
 
 public:
-    PointLight(Color color, float intensity, Vec4 position) : Light(color), k(intensity), position(position) {}
+    PointLight(Color color, float intensity, Vec4 position) : Light(color), intensity(intensity), position(position) {}
 
     Vec4 get_direction(const Vec4 &point) const override;
     float get_attenuation(const Vec4 &point) const override;
@@ -102,12 +102,12 @@ public:
  */
 class SpotLight : public Light
 {
-    float angle, taper;
+    float max_cos_angle, taper;
     Vec4 direction;
     Vec4 position;
 
 public:
-    SpotLight(Color color, float angle, float taper, Vec4 direction, Vec4 position) : Light(color), angle(std::cos(angle)), taper(taper), direction(normalize(direction)), position(position) {}
+    SpotLight(Color color, float angle, float taper, Vec4 direction, Vec4 position) : Light(color), max_cos_angle(std::cos(angle)), taper(taper), direction(normalize(direction)), position(position) {}
 
     Vec4 get_direction(const Vec4 &point) const override;
     float get_attenuation(const Vec4 &point) const override;
