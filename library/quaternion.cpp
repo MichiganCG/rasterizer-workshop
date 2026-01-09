@@ -18,7 +18,7 @@
 #include "quaternion.hpp"
 #include "library.hpp"
 
-#define epsilon 8E-7f
+constexpr double epsilon = 8E-7;
 
 Quaternion::Quaternion() : w(1), x(0), y(0), z(0) {}
 
