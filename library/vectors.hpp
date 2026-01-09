@@ -61,6 +61,8 @@ struct Vec3
     Vec3 &operator=(const Vec3 &rhs);
     Vec3 &operator+=(const Vec3 &rhs);
     Vec3 &operator-=(const Vec3 &rhs);
+    Vec3 &operator+=(float rhs);
+    Vec3 &operator-=(float rhs);
     Vec3 &operator*=(const Vec3 &rhs);
     Vec3 &operator/=(const Vec3 &rhs);
     Vec3 &operator*=(float rhs);
@@ -71,6 +73,8 @@ struct Vec3
 
 Vec3 operator+(Vec3 lhs, const Vec3 &rhs);
 Vec3 operator-(Vec3 lhs, const Vec3 &rhs);
+Vec3 operator+(Vec3 lhs, float rhs);
+Vec3 operator-(Vec3 lhs, float rhs);
 Vec3 operator*(Vec3 lhs, const Vec3 &rhs);
 Vec3 operator/(Vec3 lhs, const Vec3 &rhs);
 Vec3 operator*(Vec3 lhs, float rhs);
@@ -137,6 +141,11 @@ struct Vec4
      * Constructs a vector with the given components.
      */
     Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+    
+    /**
+     * Constructs a vector from a color's rgb values.
+     */
+    Vec4(const Color &color) : x(color.r), y(color.g), z(color.b), w(0) {}
 
     /**
      * Copy constructor.
@@ -147,6 +156,8 @@ struct Vec4
     Vec4 &operator=(const Vec4 &rhs);
     Vec4 &operator+=(const Vec4 &rhs);
     Vec4 &operator-=(const Vec4 &rhs);
+    Vec4 &operator+=(float rhs);
+    Vec4 &operator-=(float rhs);
     Vec4 &operator*=(const Vec4 &rhs);
     Vec4 &operator/=(const Vec4 &rhs);
     Vec4 &operator*=(float rhs);
@@ -164,6 +175,8 @@ struct Vec4
 
 Vec4 operator+(Vec4 lhs, const Vec4 &rhs);
 Vec4 operator-(Vec4 lhs, const Vec4 &rhs);
+Vec4 operator+(Vec4 lhs, float rhs);
+Vec4 operator-(Vec4 lhs, float rhs);
 Vec4 operator*(Vec4 lhs, const Vec4 &rhs);
 Vec4 operator/(Vec4 lhs, const Vec4 &rhs);
 Vec4 operator*(Vec4 lhs, float rhs);

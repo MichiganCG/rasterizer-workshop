@@ -44,6 +44,22 @@ Vec3 &Vec3::operator-=(const Vec3 &rhs)
     return *this;
 }
 
+Vec3 &Vec3::operator+=(float rhs)
+{
+    x += rhs;
+    y += rhs;
+    z += rhs;
+    return *this;
+}
+
+Vec3 &Vec3::operator-=(float rhs)
+{
+    x -= rhs;
+    y -= rhs;
+    z -= rhs;
+    return *this;
+}
+
 Vec3 &Vec3::operator*=(const Vec3 &rhs)
 {
     x *= rhs.x;
@@ -78,6 +94,8 @@ Vec3 &Vec3::operator/=(float rhs)
 
 Vec3 operator+(Vec3 lhs, const Vec3 &rhs) { return (lhs += rhs); }
 Vec3 operator-(Vec3 lhs, const Vec3 &rhs) { return (lhs -= rhs); }
+Vec3 operator+(Vec3 lhs, float rhs) { return (lhs += rhs); }
+Vec3 operator-(Vec3 lhs, float rhs) { return (lhs -= rhs); }
 Vec3 operator*(Vec3 lhs, const Vec3 &rhs) { return (lhs *= rhs); }
 Vec3 operator/(Vec3 lhs, const Vec3 &rhs) { return (lhs /= rhs); }
 Vec3 operator*(Vec3 lhs, float rhs) { return (lhs *= rhs); }
@@ -162,6 +180,22 @@ Vec4 &Vec4::operator-=(const Vec4 &rhs)
     return *this;
 }
 
+Vec4 &Vec4::operator+=(float rhs)
+{
+    x += rhs;
+    y += rhs;
+    z += rhs;
+    return *this;
+}
+
+Vec4 &Vec4::operator-=(float rhs)
+{
+    x -= rhs;
+    y -= rhs;
+    z -= rhs;
+    return *this;
+}
+
 Vec4 &Vec4::operator*=(const Vec4 &rhs)
 {
     x *= rhs.x;
@@ -209,6 +243,8 @@ Vec4::operator Vec3() const
 
 Vec4 operator+(Vec4 lhs, const Vec4 &rhs) { return (lhs += rhs); }
 Vec4 operator-(Vec4 lhs, const Vec4 &rhs) { return (lhs -= rhs); }
+Vec4 operator+(Vec4 lhs, float rhs) { return (lhs += rhs); }
+Vec4 operator-(Vec4 lhs, float rhs) { return (lhs -= rhs); }
 Vec4 operator*(Vec4 lhs, const Vec4 &rhs) { return (lhs *= rhs); }
 Vec4 operator/(Vec4 lhs, const Vec4 &rhs) { return (lhs /= rhs); }
 Vec4 operator*(Vec4 lhs, float rhs) { return (lhs *= rhs); }

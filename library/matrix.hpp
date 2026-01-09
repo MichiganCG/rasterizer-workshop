@@ -32,6 +32,9 @@ class Matrix4
 private:
     std::array<float, 16> data{};
 
+    /**
+     * Provides access to the matrix using `operator[row][column]`
+     */
     class Proxy
     {
         friend class Matrix4;
