@@ -104,7 +104,7 @@ class SpotLight : public Light
     Vec4 position;
 
 public:
-    SpotLight(Color color, float angle, float taper, Vec4 direction, Vec4 position) : Light(color), max_cos_angle(std::cos(angle)), taper(taper), direction(normalize(direction)), position(position) {}
+    SpotLight(Color color, float angle, float taper, Vec4 direction, Vec4 position) : Light(color), max_cos_angle(std::cos(angle)), taper(taper), direction(-normalize(direction)), position(position) {}
 
     const Vec4 get_direction(const Vec4 &point) const override;
     float get_attenuation(const Vec4 &point) const override;
@@ -129,7 +129,7 @@ public:
      * Calculates the color at a point using the Blinn-Phong reflection model
      * https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model
      */
-    Color get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv, LightCollection &lights);
+    Color get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, LightCollection &lights);
 };
 
 /**

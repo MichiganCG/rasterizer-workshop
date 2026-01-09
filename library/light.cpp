@@ -50,29 +50,29 @@ const Vec4 SpotLight::get_direction(const Vec4 &point) const
 
 float SpotLight::get_attenuation(const Vec4 &point) const
 {
-    float cos_angle = dot(normalize(point - position), direction);
+    float cos_angle = dot(get_direction(point), direction);
     if (cos_angle <= max_cos_angle) return 0;
 
     float light_fall_off = 1.0f - (1.0f - cos_angle) / (1.0f - max_cos_angle);
     return std::pow(light_fall_off, taper);
 }
 
-Color Material::get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv, LightCollection &lights)
+Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, LightCollection &lights)
 {
     Color diffuse_sum, specular_sum;
 
-    Vec4 N = normal;            // normalized surface normal
-    Vec4 V = -normalize(point); // normalized vector pointing towards the viewer
-                                // simplified because we assume that the camera is always at the origin
+    Vec4 N = normal;                  // normalized surface normal
+    Vec4 V = normalize(-world_coord); // normalized vector pointing from the surface to the viewer
+                                      // simplified because this project assumes the camera is always at the origin
 
     // Compute the sum of the diffuse and specular light from each light source
     for (const Light *light : lights)
     {
         const Color &color = light->get_color();
-        float attenuation = light->get_attenuation(point);
+        float attenuation = light->get_attenuation(world_coord);
 
-        const Vec4 L = light->get_direction(point); // normalized vector pointing towards the light source
-        const Vec4 H = normalize(L + V);            // normalized half vector
+        const Vec4 L = light->get_direction(world_coord);   // normalized vector pointing from the surface to the light source
+        const Vec4 H = normalize(L + V);                    // normalized half vector between light and viewer directions
 
         float diffuse_intensity = saturate(dot(N, L));
         float specular_intensity = std::pow(saturate(dot(N, H)), shininess);
@@ -82,11 +82,11 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv,
     }
 
     // Use the texture's color if there is one
-    const Color diffuse_color = texture_map ? texture_map.get_pixel(uv.x, uv.y) : diffuse;
-    const Color specular_color = roughness_map ? roughness_map.get_pixel(uv.x, uv.y) : specular;
+    const Color diffuse_color = texture_map ? texture_map.get_pixel(texture_coord.x, texture_coord.y) * diffuse : diffuse;
+    const Color specular_color = roughness_map ? roughness_map.get_pixel(texture_coord.x, texture_coord.y) * specular : specular;
 
     // Phong lighting model: Sum of ambient, diffuse, and specular light
-    Color color = ambient * lights.get_ambient_color() + diffuse_color * diffuse_sum + specular_color * specular_sum;
+    Color color = diffuse_color * (ambient * lights.get_ambient_color() + diffuse_sum) + specular_color * specular_sum;
     color.r = saturate(color.r);
     color.g = saturate(color.g);
     color.b = saturate(color.b);
