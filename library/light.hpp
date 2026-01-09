@@ -59,7 +59,7 @@ public:
     virtual ~Light() = default;
 
     virtual const Color &get_color() const { return color; }
-    virtual Vec4 get_direction(const Vec4 &point) const { return Vec4::ZERO; }
+    virtual const Vec4 get_direction(const Vec4 &point) const { return Vec4::ZERO; }
     virtual float get_attenuation(const Vec4 &point) const { return 1; }
 };
 
@@ -76,7 +76,7 @@ class DirectionalLight : public Light
 public:
     DirectionalLight(Color color, Vec4 direction) : Light(color), direction(-normalize(direction)) {}
 
-    Vec4 get_direction(const Vec4 &point) const override;
+    const Vec4 get_direction(const Vec4 &point) const override;
 };
 
 /**
@@ -90,7 +90,7 @@ class PointLight : public Light
 public:
     PointLight(Color color, float intensity, Vec4 position) : Light(color), intensity(intensity), position(position) {}
 
-    Vec4 get_direction(const Vec4 &point) const override;
+    const Vec4 get_direction(const Vec4 &point) const override;
     float get_attenuation(const Vec4 &point) const override;
 };
 
@@ -106,7 +106,7 @@ class SpotLight : public Light
 public:
     SpotLight(Color color, float angle, float taper, Vec4 direction, Vec4 position) : Light(color), max_cos_angle(std::cos(angle)), taper(taper), direction(normalize(direction)), position(position) {}
 
-    Vec4 get_direction(const Vec4 &point) const override;
+    const Vec4 get_direction(const Vec4 &point) const override;
     float get_attenuation(const Vec4 &point) const override;
 };
 
@@ -125,6 +125,10 @@ public:
 
     void load_file(const std::string &file_name);
 
+    /**
+     * Calculates the color at a point using the Blinn-Phong reflection model
+     * https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model
+     */
     Color get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv, LightCollection &lights);
 };
 
@@ -133,7 +137,7 @@ public:
  */
 void draw_line(Image &image, const Vec3 &start, const Vec3 &end);
 
-void iterate_barycentric(std::function<void(uint32_t, uint32_t, float, float, float)> func, const Vec3 &v0, const Vec3 &v1, const Vec3 &v2);
+void iterate_barycentric(Image &image, DepthBuffer &depth, std::function<Color(float, float, float)> shader, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2);
 
 /**
  * Uses barycentric coordinates to fill a triangle.

@@ -20,17 +20,19 @@
 #include <algorithm>
 #include <iostream>
 
-float saturate(const float value) {
+constexpr double epsilon = -1E-5;
+
+float saturate(float value) {
     return std::min(1.0f, std::max(0.0f, value));
 }
 
-Vec4 DirectionalLight::get_direction(const Vec4 &point) const
+const Vec4 DirectionalLight::get_direction(const Vec4 &point) const
 {
     std::ignore = point;
     return direction;
 }
 
-Vec4 PointLight::get_direction(const Vec4 &point) const
+const Vec4 PointLight::get_direction(const Vec4 &point) const
 {
     return normalize(position - point);
 }
@@ -41,7 +43,7 @@ float PointLight::get_attenuation(const Vec4 &point) const
     return intensity / distance_squared;
 }
 
-Vec4 SpotLight::get_direction(const Vec4 &point) const
+const Vec4 SpotLight::get_direction(const Vec4 &point) const
 {
     return normalize(position - point);
 }
@@ -59,17 +61,18 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv,
 {
     Color diffuse_sum, specular_sum;
 
+    Vec4 N = normal;            // normalized surface normal
+    Vec4 V = -normalize(point); // normalized vector pointing towards the viewer
+                                // simplified because we assume that the camera is always at the origin
+
     // Compute the sum of the diffuse and specular light from each light source
     for (const Light *light : lights)
     {
         const Color &color = light->get_color();
-        const float attenuation = light->get_attenuation(point);
+        float attenuation = light->get_attenuation(point);
 
-        // https://web.stanford.edu/class/ee267/lectures/lecture3.pdf
         const Vec4 L = light->get_direction(point); // normalized vector pointing towards the light source
-        const Vec4 &N = normal;                     // normalized surface normal
-        const Vec4 V = -normalize(point);           // normalized vector pointing towards the viewer
-        const Vec4 H = normalize(L + V);            // normalized reflection on surface normal
+        const Vec4 H = normalize(L + V);            // normalized half vector
 
         float diffuse_intensity = saturate(dot(N, L));
         float specular_intensity = std::pow(saturate(dot(N, H)), shininess);
@@ -79,12 +82,11 @@ Color Material::get_color(const Vec4 &point, const Vec4 &normal, const Vec3 &uv,
     }
 
     // Use the texture's color if there is one
-    Color diffuse_color = texture_map ? texture_map.get_pixel(uv.x, uv.y) : diffuse;
-    Color specular_color = roughness_map ? roughness_map.get_pixel(uv.x, uv.y) : specular;
+    const Color diffuse_color = texture_map ? texture_map.get_pixel(uv.x, uv.y) : diffuse;
+    const Color specular_color = roughness_map ? roughness_map.get_pixel(uv.x, uv.y) : specular;
 
-    Color color;
     // Phong lighting model: Sum of ambient, diffuse, and specular light
-    color = ambient * lights.get_ambient_color() + diffuse_color * diffuse_sum + specular_color * specular_sum;
+    Color color = ambient * lights.get_ambient_color() + diffuse_color * diffuse_sum + specular_color * specular_sum;
     color.r = saturate(color.r);
     color.g = saturate(color.g);
     color.b = saturate(color.b);
@@ -196,32 +198,34 @@ void draw_line(Image &image, Vec3 &start, Vec3 &end)
     }
 }
 
-void iterate_barycentric(std::function<void(uint32_t, uint32_t, float, float, float)> func, const Vec3 &v0, const Vec3 &v1, const Vec3 &v2)
+void iterate_barycentric(Image &image, DepthBuffer &depth, std::function<Color(float, float, float)> shader, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2)
 {
     // Get the bounding box of this triangle
-    uint32_t minu = std::min({v0.x, v1.x, v2.x});
-    uint32_t maxu = std::max({v0.x, v1.x, v2.x});
-    uint32_t minv = std::min({v0.y, v1.y, v2.y});
-    uint32_t maxv = std::max({v0.y, v1.y, v2.y});
+    uint32_t minu = std::round(std::min({s0.x, s1.x, s2.x}));
+    uint32_t maxu = std::round(std::max({s0.x, s1.x, s2.x}));
+    uint32_t minv = std::round(std::min({s0.y, s1.y, s2.y}));
+    uint32_t maxv = std::round(std::max({s0.y, s1.y, s2.y}));
 
     // Precompute values used to find the barycentric coordinates
     // https://gamedev.stackexchange.com/a/23745
-    Vec3 edge0 = v1 - v0, edge1 = v2 - v0;
+    Vec3 edge0 = s1 - s0, edge1 = s2 - s0;
     float d00 = dot(edge0, edge0);
     float d01 = dot(edge0, edge1);
     float d11 = dot(edge1, edge1);
     float area = d00 * d11 - d01 * d01;
 
+    float z0 = 1.0f / s0.z, z1 = 1.0f / s1.z, z2 = 1.0f / s2.z; // get the depth of each vertex on the screen
+
     // Check the bounding box of the triangle
-    for (uint32_t u = minu; u <= maxu; ++u)
+    for (uint32_t u = minu; u < maxu; ++u)
     {
-        for (uint32_t v = minv; v <= maxv; ++v)
+        for (uint32_t v = minv; v < maxv; ++v)
         {
             // Get the center of the pixel
             Vec3 pixel(u + 0.5f, v + 0.5f);
 
             // Compute the barycentric coordinates
-            Vec3 edge2 = pixel - v0;
+            Vec3 edge2 = pixel - s0;
             float d20 = dot(edge2, edge0);
             float d21 = dot(edge2, edge1);
 
@@ -230,9 +234,17 @@ void iterate_barycentric(std::function<void(uint32_t, uint32_t, float, float, fl
             float a = 1.0f - b - c;
 
             // Check if this pixel is in the triangle
-            if (!(a < -1E-5 || b < -1E-5 || c < -1E-5))
+            if (!(a < epsilon || b < epsilon || c < epsilon))
             {
-                func(u, v, a, b, c);
+                float z = 1 / (a * z0 + b * z1 + c * z2);
+                // Check if this pixel is closer to the screen
+                if (z <= depth.at(u, v))
+                {
+                    depth.at(u, v) = z;
+
+                    Color color = shader(a, b, c);
+                    image.set_pixel(u, v, color);
+                }
             }
         }
     }
@@ -240,53 +252,35 @@ void iterate_barycentric(std::function<void(uint32_t, uint32_t, float, float, fl
 
 void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vertex &v0, const Vertex &v1, const Vertex &v2)
 {
-    float z0 = 1.0f / v0.screen.z, z1 = 1.0f / v1.screen.z, z2 = 1.0f / v2.screen.z;
-
-    auto draw = [&](uint32_t u, uint32_t v, float a, float b, float c)
+    auto shader = [&](float a, float b, float c)
     {
-        float z = 1 / (a * z0 + b * z1 + c * z2);
-        // Check if this pixel is closer to the screen
-        if (z <= depth.at(u, v))
-        {
-            depth.at(u, v) = z;
-
-            image.set_pixel(u, v, color);
-        }
+        return color;
     };
 
-    iterate_barycentric(draw, v0.screen, v1.screen, v2.screen);
+    iterate_barycentric(image, depth, shader, v0.screen, v1.screen, v2.screen);
 }
 
 void draw_barycentric(Image &image, DepthBuffer &depth, Material &material, LightCollection &lights, const Vertex &v0, const Vertex &v1, const Vertex &v2)
 {
-    float z0 = 1.0f / v0.screen.z, z1 = 1.0f / v1.screen.z, z2 = 1.0f / v2.screen.z;
     float w0 = v0.clip.w, w1 = v1.clip.w, w2 = v2.clip.w;
 
-    auto draw = [&](uint32_t u, uint32_t v, float a, float b, float c)
+    auto shader = [&](float a, float b, float c)
     {
-        float z = 1 / (a * z0 + b * z1 + c * z2);
-        // Check if this pixel is closer to the screen
-        if (z <= depth.at(u, v))
-        {
-            depth.at(u, v) = z;
+        /*
+            * Correct for the perspective.
+            * https://www.cs.ucr.edu/~craigs/courses/2020-fall-cs-130/lectures/perspective-correct-interpolation.pdf
+            */
+        float aw = a * w0, bw = b * w1, cw = c * w2;
+        float w = 1 / (aw + bw + cw);
 
-            /*
-             * Correct for the perspective.
-             * https://www.cs.ucr.edu/~craigs/courses/2020-fall-cs-130/lectures/perspective-correct-interpolation.pdf
-             */
-            float aw = a * w0, bw = b * w1, cw = c * w2;
-            float w = 1 / (aw + bw + cw);
+        // Interpolate across all of the vertex values
+        Vec4 world = (v0.world * aw + v1.world * bw + v2.world * cw) * w;
+        Vec3 texture = (v0.texture * aw + v1.texture * bw + v2.texture * cw) * w;
+        Vec4 normal = normalize(v0.normal * aw + v1.normal * bw + v2.normal * cw);
 
-            // Interpolate across all of the vertex values
-            Vec4 world = (v0.world * aw + v1.world * bw + v2.world * cw) * w;
-            Vec3 texture = (v0.texture * aw + v1.texture * bw + v2.texture * cw) * w;
-            Vec4 normal = normalize(v0.normal * aw + v1.normal * bw + v2.normal * cw);
-
-            // Set the color using the material and light
-            Color color = material.get_color(world, normal, texture, lights);
-            image.set_pixel(u, v, color);
-        }
+        // Set the color using the material and lights
+        return material.get_color(world, normal, texture, lights);
     };
 
-    iterate_barycentric(draw, v0.screen, v1.screen, v2.screen);
+    iterate_barycentric(image, depth, shader, v0.screen, v1.screen, v2.screen);
 }
