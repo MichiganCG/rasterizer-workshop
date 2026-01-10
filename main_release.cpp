@@ -55,17 +55,19 @@ int main()
     Material material("material/material.mtl");
     Material tile("material/tile.mtl");
 
-    DirectionalLight blue_light({0.2, 0.5, 0.79}, {-1, -1, -1, 0});
+    DirectionalLight sky_light({1.0, 0.941, 0.91}, {-1, -1, -1, 0});
     PointLight red_light({1, 0, 0}, 2, {0, 0.5, -4.5});
     SpotLight green_light({0.6, 0.8, 0.5}, 0.3, 1, {1, -0.5, -1, 0}, {-5, 3, 0});
+    PointLight blue_light({0, 0, 1}, 5, {2, 0.75, -3});
 
     // Set lights
     LightCollection lights;
-    lights.push_back(&blue_light);
+    lights.push_back(&sky_light);
     lights.push_back(&red_light);
     lights.push_back(&green_light);
+    lights.push_back(&blue_light);
 
-    Object ground({0, -1, -5}, {}, {12}, plane, material);
+    Object ground({0, -1, -50}, {}, {150, 1, 100}, plane, material);
     Object tile_cube({1.2, 0, -5}, {{0, 1, 0}, Pi/3}, {0.8}, cube, tile);
     Object white_sphere({-1.2, 0, -5}, {}, {1}, sphere, material);
 
@@ -150,6 +152,8 @@ int main()
         }
     }
     image.write_file("output.png");
+
+    depth.get_image().write_file("depth.png");
 
     return 0;
 }
