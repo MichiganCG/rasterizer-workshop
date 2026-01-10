@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <vector>
+#include <memory>
 
 #include "vectors.hpp"
 #include "mesh.hpp"
@@ -37,10 +38,10 @@ public:
 
     const Color &get_ambient_color() const { return ambient_color; }
 
-    void push_back(const Light *light) { lights.push_back(light); }
+    void push_back(std::shared_ptr<const Light> light) { lights.push_back(light); }
 
-    std::vector<const Light *>::const_iterator begin() const { return lights.begin(); }
-    std::vector<const Light *>::const_iterator end() const { return lights.end(); }
+    std::vector<std::shared_ptr<const Light>>::const_iterator begin() const { return lights.begin(); }
+    std::vector<std::shared_ptr<const Light>>::const_iterator end() const { return lights.end(); }
 
 private:
     // We store the ambient light seperately from the other lights since there should
@@ -48,7 +49,7 @@ private:
     Color ambient_color;
 
     // A vector of all lights in the scene.
-    std::vector<const Light *> lights;
+    std::vector<std::shared_ptr<const Light>> lights;
 };
 
 class Light

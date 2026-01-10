@@ -22,64 +22,25 @@
 #include "library/light.hpp"
 #include "library/library.hpp"
 
+#include "library/scene.hpp"
+
 #include <string>
 #include <iostream>
 
-const uint32_t ImageWidth = 960;
-const uint32_t ImageHeight = 540;
-const float AspectRatio = (float)ImageWidth / (float)ImageHeight;
-
-struct Object
-{
-    Vec4 position;
-    Quaternion rotation;
-    Vec3 scale;
-    Mesh &mesh;
-    Material &material;
-};
-
 int main()
 {
-    Image image(ImageWidth, ImageHeight);
-    DepthBuffer depth(ImageWidth, ImageHeight);
+    SceneManager manager;
+    Scene scene("example_scene.yaml", manager);
 
-    Matrix4 m_projection = perspective_projection(70, AspectRatio, 1, 100);
-    Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
+    Image image(scene.get_width(), scene.get_height());
+    DepthBuffer depth(scene.get_width(), scene.get_height());
 
-    // Load models
-    Mesh cube("model/cube.obj");
-    Mesh sphere("model/uv_sphere.obj");
-    Mesh plane("model/plane.obj");
+    Matrix4 m_projection = perspective_projection(70, scene.get_aspect_ratio(), 1, 100);
+    Matrix4 m_screen = viewport(scene.get_width(), scene.get_height());
 
-    // Load materials
-    Material material("material/material.mtl");
-    Material tile("material/tile.mtl");
-
-    DirectionalLight sky_light({1.0, 0.941, 0.91}, {-1, -1, -1, 0});
-    PointLight red_light({1, 0, 0}, 2, {0, 0.5, -4.5});
-    SpotLight green_light({0.6, 0.8, 0.5}, 0.3, 1, {1, -0.5, -1, 0}, {-5, 3, 0});
-    PointLight blue_light({0, 0, 1}, 5, {2, 0.75, -3});
-
-    // Set lights
-    LightCollection lights;
-    lights.push_back(&sky_light);
-    lights.push_back(&red_light);
-    lights.push_back(&green_light);
-    lights.push_back(&blue_light);
-
-    Object ground({0, -1, -50}, {}, {150, 1, 100}, plane, material);
-    Object tile_cube({1.2, 0, -5}, {{0, 1, 0}, Pi/3}, {0.8}, cube, tile);
-    Object white_sphere({-1.2, 0, -5}, {}, {1}, sphere, material);
-
-    // Set objects
-    std::vector<Object *> objects;
-    objects.push_back(&ground);
-    objects.push_back(&tile_cube);
-    objects.push_back(&white_sphere);
-
-    for (Object *object : objects)
+    for (const auto &object : scene.get_objects())
     {
-        Mesh &mesh = object->mesh;
+        const Mesh &mesh = object->mesh;
 
         // Define the model matrix
         Matrix4 m_model = translate(object->position) * rotate(object->rotation) * scale(object->scale);
@@ -147,12 +108,12 @@ int main()
                 Vertex &v0 = vertices[0], &v1 = vertices[j], &v2 = vertices[j + 1];
 
                 // Draw each triangle
-                draw_barycentric(image, depth, object->material, lights, v0, v1, v2);
+                draw_barycentric(image, depth, object->material, scene.get_lights(), v0, v1, v2);
             }
         }
     }
-    image.write_file("output.png");
 
+    image.write_file("output.png");
     depth.get_image().write_file("depth.png");
 
     return 0;

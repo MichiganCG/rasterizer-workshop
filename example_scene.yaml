@@ -1,0 +1,39 @@
+resolution:
+  width: 960
+  height: 540
+
+lights:
+  - type: directional
+    color: [1.0, 0.941, 0.91]
+    direction: [-1, -1, -1]
+  - type: point
+    color: [1.0, 0.0, 0.0]
+    intensity: 2.0
+    position: [0, 0.5, -4.5]
+  - type: spot
+    color: [0.6, 0.8, 0.5]
+    angle: 0.3
+    taper: 1.0
+    direction: [1, -0.5, -1]
+    position: [-5, 3, 0]
+  - type: point
+    color: [0.0, 0.0, 0.1]
+    intensity: 50.0
+    position: [2, 0.75, -3]
+
+objects:
+  - position: [0, -1, -50]
+    rotation: [0, 1, 0, 0]
+    scale: [150, 1, 100]
+    mesh: model/plane.obj
+    material: material/material.mtl
+  - position: [1.7, 0.0, -5.5]
+    rotation: [0, 1, 0, 1.0472]
+    scale: [1, 1, 1]
+    mesh: model/cube.obj
+    material: material/tile.mtl
+  - position: [-1.2, 0, -5]
+    rotation: [0, 1, 0, 0]
+    scale: [1, 1, 1]
+    mesh: model/uv_sphere.obj
+    material: material/material.mtl

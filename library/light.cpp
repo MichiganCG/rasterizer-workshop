@@ -66,7 +66,7 @@ Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec
                                       // simplified because this project assumes the camera is always at the origin
 
     // Compute the sum of the diffuse and specular light from each light source
-    for (const Light *light : lights)
+    for (const auto &light : lights)
     {
         const Color &color = light->get_color();
         float attenuation = light->get_attenuation(world_coord);
