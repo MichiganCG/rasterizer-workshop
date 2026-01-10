@@ -145,7 +145,6 @@ void iterate_barycentric(Image &image, DepthBuffer &depth, std::function<Color(f
 void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vertex &v0, const Vertex &v1, const Vertex &v2);
 
 /**
- * Uses barycentric coordinates to fill a triangle.
- * Uses the material and light sources provided to determine color.
+ * Uses the object's material and all light sources provided to determine the color of each pixel.
  */
 void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightCollection &lights, const Vertex &v0, const Vertex &v1, const Vertex &v2);

@@ -236,9 +236,9 @@ void iterate_barycentric(Image &image, DepthBuffer &depth, std::function<Color(f
             // Check if this pixel is in the triangle
             if (!(a < epsilon || b < epsilon || c < epsilon))
             {
-                float z = a * z0 + b * z1 + c * z2;
+                float z = 1.0f / (a * z0 + b * z1 + c * z2);
                 // Check if this pixel is closer to the screen
-                if (z < depth.at(u, v))
+                if (z > depth.at(u, v))
                 {
                     depth.at(u, v) = z;
 
