@@ -31,36 +31,38 @@ class Light;
  */
 class LightCollection
 {
+public:
+    LightCollection() : ambient_color{0.01, 0.01, 0.01} {}
+    LightCollection(const Color &ambient_color) : ambient_color{ambient_color} {}
+
+    const Color &get_ambient_color() const { return ambient_color; }
+
+    void push_back(const Light *light) { lights.push_back(light); }
+
+    std::vector<const Light *>::const_iterator begin() const { return lights.begin(); }
+    std::vector<const Light *>::const_iterator end() const { return lights.end(); }
+
+private:
     // We store the ambient light seperately from the other lights since there should
     // only be a single source of ambient light.
     Color ambient_color;
 
     // A vector of all lights in the scene.
     std::vector<const Light *> lights;
-
-public:
-    LightCollection() : ambient_color{0.01, 0.01, 0.01} {}
-    LightCollection(const Color &ambient_color) : ambient_color{ambient_color} {}
-
-    const Color &get_ambient_color() { return ambient_color; }
-
-    void push_back(const Light *light) { lights.push_back(light); }
-
-    std::vector<const Light *>::iterator begin() { return lights.begin(); }
-    std::vector<const Light *>::iterator end() { return lights.end(); }
 };
 
 class Light
 {
-    Color color;
-
 public:
     Light(Color color) : color(color) {}
     virtual ~Light() = default;
 
-    virtual const Color &get_color() const { return color; }
-    virtual const Vec4 get_direction(const Vec4 &point) const { return Vec4::ZERO; }
+    virtual Color get_color() const { return color; }
+    virtual Vec4 get_direction(const Vec4 &point) const { return Vec4::ZERO; }
     virtual float get_attenuation(const Vec4 &point) const { return 1; }
+
+private:
+    Color color;
 };
 
 /**
@@ -69,14 +71,15 @@ public:
  */
 class DirectionalLight : public Light
 {
-    // Stores the negative direction so that faces pointing towards the light
-    // have a positive dot product.
-    Vec4 direction;
-
 public:
     DirectionalLight(Color color, Vec4 direction) : Light(color), direction(-normalize(direction)) {}
 
-    const Vec4 get_direction(const Vec4 &point) const override;
+    Vec4 get_direction(const Vec4 &point) const override;
+
+private:
+    // Stores the negative direction so that faces pointing towards the light
+    // have a positive dot product.
+    Vec4 direction;
 };
 
 /**
@@ -84,14 +87,15 @@ public:
  */
 class PointLight : public Light
 {
-    float intensity;
-    Vec4 position;
-
 public:
     PointLight(Color color, float intensity, Vec4 position) : Light(color), intensity(intensity), position(position) {}
 
-    const Vec4 get_direction(const Vec4 &point) const override;
+    Vec4 get_direction(const Vec4 &point) const override;
     float get_attenuation(const Vec4 &point) const override;
+
+private:
+    float intensity;
+    Vec4 position;
 };
 
 /**
@@ -99,15 +103,16 @@ public:
  */
 class SpotLight : public Light
 {
-    float max_cos_angle, taper;
-    Vec4 direction;
-    Vec4 position;
-
 public:
     SpotLight(Color color, float angle, float taper, Vec4 direction, Vec4 position) : Light(color), max_cos_angle(std::cos(angle)), taper(taper), direction(-normalize(direction)), position(position) {}
 
-    const Vec4 get_direction(const Vec4 &point) const override;
+    Vec4 get_direction(const Vec4 &point) const override;
     float get_attenuation(const Vec4 &point) const override;
+
+private:
+    float max_cos_angle, taper;
+    Vec4 direction;
+    Vec4 position;
 };
 
 /**
@@ -115,10 +120,6 @@ public:
  */
 class Material
 {
-    float shininess;
-    Color ambient, diffuse, specular;
-    Image texture_map, roughness_map, normal_map;
-
 public:
     Material() : shininess(0), ambient{0}, diffuse{0}, specular{0} {}
     Material(const std::string &file_name) { load_file(file_name); }
@@ -129,7 +130,12 @@ public:
      * Calculates the color at a point using the Blinn-Phong reflection model
      * https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model
      */
-    Color get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, LightCollection &lights);
+    Color get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights) const;
+
+private:
+    float shininess;
+    Color ambient, diffuse, specular;
+    Image texture_map, roughness_map, normal_map;
 };
 
 /**
@@ -147,4 +153,4 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vert
 /**
  * Uses the object's material and all light sources provided to determine the color of each pixel.
  */
-void draw_barycentric(Image &image, DepthBuffer &depth, Material &mat, LightCollection &lights, const Vertex &v0, const Vertex &v1, const Vertex &v2);
+void draw_barycentric(Image &image, DepthBuffer &depth, const Material &mat, const LightCollection &lights, const Vertex &v0, const Vertex &v1, const Vertex &v2);

@@ -26,25 +26,21 @@
 #include "vectors.hpp"
 #include "library.hpp"
 
-class Mesh;
-
 /**
  * A set of indexes.
  */
 struct Triangle
 {
-    const Mesh *owner;
     int indices[3];
 
     Triangle() = delete;
-    Triangle(const Mesh *mesh, int i1, int i2, int i3) : owner(mesh), indices{i1, i2, i3} {}
+    Triangle(int i1, int i2, int i3) : indices{i1, i2, i3} {}
 
     int at(size_t i) const { return indices[i]; }
     int operator[](size_t i) const { return indices[i]; }
 
     friend std::ostream &operator<<(std::ostream &os, const Triangle &rhs);
 };
-
 
 /**
  * A collection of faces and vertices.
@@ -81,7 +77,7 @@ public:
     Triangle at(size_t i) const
     {
         size_t index = i * 3;
-        return {this, elements[index + 0], elements[index + 1], elements[index + 2]};
+        return {elements[index + 0], elements[index + 1], elements[index + 2]};
     }
 
     Triangle operator[](size_t i) const { return at(i); }

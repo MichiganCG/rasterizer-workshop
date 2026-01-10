@@ -26,13 +26,13 @@ float saturate(float value) {
     return std::min(1.0f, std::max(0.0f, value));
 }
 
-const Vec4 DirectionalLight::get_direction(const Vec4 &point) const
+Vec4 DirectionalLight::get_direction(const Vec4 &point) const
 {
     std::ignore = point;
     return direction;
 }
 
-const Vec4 PointLight::get_direction(const Vec4 &point) const
+Vec4 PointLight::get_direction(const Vec4 &point) const
 {
     return normalize(position - point);
 }
@@ -43,7 +43,7 @@ float PointLight::get_attenuation(const Vec4 &point) const
     return intensity / distance_squared;
 }
 
-const Vec4 SpotLight::get_direction(const Vec4 &point) const
+Vec4 SpotLight::get_direction(const Vec4 &point) const
 {
     return normalize(position - point);
 }
@@ -57,7 +57,7 @@ float SpotLight::get_attenuation(const Vec4 &point) const
     return std::pow(light_fall_off, taper);
 }
 
-Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, LightCollection &lights)
+Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights) const
 {
     Color diffuse_sum, specular_sum;
 
@@ -260,7 +260,7 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vert
     iterate_barycentric(image, depth, shader, v0.screen, v1.screen, v2.screen);
 }
 
-void draw_barycentric(Image &image, DepthBuffer &depth, Material &material, LightCollection &lights, const Vertex &v0, const Vertex &v1, const Vertex &v2)
+void draw_barycentric(Image &image, DepthBuffer &depth, const Material &material, const LightCollection &lights, const Vertex &v0, const Vertex &v1, const Vertex &v2)
 {
     float w0 = v0.clip.w, w1 = v1.clip.w, w2 = v2.clip.w;
 
