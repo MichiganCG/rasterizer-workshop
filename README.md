@@ -50,7 +50,7 @@ Run the script:
 
 ### Release Code
 
-The file `main_release.cpp` contains the completed code from the end of the final workshop meeting.
+The file `main_release.cpp` contains the completed project code with additional features not covered in the workshops. In this version, the lights and objects can be defined through a `.yaml` config file.
 
 To compile the release code, use the make command:
 
@@ -61,7 +61,7 @@ make release
 Run the script:
 
 ```bash
-./rasterizer_release
+./rasterizer_release example_scene.yaml
 ```
 
 ## License

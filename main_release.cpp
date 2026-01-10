@@ -27,10 +27,17 @@
 #include <string>
 #include <iostream>
 
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc < 2)
+    {
+        std::cerr << "Error: Must provide a scene config" << "\n";
+        return 1;
+    }
+    std::string config = argv[1];
+
     SceneManager manager;
-    Scene scene("example_scene.yaml", manager);
+    Scene scene(config, manager);
 
     Image image(scene.get_width(), scene.get_height());
     DepthBuffer depth(scene.get_width(), scene.get_height());
