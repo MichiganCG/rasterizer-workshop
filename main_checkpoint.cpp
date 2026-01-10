@@ -93,21 +93,12 @@ int main()
         {
             Vertex &v0 = vertices[0], &v1 = vertices[j], &v2 = vertices[j + 1];
 
-            float z0 = 1.0f / v0.screen.z, z1 = 1.0f / v1.screen.z, z2 = 1.0f / v2.screen.z;
-
-            auto draw = [&](uint32_t u, uint32_t v, float a, float b, float c)
+            auto shader = [&](float a, float b, float c)
             {
-                float z = 1 / (a * z0 + b * z1 + c * z2);
-                // Check if this pixel is closer to the screen
-                if (z <= depth.at(u, v))
-                {
-                    depth.at(u, v) = z;
-
-                    image.set_pixel(u, v, color);
-                }
+                return color;
             };
 
-            iterate_barycentric(draw, v0.screen, v1.screen, v2.screen);
+            iterate_barycentric(image, depth, shader, v0.screen, v1.screen, v2.screen);
         }
     }
 
