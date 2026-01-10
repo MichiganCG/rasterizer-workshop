@@ -201,18 +201,14 @@ Matrix4 orthographic_projection(float right, float top, float near, float far)
 
 Matrix4 perspective_projection(float fov, float aspect_ratio, float near, float far)
 {
-    const float DEG2RAD = std::acos(-1.0f) / 180;
-
-    float tangent = std::tan(fov / 2 * DEG2RAD);
-    float right = near * tangent;
-    float top = right / aspect_ratio;
+    float tangent = 1.0f / std::tan((fov / 2) * (Pi / 180));
 
     Matrix4 matrix;
-    matrix.at(0, 0) = near / right;
-    matrix.at(1, 1) = near / top;
-    matrix.at(2, 2) = -(far + near) / (far - near);
-    matrix.at(2, 3) = -(2 * far * near) / (far - near);
-    matrix.at(3, 2) = -1;
+    matrix.at(0, 0) = tangent / aspect_ratio;      // map x between [-1, 1]
+    matrix.at(1, 1) = tangent;                     // map y between [-1, 1]
+    matrix.at(2, 2) = near / (far - near);
+    matrix.at(2, 3) = (far * near) / (far - near);
+    matrix.at(3, 2) = -1;                          // set w = -z
     return matrix;
 }
 

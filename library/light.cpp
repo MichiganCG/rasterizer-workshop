@@ -71,8 +71,8 @@ Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec
         const Color &color = light->get_color();
         float attenuation = light->get_attenuation(world_coord);
 
-        const Vec4 L = light->get_direction(world_coord);   // normalized vector pointing from the surface to the light source
-        const Vec4 H = normalize(L + V);                    // normalized half vector between light and viewer directions
+        const Vec4 L = light->get_direction(world_coord); // normalized vector pointing from the surface to the light source
+        const Vec4 H = normalize(L + V);                  // normalized half vector between light and viewer directions
 
         float diffuse_intensity = saturate(dot(N, L));
         float specular_intensity = std::pow(saturate(dot(N, H)), shininess);
@@ -213,7 +213,7 @@ void iterate_barycentric(Image &image, DepthBuffer &depth, std::function<Color(f
     float d01 = dot(edge0, edge1);
     float d11 = dot(edge1, edge1);
     float area = d00 * d11 - d01 * d01;
-
+    
     float z0 = 1.0f / s0.z, z1 = 1.0f / s1.z, z2 = 1.0f / s2.z; // get the depth of each vertex on the screen
 
     // Check the bounding box of the triangle
@@ -236,9 +236,9 @@ void iterate_barycentric(Image &image, DepthBuffer &depth, std::function<Color(f
             // Check if this pixel is in the triangle
             if (!(a < epsilon || b < epsilon || c < epsilon))
             {
-                float z = 1 / (a * z0 + b * z1 + c * z2);
+                float z = a * z0 + b * z1 + c * z2;
                 // Check if this pixel is closer to the screen
-                if (z <= depth.at(u, v))
+                if (z < depth.at(u, v))
                 {
                     depth.at(u, v) = z;
 
@@ -266,10 +266,10 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Material &material, Ligh
 
     auto shader = [&](float a, float b, float c)
     {
-        /*
-            * Correct for the perspective.
-            * https://www.cs.ucr.edu/~craigs/courses/2020-fall-cs-130/lectures/perspective-correct-interpolation.pdf
-            */
+        /**
+         * Correct for the perspective.
+         * https://www.cs.ucr.edu/~craigs/courses/2020-fall-cs-130/lectures/perspective-correct-interpolation.pdf
+         */
         float aw = a * w0, bw = b * w1, cw = c * w2;
         float w = 1 / (aw + bw + cw);
 

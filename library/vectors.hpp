@@ -63,8 +63,6 @@ struct Vec3
     Vec3 &operator-=(const Vec3 &rhs);
     Vec3 &operator+=(float rhs);
     Vec3 &operator-=(float rhs);
-    Vec3 &operator*=(const Vec3 &rhs);
-    Vec3 &operator/=(const Vec3 &rhs);
     Vec3 &operator*=(float rhs);
     Vec3 &operator/=(float rhs);
 
@@ -74,10 +72,11 @@ struct Vec3
 Vec3 operator+(Vec3 lhs, const Vec3 &rhs);
 Vec3 operator-(Vec3 lhs, const Vec3 &rhs);
 Vec3 operator+(Vec3 lhs, float rhs);
+Vec3 operator+(float lhs, Vec3 rhs);
 Vec3 operator-(Vec3 lhs, float rhs);
-Vec3 operator*(Vec3 lhs, const Vec3 &rhs);
-Vec3 operator/(Vec3 lhs, const Vec3 &rhs);
+Vec3 operator-(float lhs, Vec3 rhs);
 Vec3 operator*(Vec3 lhs, float rhs);
+Vec3 operator*(float lhs, Vec3 rhs);
 Vec3 operator/(Vec3 lhs, float rhs);
 Vec3 operator+(const Vec3 &rhs);
 Vec3 operator-(const Vec3 &rhs);
@@ -158,14 +157,12 @@ struct Vec4
     Vec4 &operator-=(const Vec4 &rhs);
     Vec4 &operator+=(float rhs);
     Vec4 &operator-=(float rhs);
-    Vec4 &operator*=(const Vec4 &rhs);
-    Vec4 &operator/=(const Vec4 &rhs);
     Vec4 &operator*=(float rhs);
     Vec4 &operator/=(float rhs);
 
     friend std::ostream &operator<<(std::ostream &os, const Vec4 &rhs);
 
-    static const Vec4 ZERO; // The vector `<0, 0, 0, 0>`
+    static const Vec4 ZERO;    // The vector `<0, 0, 0, 0>`
     static const Vec4 RIGHT;   // The vector `<1, 0, 0, 0>`
     static const Vec4 UP;	   // The vector `<0, 1, 0, 0>`
     static const Vec4 FORWARD; // The vector `<0, 0, 1, 0>`
@@ -176,10 +173,11 @@ struct Vec4
 Vec4 operator+(Vec4 lhs, const Vec4 &rhs);
 Vec4 operator-(Vec4 lhs, const Vec4 &rhs);
 Vec4 operator+(Vec4 lhs, float rhs);
+Vec4 operator+(float lhs, Vec4 rhs);
 Vec4 operator-(Vec4 lhs, float rhs);
-Vec4 operator*(Vec4 lhs, const Vec4 &rhs);
-Vec4 operator/(Vec4 lhs, const Vec4 &rhs);
+Vec4 operator-(float lhs, Vec4 rhs);
 Vec4 operator*(Vec4 lhs, float rhs);
+Vec4 operator*(float lhs, Vec4 rhs);
 Vec4 operator/(Vec4 lhs, float rhs);
 Vec4 operator+(const Vec4 &rhs);
 Vec4 operator-(const Vec4 &rhs);

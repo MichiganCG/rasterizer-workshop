@@ -43,7 +43,7 @@ int main()
     Image image(ImageWidth, ImageHeight);
     DepthBuffer depth(ImageWidth, ImageHeight);
 
-    Matrix4 m_projection = perspective_projection(70, AspectRatio, 0.1, 100);
+    Matrix4 m_projection = perspective_projection(70, AspectRatio, 1, 100);
     Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
 
     // Load models
@@ -75,7 +75,6 @@ int main()
     objects.push_back(&tile_cube);
     objects.push_back(&white_sphere);
 
-
     for (Object *object : objects)
     {
         Mesh &mesh = object->mesh;
@@ -88,7 +87,7 @@ int main()
 
         std::vector<Vec4> clip_vertices(mesh.vertex_size());
 
-        // Transform the model to world space
+        // Transform all vertices in the mesh to world space and then to clip space
         for (size_t i = 0; i < mesh.vertex_size(); ++i)
         {
             world_vertices[i] = m_model * mesh.get_vertex(i);
@@ -97,6 +96,7 @@ int main()
             clip_vertices[i] = m_projection * world_vertices[i];
         }
 
+        // Loop through all triangles in the mesh
         for (size_t i = 0; i < mesh.size(); ++i)
         {
             Triangle triangle = mesh[i];
@@ -136,7 +136,7 @@ int main()
 
                 vertex.screen = m_screen * clip;
 
-                clip.w = temp;
+                clip.w = temp; // store the w value for later
             }
 
             // Reform triangles using fan triangulation
