@@ -170,6 +170,7 @@ Vec4 &Vec4::operator+=(float rhs)
     x += rhs;
     y += rhs;
     z += rhs;
+    w += rhs;
     return *this;
 }
 
@@ -178,6 +179,7 @@ Vec4 &Vec4::operator-=(float rhs)
     x -= rhs;
     y -= rhs;
     z -= rhs;
+    w -= rhs;
     return *this;
 }
 

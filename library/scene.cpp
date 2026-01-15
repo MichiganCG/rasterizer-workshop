@@ -83,9 +83,9 @@ Scene::Scene(const std::string &config, SceneManager &manager)
 
         fkyaml::node root = fkyaml::node::deserialize(fs);
 
-        auto &resolution_node = root["resolution"];
-        width = resolution_node["width"].get_value<uint32_t>();
-        height = resolution_node["height"].get_value<uint32_t>();
+        width = root["resolution"]["width"].get_value<uint32_t>();
+        height = root["resolution"]["height"].get_value<uint32_t>();
+        fov = root["fov"].get_value<float>();
 
         auto light_nodes = root["lights"];
         for (const auto& light_node : light_nodes)

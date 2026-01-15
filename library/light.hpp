@@ -144,7 +144,7 @@ private:
  */
 void draw_line(Image &image, const Vec3 &start, const Vec3 &end);
 
-void iterate_barycentric(Image &image, DepthBuffer &depth, std::function<Color(float, float, float)> shader, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2);
+void iterate_barycentric(Image &image, DepthBuffer &depth, const std::function<Color(float, float, float)> shader, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2);
 
 /**
  * Uses barycentric coordinates to fill a triangle.

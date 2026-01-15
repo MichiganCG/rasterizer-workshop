@@ -22,10 +22,6 @@
 
 constexpr double epsilon = -1E-5;
 
-float saturate(float value) {
-    return std::min(1.0f, std::max(0.0f, value));
-}
-
 Vec4 DirectionalLight::get_direction(const Vec4 &point) const
 {
     std::ignore = point;
@@ -57,6 +53,10 @@ float SpotLight::get_attenuation(const Vec4 &point) const
     return std::pow(light_fall_off, taper);
 }
 
+float saturate(float value) {
+    return std::min(1.0f, std::max(0.0f, value));
+}
+
 Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights) const
 {
     Color diffuse_sum, specular_sum;
@@ -73,6 +73,7 @@ Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec
 
         const Vec4 L = light->get_direction(world_coord); // normalized vector pointing from the surface to the light source
         const Vec4 H = normalize(L + V);                  // normalized half vector between light and viewer directions
+        //const Vec4 R = 2.0f * dot(L, N) * N - L;
 
         float diffuse_intensity = saturate(dot(N, L));
         float specular_intensity = std::pow(saturate(dot(N, H)), shininess);
@@ -198,7 +199,7 @@ void draw_line(Image &image, Vec3 &start, Vec3 &end)
     }
 }
 
-void iterate_barycentric(Image &image, DepthBuffer &depth, std::function<Color(float, float, float)> shader, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2)
+void iterate_barycentric(Image &image, DepthBuffer &depth, const std::function<Color(float, float, float)> shader, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2)
 {
     // Get the bounding box of this triangle
     uint32_t minu = std::round(std::min({s0.x, s1.x, s2.x}));
@@ -212,7 +213,7 @@ void iterate_barycentric(Image &image, DepthBuffer &depth, std::function<Color(f
     float d00 = dot(edge0, edge0);
     float d01 = dot(edge0, edge1);
     float d11 = dot(edge1, edge1);
-    float area = d00 * d11 - d01 * d01;
+    float area_of_parallelogram = d00 * d11 - d01 * d01;
     
     float z0 = 1.0f / s0.z, z1 = 1.0f / s1.z, z2 = 1.0f / s2.z; // get the depth of each vertex on the screen
 
@@ -229,8 +230,8 @@ void iterate_barycentric(Image &image, DepthBuffer &depth, std::function<Color(f
             float d20 = dot(edge2, edge0);
             float d21 = dot(edge2, edge1);
 
-            float b = (d11 * d20 - d01 * d21) / area;
-            float c = (d00 * d21 - d01 * d20) / area;
+            float b = (d11 * d20 - d01 * d21) / area_of_parallelogram;
+            float c = (d00 * d21 - d01 * d20) / area_of_parallelogram;
             float a = 1.0f - b - c;
 
             // Check if this pixel is in the triangle
@@ -266,10 +267,7 @@ void draw_barycentric(Image &image, DepthBuffer &depth, const Material &material
 
     auto shader = [&](float a, float b, float c)
     {
-        /**
-         * Correct for the perspective.
-         * https://www.cs.ucr.edu/~craigs/courses/2020-fall-cs-130/lectures/perspective-correct-interpolation.pdf
-         */
+        // Correct for the perspective. https://www.cs.ucr.edu/~craigs/courses/2020-fall-cs-130/lectures/perspective-correct-interpolation.pdf
         float aw = a * w0, bw = b * w1, cw = c * w2;
         float w = 1 / (aw + bw + cw);
 

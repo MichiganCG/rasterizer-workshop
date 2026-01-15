@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     Image image(scene.get_width(), scene.get_height());
     DepthBuffer depth(scene.get_width(), scene.get_height());
 
-    Matrix4 m_projection = perspective_projection(70, scene.get_aspect_ratio(), 1, 100);
+    Matrix4 m_projection = perspective_projection(scene.get_fov(), scene.get_aspect_ratio(), 1, 100);
     Matrix4 m_screen = viewport(scene.get_width(), scene.get_height());
 
     for (const auto &object : scene.get_objects())
@@ -121,6 +121,7 @@ int main(int argc, char *argv[])
     }
 
     image.write_file("output.png");
+
     depth.get_image().write_file("depth.png");
 
     return 0;
