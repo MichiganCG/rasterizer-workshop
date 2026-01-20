@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "stb_image_write.h"
+#include "../thirdparty/stb/stb_image_write.h"
 
 #include <cmath>
 #include <tuple>
@@ -26,6 +26,7 @@
 #include <numbers>
 #include <cstdint>
 #include <functional>
+#include <chrono>
 
 constexpr float Infinity = std::numeric_limits<float>::infinity();
 constexpr float Pi = std::numbers::pi_v<float>;
@@ -120,6 +121,19 @@ public:
 private:
     uint32_t width, height;
     std::vector<float> data;
+};
+
+
+class Timer
+{
+private:
+	using Clock = std::chrono::high_resolution_clock;
+	using Second = std::chrono::milliseconds;
+
+	std::chrono::time_point<Clock> start { Clock::now() };
+
+public:
+	double elapsed() const { return std::chrono::duration_cast<Second>(Clock::now() - start).count(); }
 };
 
 /**

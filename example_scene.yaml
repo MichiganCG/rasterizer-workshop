@@ -1,8 +1,7 @@
 resolution:
   width: 960
   height: 540
-fov: 60
-samples: 2
+fov: 70
 
 lights:
   - type: directional

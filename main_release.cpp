@@ -42,6 +42,8 @@ int main(int argc, char *argv[])
     Image image(scene.get_width(), scene.get_height());
     DepthBuffer depth(scene.get_width(), scene.get_height());
 
+    Timer timer;
+
     Matrix4 m_projection = perspective_projection(scene.get_fov(), scene.get_aspect_ratio(), 1, 100);
     Matrix4 m_screen = viewport(scene.get_width(), scene.get_height());
 
@@ -119,6 +121,8 @@ int main(int argc, char *argv[])
             }
         }
     }
+
+    std::cout << timer.elapsed() << " milliseconds\n";
 
     image.write_file("output.png");
 
