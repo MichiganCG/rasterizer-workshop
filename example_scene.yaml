@@ -18,8 +18,8 @@ lights:
     direction: [1, -0.5, -1]
     position: [-5, 3, 0]
   - type: point
-    color: [0.0, 0.0, 0.1]
-    intensity: 50.0
+    color: [0.0, 0.0, 1.0]
+    intensity: 5.0
     position: [2, 0.75, -3]
 
 objects:
@@ -34,7 +34,7 @@ objects:
     mesh: model/cube.obj
     material: material/tile.mtl
   - position: [-1.2, 0, -5]
-    rotation: [0, 1, 0, 0]
+    rotation: [0, 0, 0, 0]
     scale: [1, 1, 1]
     mesh: model/uv_sphere.obj
     material: material/material.mtl
