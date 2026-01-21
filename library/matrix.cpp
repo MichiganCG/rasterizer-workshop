@@ -193,12 +193,13 @@ Matrix4 orthographic_projection(float right, float top, float near, float far)
     Matrix4 matrix;
     matrix.at(0, 0) = 1 / right;
     matrix.at(1, 1) = 1 / top;
-    matrix.at(2, 2) = -2 / (far - near);
-    matrix.at(2, 3) = -(far + near) / (far - near);
+    matrix.at(2, 2) = 1 / (near - far);
+    matrix.at(2, 3) = ((far + near) / (near - far) + 1) * 0.5f; 
     matrix.at(3, 3) = 1;
     return matrix;
 }
 
+// https://www.mauriciopoppe.com/notes/computer-graphics/viewing/projection-transform/
 Matrix4 perspective_projection(float fov, float aspect_ratio, float near, float far)
 {
     float tangent = 1.0f / std::tan((fov / 2) * (Pi / 180));
@@ -206,8 +207,8 @@ Matrix4 perspective_projection(float fov, float aspect_ratio, float near, float 
     Matrix4 matrix;
     matrix.at(0, 0) = tangent / aspect_ratio;      // map x between [-1, 1]
     matrix.at(1, 1) = tangent;                     // map y between [-1, 1]
-    matrix.at(2, 2) = near / (far - near);
-    matrix.at(2, 3) = (far * near) / (far - near);
+    matrix.at(2, 2) = (far) / (near - far);        // adjusted to map z between [0, 1]
+    matrix.at(2, 3) = (near * far) / (near - far); // adjusted to map z between [0, 1]
     matrix.at(3, 2) = -1;                          // set w = -z
     return matrix;
 }

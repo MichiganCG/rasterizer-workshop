@@ -215,7 +215,7 @@ void iterate_barycentric(Image &image, DepthBuffer &depth, const std::function<C
     float d11 = dot(edge1, edge1);
     float area_of_parallelogram = d00 * d11 - d01 * d01;
     
-    float z0 = 1.0f / s0.z, z1 = 1.0f / s1.z, z2 = 1.0f / s2.z; // get the depth of each vertex on the screen
+    float z0 = s0.z, z1 = s1.z, z2 = s2.z; // get the depth of each vertex on the screen
 
     // Check the bounding box of the triangle
     for (uint32_t u = minu; u < maxu; ++u)
@@ -237,9 +237,9 @@ void iterate_barycentric(Image &image, DepthBuffer &depth, const std::function<C
             // Check if this pixel is in the triangle
             if (!(a < epsilon || b < epsilon || c < epsilon))
             {
-                float z = 1.0f / (a * z0 + b * z1 + c * z2);
+                float z = a * z0 + b * z1 + c * z2;
                 // Check if this pixel is closer to the screen
-                if (z > depth.at(u, v))
+                if (z < depth.at(u, v))
                 {
                     depth.at(u, v) = z;
 
