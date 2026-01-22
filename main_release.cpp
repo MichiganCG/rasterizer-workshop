@@ -82,12 +82,6 @@ int main(int argc, char *argv[])
                 vertices[t].texture = mesh.get_texture(triangle[t]);
             }
 
-            // Backface culling
-            Vec4 ab = vertices[1].clip - vertices[0].clip, ac = vertices[2].clip - vertices[0].clip;
-
-            float orientation = ab.x * ac.y - ac.x * ab.y;
-            if (orientation < 0.0f) continue;
-
             // Clip triangles such that they are bounded within [-w, w] on all axes
             sutherland_hodgman(vertices);
 
@@ -110,6 +104,13 @@ int main(int argc, char *argv[])
 
                 clip.w = temp; // store the w value for later
             }
+
+            // Backface culling
+            Vec4 ab = vertices[1].clip - vertices[0].clip, ac = vertices[2].clip - vertices[0].clip;
+
+            float orientation = ab.x * ac.y - ac.x * ab.y;
+            if (orientation < 0.0f)
+                continue;
 
             // Reform triangles using fan triangulation
             for (size_t j = 1; j < vertices.size() - 1; ++j)
