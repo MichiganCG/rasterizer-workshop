@@ -71,19 +71,19 @@ int main(int argc, char *argv[])
         // Loop through all triangles in the mesh
         for (size_t i = 0; i < mesh.size(); ++i)
         {
-            Triplet trig = mesh[i];
-            std::vector<uint32_t> trigs{trig[0], trig[1], trig[2]};
+            Triplet triangle = mesh[i];
+            std::vector<uint32_t> indices{triangle[0], triangle[1], triangle[2]};
 
             // Clip triangles such that they are bounded within [-w, w] on all axes
-            sutherland_hodgman(trigs, vertices);
+            sutherland_hodgman(indices, vertices);
 
-            if (trigs.size() == 0)
+            if (indices.size() == 0)
                 continue;
 
             // Reform triangles using fan triangulation
-            for (size_t j = 1; j < trigs.size() - 1; ++j)
+            for (size_t j = 1; j < indices.size() - 1; ++j)
             {
-                triangles.emplace_back(trigs[0], trigs[j], trigs[j + 1]);
+                triangles.emplace_back(indices[0], indices[j], indices[j + 1]);
             }
         }
 
@@ -106,18 +106,19 @@ int main(int argc, char *argv[])
         // Draw each triangle
         for (size_t i = 0; i < triangles.size(); ++i)
         {
-            Triplet trig = triangles[i];
+            Triplet triangle = triangles[i];
 
             // Backface culling
-            Vec4 ab = vertices[trig[1]].clip_coordinates - vertices[trig[0]].clip_coordinates;
-            Vec4 ac = vertices[trig[2]].clip_coordinates - vertices[trig[0]].clip_coordinates;
+            Vec4 ab = vertices[triangle[1]].clip_coordinates - vertices[triangle[0]].clip_coordinates;
+            Vec4 ac = vertices[triangle[2]].clip_coordinates - vertices[triangle[0]].clip_coordinates;
 
+            // Ignore triangles that are ordered incorrectly
             float orientation = ab.x * ac.y - ac.x * ab.y;
             if (orientation < 0.0f)
                 continue;
 
             // Draw each triangle
-            draw_barycentric(image, depth, object->material, scene.get_lights(), trig, vertices);
+            draw_barycentric(image, depth, object->material, scene.get_lights(), triangle, vertices);
         }
     }
 
