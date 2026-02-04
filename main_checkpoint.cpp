@@ -29,77 +29,68 @@ int main()
     // Define the model matrix
     Matrix4 m_model = translate(position) * rotate(rotation);
 
-    std::vector<Vec4> world_vertices(mesh.vertex_size());
-    std::vector<Vec4> world_normals(mesh.vertex_size());
-
-    std::vector<Vec4> clip_vertices(mesh.vertex_size());
+    VertexData vertices{mesh.vertex_size()};
 
     // Transform the model to world space
     for (size_t i = 0; i < mesh.vertex_size(); ++i)
     {
-        world_vertices[i] = m_model * mesh.get_vertex(i);
-        world_normals[i] = m_model * mesh.get_normal(i);
+        vertices[i].world_coordinates = m_model * mesh.get_vertex(i);
+        vertices[i].world_normals = m_model * mesh.get_normal(i);
 
-        clip_vertices[i] = m_projection * world_vertices[i];
+        vertices[i].clip_coordinates = m_projection * vertices[i].world_coordinates;
     }
+
+    std::vector<Triplet> triangles;
 
     for (size_t i = 0; i < mesh.size(); ++i)
     {
-        Triangle triangle = mesh[i];
-        std::vector<Vertex> vertices(3);
-
-        for (size_t t = 0; t < 3; ++t)
-        {
-            vertices[t].world = world_vertices[triangle[t]];
-            vertices[t].clip = clip_vertices[triangle[t]];
-            vertices[t].normal = world_normals[triangle[t]];
-            vertices[t].texture = mesh.get_texture(triangle[t]);
-        }
+        Triplet triangle = mesh[i];
+        std::vector<uint32_t> indices{triangle[0], triangle[1], triangle[2]};
 
         // Clip triangles such that they are bounded within [-w, w] on all axes
-        sutherland_hodgman(vertices);
+        sutherland_hodgman(indices, vertices);
 
-        if (vertices.size() == 0)
+        if (indices.size() == 0)
             continue;
 
-        // Transform from clip space to screen space
-        for (size_t j = 0; j < vertices.size(); ++j)
+        // Reform triangles using fan triangulation
+        for (size_t j = 1; j < indices.size() - 1; ++j)
         {
-            Vertex &vertex = vertices[j];
-            Vec4 &clip = vertex.clip;
+            triangles.emplace_back(indices[0], indices[j], indices[j + 1]);
+        }
+    }
 
-            float temp = clip.w;
-            if (temp != 0)
-            {
-                temp = 1.0f / temp;
-                clip *= temp;
-            }
+    // Transform from clip space to screen space
+    for (size_t i = 0; i < vertices.size(); ++i)
+    {
+        Vec4 &clip = vertices[i].clip_coordinates;
 
-            vertex.screen = m_screen * clip;
-
-            clip.w = temp;
+        // Scale by the depth
+        float temp = clip.w;
+        if (temp != 0) {
+            temp = 1.0f / temp;
+            clip *= temp;
         }
 
-        // Backface culling
-        Vec4 ab = vertices[1].clip - vertices[0].clip, ac = vertices[2].clip - vertices[0].clip;
+        vertices[i].screen_coordinates = m_screen * clip;
 
-        float orientation = ab.x * ac.y - ac.x * ab.y;
-        if (orientation < 0.0f) continue;
+        clip.w = temp; // store the w value for later
+    }
+
+    // Draw each triangle
+    for (size_t i = 0; i < triangles.size(); ++i)
+    {
+        Triplet triangle = triangles[i];
+        const VertexData::Vertex &v0 = vertices[triangle[0]], &v1 = vertices[triangle[1]], &v2 = vertices[triangle[2]];
 
         Color color(1);
 
-        // Reform triangles using fan triangulation
-        for (size_t j = 1; j < vertices.size() - 1; ++j)
+        auto shader = [&](float a, float b, float c)
         {
-            Vertex &v0 = vertices[0], &v1 = vertices[j], &v2 = vertices[j + 1];
+            return color;
+        };
 
-            auto shader = [&](float a, float b, float c)
-            {
-                return color;
-            };
-
-            iterate_barycentric(image, depth, shader, v0.screen, v1.screen, v2.screen);
-        }
+        iterate_barycentric(image, depth, shader, v0.screen_coordinates, v1.screen_coordinates, v2.screen_coordinates);
     }
 
     image.write_file("output.png");

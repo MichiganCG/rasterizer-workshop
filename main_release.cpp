@@ -61,7 +61,6 @@ int main(int argc, char *argv[])
         {
             vertices[i].world_coordinates   = m_model * mesh.get_vertex(i);
             vertices[i].world_normals       = m_model * mesh.get_normal(i);
-
             vertices[i].clip_coordinates    = m_projection * vertices[i].world_coordinates;
             vertices[i].texture_coordinates = mesh.get_texture(i);
         }
@@ -92,6 +91,7 @@ int main(int argc, char *argv[])
         {
             Vec4 &clip = vertices[i].clip_coordinates;
 
+            // Scale by the depth
             float temp = clip.w;
             if (temp != 0) {
                 temp = 1.0f / temp;
