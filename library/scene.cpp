@@ -21,7 +21,8 @@
 #include "scene.hpp"
 
 template <typename T>
-const T &get_reference(const std::string &key, std::map<std::string, std::unique_ptr<T>> &unique_map) {
+const T &get_reference(const std::string &key, std::map<std::string, std::unique_ptr<T>> &unique_map)
+{
     if (!unique_map.contains(key))
         unique_map[key] = std::make_unique<T>(key);
     return *unique_map[key];
@@ -31,51 +32,61 @@ const Mesh &SceneManager::get_mesh(const std::string &name) { return get_referen
 
 const Material &SceneManager::get_material(const std::string &name) { return get_reference(name, materials); }
 
-void load_color(const fkyaml::node &root, Color &color)
+void from_node(const fkyaml::node &node, Color &color)
 {
-    const auto &node = root["color"];
-    color.r = node[0].get_value<float>();
-    color.g = node[1].get_value<float>();
-    color.b = node[2].get_value<float>();
+    switch (node.size())
+    {
+        case 0:
+            break;
+        case 3:
+            color.r = node[0].get_value<float>();
+            color.g = node[1].get_value<float>();
+            color.b = node[2].get_value<float>();
+            break;
+        default:
+            throw fkyaml::exception("Invalid color format");
+    }
 }
 
-void load_position(const fkyaml::node &root, Vec4 &position)
+void from_node(const fkyaml::node &node, Vec4 &vector)
 {
-    const auto &node = root["position"];
-    position.x = node[0].get_value<float>();
-    position.y = node[1].get_value<float>();
-    position.z = node[2].get_value<float>();
+    switch (node.size())
+    {
+        case 0:
+            break;
+        case 3:
+            vector.x = node[0].get_value<float>();
+            vector.y = node[1].get_value<float>();
+            vector.z = node[2].get_value<float>();
+            break;
+        default:
+            throw fkyaml::exception("Invalid vector format");
+    }
 }
 
-void load_direction(const fkyaml::node &root, Vec4 &direction)
+void from_node(const fkyaml::node &node, Quaternion &rotation)
 {
-    const auto &node = root["direction"];
-    direction.x = node[0].get_value<float>();
-    direction.y = node[1].get_value<float>();
-    direction.z = node[2].get_value<float>();
-    direction.w = 0.0f;
-}
-
-void load_rotation(const fkyaml::node &root, Quaternion &rotation)
-{
-    const auto &node = root["rotation"];
-    Vec3 axis;
-    axis.x = node[0].get_value<float>();
-    axis.y = node[1].get_value<float>();
-    axis.z = node[2].get_value<float>();
-    float angle = node[3].get_value<float>();
-    rotation = Quaternion{axis, angle};
-}
-
-void load_scale(const fkyaml::node &root, Vec3 &scale)
-{
-    const auto &node = root["scale"];
-    scale.x = node[0].get_value<float>();
-    scale.y = node[1].get_value<float>();
-    scale.z = node[2].get_value<float>();
+    switch (node.size())
+    {
+        case 0:
+            break;
+        case 4:
+        {
+            Vec3 axis;
+            axis.x = node[0].get_value<float>();
+            axis.y = node[1].get_value<float>();
+            axis.z = node[2].get_value<float>();
+            float angle = node[3].get_value<float>();
+            rotation.rotate(axis, angle);
+            break;
+        }
+        default:
+            throw fkyaml::exception("Invalid quaternion format");
+    }
 }
 
 Scene::Scene(const std::string &config, SceneManager &manager)
+    : width(400), height(300), fov(70)
 {
     try
     {
@@ -87,68 +98,55 @@ Scene::Scene(const std::string &config, SceneManager &manager)
         height = root["resolution"]["height"].get_value<uint32_t>();
         fov = root["fov"].get_value<float>();
 
-        auto light_nodes = root["lights"];
-        for (const auto& light_node : light_nodes)
+        if (root.contains("lights"))
         {
-            std::string type = light_node["type"].as_str();
-
-            Color color;
-            load_color(light_node, color);
-
-            std::shared_ptr<const Light> light;
-
-            if (type == "directional")
+            for (const auto &light_node : root["lights"])
             {
-                Vec4 direction;
-                load_direction(light_node, direction);
+                const std::string &type = light_node["type"].as_str();
 
-                light = std::make_shared<DirectionalLight>(color, direction);
+                Color color = light_node["color"].get_value<Color>();
+
+                std::shared_ptr<const Light> light;
+
+                if (type == "directional")
+                {
+                    Vec4 direction = light_node["direction"].get_value<Vec4>();
+                    direction.w = 0.0f;
+                    light = std::make_shared<DirectionalLight>(color, direction);
+                }
+                else if (type == "point")
+                {
+                    float intensity = light_node["intensity"].get_value<float>();
+                    Vec4 position = light_node["position"].get_value<Vec4>();
+                    light = std::make_shared<PointLight>(color, intensity, position);
+                }
+                else if (type == "spot")
+                {
+                    float angle = light_node["angle"].get_value<float>();
+                    float taper = light_node["taper"].get_value<float>();
+                    Vec4 direction = light_node["direction"].get_value<Vec4>();
+                    direction.w = 0.0f;
+                    Vec4 position = light_node["position"].get_value<Vec4>();
+                    light = std::make_shared<SpotLight>(color, angle, taper, direction, position);
+                }
+
+                lights.push_back(light);
             }
-            else if (type == "point")
-            {
-                float intensity = light_node["intensity"].get_value<float>();
-
-                Vec4 position;
-                load_position(light_node, position);
-
-                light = std::make_shared<PointLight>(color, intensity, position);
-            }
-            else if (type == "spot")
-            {
-                float angle = light_node["angle"].get_value<float>();
-                float taper = light_node["taper"].get_value<float>();
-
-                Vec4 direction;
-                load_direction(light_node, direction);
-
-                Vec4 position;
-                load_position(light_node, position);
-
-                light = std::make_shared<SpotLight>(color, angle, taper, direction, position);
-            }
-
-            lights.push_back(light);
         }
 
-        auto object_nodes = root["objects"];
-        for (const auto& object_node : object_nodes)
-        {
-            Vec4 position;
-            Quaternion rotation;
-            Vec3 scale;
+        if (root.contains("objects")) {
+            for (const auto &object_node : root["objects"])
+            {
+                auto object = std::make_shared<Object>(
+                    object_node["position"].get_value<Vec4>(),
+                    object_node["rotation"].get_value<Quaternion>(),
+                    object_node["scale"].get_value<Vec4>(),
+                    manager.get_mesh(object_node["mesh"].as_str()),
+                    manager.get_material(object_node["material"].as_str())
+                );
 
-            load_position(object_node, position);
-            load_rotation(object_node, rotation);
-            load_scale(object_node, scale);
-
-            auto object = std::make_shared<Object>(
-                position,
-                rotation,
-                scale,
-                manager.get_mesh(object_node["mesh"].as_str()),
-                manager.get_material(object_node["material"].as_str())
-            );
-            objects.push_back(object);
+                objects.push_back(object);
+            }
         }
     }
     catch (const fkyaml::exception &e) 
