@@ -42,10 +42,10 @@ int main(int argc, char *argv[])
     Image image(scene.get_width(), scene.get_height());
     DepthBuffer depth(scene.get_width(), scene.get_height());
 
-    Timer timer;
-
     Matrix4 m_projection = perspective_projection(scene.get_fov(), scene.get_aspect_ratio(), 1, 100);
     Matrix4 m_screen = viewport(scene.get_width(), scene.get_height());
+
+    Timer timer;
 
     for (const auto &object : scene.get_objects())
     {
@@ -54,79 +54,76 @@ int main(int argc, char *argv[])
         // Define the model matrix
         Matrix4 m_model = translate(object->position) * rotate(object->rotation) * scale(object->scale);
 
-        std::vector<Vec4> world_vertices(mesh.vertex_size());
-        std::vector<Vec4> world_normals(mesh.vertex_size());
-
-        std::vector<Vec4> clip_vertices(mesh.vertex_size());
+        VertexData vertices{mesh.vertex_size()};
 
         // Transform all vertices in the mesh to world space and then to clip space
         for (size_t i = 0; i < mesh.vertex_size(); ++i)
         {
-            world_vertices[i] = m_model * mesh.get_vertex(i);
-            world_normals[i] = m_model * mesh.get_normal(i);
+            vertices[i].world_coordinates   = m_model * mesh.get_vertex(i);
+            vertices[i].world_normals       = m_model * mesh.get_normal(i);
 
-            clip_vertices[i] = m_projection * world_vertices[i];
+            vertices[i].clip_coordinates    = m_projection * vertices[i].world_coordinates;
+            vertices[i].texture_coordinates = mesh.get_texture(i);
         }
+
+        std::vector<Triplet> triangles;
 
         // Loop through all triangles in the mesh
         for (size_t i = 0; i < mesh.size(); ++i)
         {
-            Triangle triangle = mesh[i];
-            std::vector<Vertex> vertices(3);
-
-            for (size_t t = 0; t < 3; ++t)
-            {
-                vertices[t].world = world_vertices[triangle[t]];
-                vertices[t].clip = clip_vertices[triangle[t]];
-                vertices[t].normal = world_normals[triangle[t]];
-                vertices[t].texture = mesh.get_texture(triangle[t]);
-            }
+            Triplet trig = mesh[i];
+            std::vector<uint32_t> trigs{trig[0], trig[1], trig[2]};
 
             // Clip triangles such that they are bounded within [-w, w] on all axes
-            sutherland_hodgman(vertices);
+            sutherland_hodgman(trigs, vertices);
 
-            if (vertices.size() == 0)
+            if (trigs.size() == 0)
                 continue;
 
-            // Transform from clip space to screen space
-            for (size_t j = 0; j < vertices.size(); ++j)
+            // Reform triangles using fan triangulation
+            for (size_t j = 1; j < trigs.size() - 1; ++j)
             {
-                Vertex &vertex = vertices[j];
-                Vec4 &clip = vertex.clip;
+                triangles.emplace_back(trigs[0], trigs[j], trigs[j + 1]);
+            }
+        }
 
-                float temp = clip.w;
-                if (temp != 0) {
-                    temp = 1.0f / temp;
-                    clip *= temp;
-                }
+        // Transform from clip space to screen space
+        for (size_t i = 0; i < vertices.size(); ++i)
+        {
+            Vec4 &clip = vertices[i].clip_coordinates;
 
-                vertex.screen = m_screen * clip;
-
-                clip.w = temp; // store the w value for later
+            float temp = clip.w;
+            if (temp != 0) {
+                temp = 1.0f / temp;
+                clip *= temp;
             }
 
+            vertices[i].screen_coordinates = m_screen * clip;
+
+            clip.w = temp; // store the w value for later
+        }
+
+        // Draw each triangle
+        for (size_t i = 0; i < triangles.size(); ++i)
+        {
+            Triplet trig = triangles[i];
+
             // Backface culling
-            Vec4 ab = vertices[1].clip - vertices[0].clip, ac = vertices[2].clip - vertices[0].clip;
+            Vec4 ab = vertices[trig[1]].clip_coordinates - vertices[trig[0]].clip_coordinates;
+            Vec4 ac = vertices[trig[2]].clip_coordinates - vertices[trig[0]].clip_coordinates;
 
             float orientation = ab.x * ac.y - ac.x * ab.y;
             if (orientation < 0.0f)
                 continue;
 
-            // Reform triangles using fan triangulation
-            for (size_t j = 1; j < vertices.size() - 1; ++j)
-            {
-                Vertex &v0 = vertices[0], &v1 = vertices[j], &v2 = vertices[j + 1];
-
-                // Draw each triangle
-                draw_barycentric(image, depth, object->material, scene.get_lights(), v0, v1, v2);
-            }
+            // Draw each triangle
+            draw_barycentric(image, depth, object->material, scene.get_lights(), trig, vertices);
         }
     }
 
     std::cout << timer.elapsed() << " milliseconds\n";
 
     image.write_file("output.png");
-
     depth.get_image().write_file("depth.png");
 
     return 0;

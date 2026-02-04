@@ -21,7 +21,7 @@
 #include <optional>
 #include <iostream>
 
-std::ostream &operator<<(std::ostream &os, const Triangle &rhs)
+std::ostream &operator<<(std::ostream &os, const Triplet &rhs)
 {
     os << "( " << rhs[0] << " " << rhs[1] << " " << rhs[2] << " )";
     return os;
@@ -41,7 +41,7 @@ void Mesh::smooth_normals()
 
     for (size_t i = 0; i < size(); ++i)
     {
-        Triangle tri = at(i);
+        Triplet tri = at(i);
         // Compute the normal of each face and add it to the normal of each vertex
 
         Vec4 edge1 = vertices[tri[1]] - vertices[tri[0]];
@@ -248,19 +248,9 @@ const std::vector<Vec4> clipping_planes = {
     {0, 0, 1},  // far
 };
 
-Vertex interpolate(const Vertex &start, const Vertex &end, float amount)
+void sutherland_hodgman(std::vector<uint32_t> &input_list, VertexData &vertices)
 {
-    Vertex middle;
-    middle.world = start.world * (1 - amount) + end.world * (amount);
-    middle.clip = start.clip * (1 - amount) + end.clip * (amount);
-    middle.normal = start.normal * (1 - amount) + end.normal * (amount);
-    middle.texture = start.texture * (1 - amount) + end.texture * (amount);
-    return middle;
-}
-
-void sutherland_hodgman(std::vector<Vertex> &input_list)
-{
-    std::vector<Vertex> out_list = input_list;
+    std::vector<uint32_t> out_list = input_list;
 
     for (const Vec4 &plane : clipping_planes)
     {
@@ -270,34 +260,35 @@ void sutherland_hodgman(std::vector<Vertex> &input_list)
         if (input_list.size() == 0)
             return;
 
-        Vertex *start = &input_list[input_list.size() - 1];
+        uint32_t start = input_list[input_list.size() - 1];
         for (size_t j = 0; j < input_list.size(); ++j)
         {
-            Vertex *end = &input_list[j];
+            uint32_t end = input_list[j];
 
-            float d0 = dot(start->clip, plane);
-            float d1 = dot(end->clip, plane);
+            float d0 = dot(vertices[start].clip_coordinates, plane);
+            float d1 = dot(vertices[end].clip_coordinates, plane);
 
             if (d0 > 0)
             {
                 if (d1 > 0)
                 {
-                    out_list.push_back(*end);
+                    out_list.push_back(end);
                 }
                 else
                 {
                     float a = d0 / (d0 - d1);
-                    out_list.push_back(interpolate(*start, *end, a));
+                    out_list.push_back(vertices.interpolate(start, end, a));
                 }
             }
             else if (d1 > 0)
             {
                 float a = d0 / (d0 - d1);
-                out_list.push_back(interpolate(*start, *end, a));
-                out_list.push_back(*end);
+                out_list.push_back(vertices.interpolate(start, end, a));
+                out_list.push_back(end);
             }
             start = end;
         }
     }
+
     std::swap(input_list, out_list);
 }

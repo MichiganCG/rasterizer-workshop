@@ -22,24 +22,25 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <cassert>
 
 #include "vectors.hpp"
 #include "library.hpp"
 
 /**
- * A set of indexes.
+ * A set of three indices.
  */
-struct Triangle
+struct Triplet
 {
-    int indices[3];
+    uint32_t indices[3];
 
-    Triangle() = delete;
-    Triangle(int i1, int i2, int i3) : indices{i1, i2, i3} {}
+    Triplet() = delete;
+    Triplet(uint32_t i1, uint32_t i2, uint32_t i3) : indices{i1, i2, i3} {}
 
-    int at(size_t i) const { return indices[i]; }
-    int operator[](size_t i) const { return indices[i]; }
+    uint32_t at(size_t i) const { return indices[i]; }
+    uint32_t operator[](size_t i) const { return indices[i]; }
 
-    friend std::ostream &operator<<(std::ostream &os, const Triangle &rhs);
+    friend std::ostream &operator<<(std::ostream &os, const Triplet &rhs);
 };
 
 /**
@@ -50,13 +51,13 @@ class Mesh
 private:
     size_t count;
     std::vector<Vec4> vertices;
-    std::vector<Vec3> textures;
     std::vector<Vec4> normals;
+    std::vector<Vec3> textures;
 
     /**
      * A vertex buffer containing 3 indices per face.
      */
-    std::vector<int> elements;
+    std::vector<uint32_t> elements;
 
 public:
     Mesh() = delete;
@@ -71,16 +72,18 @@ public:
      */
     void load_file(const std::string &file_name);
 
+    // Returns the number of triangles
     size_t size() const { return count; }
+    // Returns the number of vertices
     size_t vertex_size() const { return vertices.size(); }
 
-    Triangle at(size_t i) const
+    Triplet at(size_t i) const
     {
         size_t index = i * 3;
         return {elements[index + 0], elements[index + 1], elements[index + 2]};
     }
 
-    Triangle operator[](size_t i) const { return at(i); }
+    Triplet operator[](size_t i) const { return at(i); }
 
     const Vec4 &get_vertex(size_t i) const { return vertices[i]; }
     const Vec3 &get_texture(size_t i) const { return textures[i]; }
@@ -89,14 +92,39 @@ public:
     void smooth_normals();
 };
 
-struct Vertex
-{
-    Vec4 world, clip, normal;
-    Vec3 screen, texture;
+class VertexData{
+public:
+    VertexData(size_t size) : data(size) {}
+
+    struct Vertex {
+        Vec4 world_coordinates;
+        Vec4 world_normals;
+        Vec4 clip_coordinates;
+        Vec3 texture_coordinates;
+        Vec3 screen_coordinates;
+    };
+
+    size_t size() const { return data.size(); }
+
+    Vertex &at(size_t i) { return data[i]; }
+
+    Vertex &operator[](size_t i) { return at(i); }
+
+    uint32_t interpolate(uint32_t start, uint32_t end, float a) {
+        data.emplace_back(
+            data[start].world_coordinates   * (1 - a) + data[end].world_coordinates   * (a),
+            data[start].world_normals       * (1 - a) + data[end].world_normals       * (a),
+            data[start].clip_coordinates    * (1 - a) + data[end].clip_coordinates    * (a),
+            data[start].texture_coordinates * (1 - a) + data[end].texture_coordinates * (a)
+        );
+        return data.size() - 1;
+    }
+private:
+    std::vector<Vertex> data;
 };
 
 /**
  * Clips the given vertices using the Sutherland-Hodgman algorithm.
  * Modifies `input_list`.
  */
-void sutherland_hodgman(std::vector<Vertex> &input_list);
+void sutherland_hodgman(std::vector<uint32_t> &input_list, VertexData &vertices);

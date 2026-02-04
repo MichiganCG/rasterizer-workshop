@@ -72,11 +72,16 @@ Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec
         float attenuation = light->get_attenuation(world_coord);
 
         const Vec4 L = light->get_direction(world_coord); // normalized vector pointing from the surface to the light source
+#ifdef BLINN_PHONG_MODEL
         const Vec4 H = normalize(L + V);                  // normalized half vector between light and viewer directions
-        //const Vec4 R = 2.0f * dot(L, N) * N - L;
+        float angle = saturate(dot(N, H));
+#else
+        const Vec4 R = normalize(2.0f * dot(L, N) * N - L); // normalized reflection vector
+        float angle = saturate(dot(V, R));
+#endif
 
         float diffuse_intensity = saturate(dot(N, L));
-        float specular_intensity = std::pow(saturate(dot(N, H)), shininess);
+        float specular_intensity = std::pow(angle, shininess);
 
         diffuse_sum += color * diffuse_intensity * attenuation;
         specular_sum += color * specular_intensity * attenuation;
@@ -251,34 +256,37 @@ void iterate_barycentric(Image &image, DepthBuffer &depth, const std::function<C
     }
 }
 
-void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, const Vertex &v0, const Vertex &v1, const Vertex &v2)
+void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, Triplet triangle, VertexData &vertices)
 {
+    const VertexData::Vertex &v0 = vertices[triangle[0]], &v1 = vertices[triangle[1]], &v2 = vertices[triangle[2]];
+
     auto shader = [&](float a, float b, float c)
     {
         return color;
     };
 
-    iterate_barycentric(image, depth, shader, v0.screen, v1.screen, v2.screen);
+    iterate_barycentric(image, depth, shader, v0.screen_coordinates, v1.screen_coordinates, v2.screen_coordinates);
 }
 
-void draw_barycentric(Image &image, DepthBuffer &depth, const Material &material, const LightCollection &lights, const Vertex &v0, const Vertex &v1, const Vertex &v2)
+void draw_barycentric(Image &image, DepthBuffer &depth, const Material &material, const LightCollection &lights, Triplet triangle, VertexData &vertices)
 {
-    float w0 = v0.clip.w, w1 = v1.clip.w, w2 = v2.clip.w;
+    const VertexData::Vertex &v0 = vertices[triangle[0]], &v1 = vertices[triangle[1]], &v2 = vertices[triangle[2]];
+    float w0 = v0.clip_coordinates.w, w1 = v1.clip_coordinates.w, w2 = v2.clip_coordinates.w;
 
     auto shader = [&](float a, float b, float c)
     {
         // Correct for the perspective. https://www.cs.ucr.edu/~craigs/courses/2020-fall-cs-130/lectures/perspective-correct-interpolation.pdf
         float aw = a * w0, bw = b * w1, cw = c * w2;
-        float w = 1 / (aw + bw + cw);
+        float w = 1.0f / (aw + bw + cw);
 
         // Interpolate across all of the vertex values
-        Vec4 world = (v0.world * aw + v1.world * bw + v2.world * cw) * w;
-        Vec3 texture = (v0.texture * aw + v1.texture * bw + v2.texture * cw) * w;
-        Vec4 normal = normalize(v0.normal * aw + v1.normal * bw + v2.normal * cw);
+        Vec4 world =       w * (v0.world_coordinates   * aw + v1.world_coordinates   * bw + v2.world_coordinates   * cw);
+        Vec4 normal = normalize(v0.world_normals       * aw + v1.world_normals       * bw + v2.world_normals       * cw);
+        Vec3 texture =     w * (v0.texture_coordinates * aw + v1.texture_coordinates * bw + v2.texture_coordinates * cw);
 
         // Set the color using the material and lights
         return material.get_color(world, normal, texture, lights);
     };
 
-    iterate_barycentric(image, depth, shader, v0.screen, v1.screen, v2.screen);
+    iterate_barycentric(image, depth, shader, v0.screen_coordinates, v1.screen_coordinates, v2.screen_coordinates);
 }
