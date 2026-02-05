@@ -98,6 +98,12 @@ Scene::Scene(const std::string &config, SceneManager &manager)
         height = root["resolution"]["height"].get_value<uint32_t>();
         fov = root["fov"].get_value<float>();
 
+        if (root.contains("camera"))
+        {
+            camera.position = root["camera"]["position"].get_value<Vec4>();
+            camera.rotation = root["camera"]["rotation"].get_value<Quaternion>();
+        }
+
         if (root.contains("lights"))
         {
             for (const auto &light_node : root["lights"])

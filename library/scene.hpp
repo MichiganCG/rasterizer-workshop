@@ -63,12 +63,16 @@ public:
     uint32_t get_width() const { return width; }
     uint32_t get_height() const { return height; }
     float get_aspect_ratio() const { return (float)width / (float)height; }
+
     float get_fov() const { return fov; }
+
+    const Camera &get_camera() const { return camera; }
 
 private:
     uint32_t width, height;
     float fov;
 
-    std::vector<std::shared_ptr<Object>> objects;
+    Camera camera;
     LightCollection lights;
+    std::vector<std::shared_ptr<Object>> objects;
 };

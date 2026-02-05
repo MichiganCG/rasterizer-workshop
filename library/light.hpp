@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "vectors.hpp"
+#include "quaternion.hpp"
 #include "mesh.hpp"
 #include "library.hpp"
 
@@ -116,6 +117,13 @@ private:
     Vec4 position;
 };
 
+class Camera
+{
+public:
+    Vec4 position;
+    Quaternion rotation;
+};
+
 /**
  * Basic material class using Wavefront .mtl files.
  */
@@ -131,7 +139,7 @@ public:
      * Calculates the color at a point using the Blinn-Phong reflection model
      * https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model
      */
-    Color get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights) const;
+    Color get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights, const Camera &camera) const;
 
 private:
     float shininess;
@@ -154,4 +162,4 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, Triplet tr
 /**
  * Uses the object's material and all light sources provided to determine the color of each pixel.
  */
-void draw_barycentric(Image &image, DepthBuffer &depth, const Material &mat, const LightCollection &lights, Triplet triangle, VertexData &vertices);
+void draw_barycentric(Image &image, DepthBuffer &depth, const Material &mat, const LightCollection &lights, const Camera &camera, Triplet triangle, VertexData &vertices);

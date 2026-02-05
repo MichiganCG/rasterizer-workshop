@@ -57,13 +57,12 @@ float saturate(float value) {
     return std::min(1.0f, std::max(0.0f, value));
 }
 
-Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights) const
+Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights, const Camera &camera) const
 {
     Color color, diffuse_sum, specular_sum;
 
     Vec4 N = normal;                  // normalized surface normal
-    Vec4 V = normalize(-world_coord); // normalized vector pointing from the surface to the viewer
-                                      // simplified because this project assumes the camera is always at the origin
+    Vec4 V = normalize(camera.position - world_coord); // normalized vector pointing from the surface to the viewer
 
     // Compute the sum of the diffuse and specular light from each light source
     for (const auto &light : lights)
@@ -267,7 +266,7 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, Triplet tr
     iterate_barycentric(image, depth, shader, v0.screen_coordinates, v1.screen_coordinates, v2.screen_coordinates);
 }
 
-void draw_barycentric(Image &image, DepthBuffer &depth, const Material &material, const LightCollection &lights, Triplet triangle, VertexData &vertices)
+void draw_barycentric(Image &image, DepthBuffer &depth, const Material &material, const LightCollection &lights, const Camera &camera, Triplet triangle, VertexData &vertices)
 {
     const VertexData::Vertex &v0 = vertices[triangle[0]], &v1 = vertices[triangle[1]], &v2 = vertices[triangle[2]];
     float w0 = v0.clip_coordinates.w, w1 = v1.clip_coordinates.w, w2 = v2.clip_coordinates.w;
@@ -284,7 +283,7 @@ void draw_barycentric(Image &image, DepthBuffer &depth, const Material &material
         Vec3 texture =     w * (v0.texture_coordinates * aw + v1.texture_coordinates * bw + v2.texture_coordinates * cw);
 
         // Set the color using the material and lights
-        return material.get_color(world, normal, texture, lights);
+        return material.get_color(world, normal, texture, lights, camera);
     };
 
     iterate_barycentric(image, depth, shader, v0.screen_coordinates, v1.screen_coordinates, v2.screen_coordinates);

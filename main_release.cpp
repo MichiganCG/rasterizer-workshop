@@ -42,6 +42,9 @@ int main(int argc, char *argv[])
     Image image(scene.get_width(), scene.get_height());
     DepthBuffer depth(scene.get_width(), scene.get_height());
 
+    const Camera &camera = scene.get_camera();
+    Matrix4 m_view = quick_inverse(translate(camera.position) * rotate(camera.rotation));
+
     Matrix4 m_projection = perspective_projection(scene.get_fov(), scene.get_aspect_ratio(), 1, 100);
     Matrix4 m_screen = viewport(scene.get_width(), scene.get_height());
 
@@ -61,7 +64,7 @@ int main(int argc, char *argv[])
         {
             vertices[i].world_coordinates   = m_model * mesh.get_vertex(i);
             vertices[i].world_normals       = m_model * mesh.get_normal(i);
-            vertices[i].clip_coordinates    = m_projection * vertices[i].world_coordinates;
+            vertices[i].clip_coordinates    = m_projection * m_view * vertices[i].world_coordinates;
             vertices[i].texture_coordinates = mesh.get_texture(i);
         }
 
@@ -118,7 +121,7 @@ int main(int argc, char *argv[])
                 continue;
 
             // Draw each triangle
-            draw_barycentric(image, depth, object->material, scene.get_lights(), triangle, vertices);
+            draw_barycentric(image, depth, object->material, scene.get_lights(), camera, triangle, vertices);
         }
     }
 

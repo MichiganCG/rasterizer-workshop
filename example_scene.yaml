@@ -1,7 +1,11 @@
 resolution:
-  width: 960
-  height: 540
+  width: 1920
+  height: 1080
 fov: 70
+
+camera:
+  position: [0.0, 0.0, 0.0]
+  rotation: [0.0, 0.0, 0.0, 0.0]
 
 lights:
   -
