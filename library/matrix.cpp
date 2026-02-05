@@ -181,9 +181,9 @@ Matrix4 quick_inverse(const Matrix4 &input)
     matrix.at(2, 0) = input.at(0, 2);
     matrix.at(2, 1) = input.at(1, 2);
     matrix.at(2, 2) = input.at(2, 2);
-    matrix.at(3, 0) = -input.at(0, 0) * input.at(0, 3) - input.at(1, 0) * input.at(1, 3) - input.at(2, 0) * input.at(2, 3) + 0.0;
-    matrix.at(3, 1) = -input.at(0, 1) * input.at(0, 3) - input.at(1, 1) * input.at(1, 3) - input.at(2, 1) * input.at(2, 3) + 0.0;
-    matrix.at(3, 2) = -input.at(0, 2) * input.at(0, 3) - input.at(1, 2) * input.at(1, 3) - input.at(2, 2) * input.at(2, 3) + 0.0;
+    matrix.at(0, 3) = -(input.at(0, 3) * input.at(0, 0) + input.at(1, 3) * input.at(1, 0) + input.at(2, 3) * input.at(2, 0));
+    matrix.at(1, 3) = -(input.at(0, 3) * input.at(0, 1) + input.at(1, 3) * input.at(1, 1) + input.at(2, 3) * input.at(2, 1));
+    matrix.at(2, 3) = -(input.at(0, 3) * input.at(0, 2) + input.at(1, 3) * input.at(1, 2) + input.at(2, 3) * input.at(2, 2));
     matrix.at(3, 3) = 1;
     return matrix;
 }
