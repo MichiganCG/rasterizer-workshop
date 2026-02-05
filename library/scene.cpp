@@ -104,7 +104,7 @@ Scene::Scene(const std::string &config, SceneManager &manager)
             camera.rotation = root["camera"]["rotation"].get_value<Quaternion>();
         }
 
-        if (root.contains("lights"))
+        if (root.contains("lights") && root["lights"].is_sequence())
         {
             for (const auto &light_node : root["lights"])
             {
@@ -140,7 +140,7 @@ Scene::Scene(const std::string &config, SceneManager &manager)
             }
         }
 
-        if (root.contains("objects")) {
+        if (root.contains("objects") && root["objects"].is_sequence()) {
             for (const auto &object_node : root["objects"])
             {
                 auto object = std::make_shared<Object>(

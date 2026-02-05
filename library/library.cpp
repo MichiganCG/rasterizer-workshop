@@ -81,6 +81,14 @@ Color operator-(Color lhs, const Color &rhs) { return (lhs -= rhs); }
 Color operator*(Color lhs, const Color &rhs) { return (lhs *= rhs); }
 Color operator*(Color lhs, const float rhs) { return (lhs *= rhs); }
 
+Color Image::get_pixel(float x, float y) const
+{
+    return pixels[get_index(
+        static_cast<uint32_t>(x * width),
+        static_cast<uint32_t>(y * width)
+    )];
+}
+
 void Image::write_file(const std::string &path) const
 {
     std::vector<uint8_t> data;

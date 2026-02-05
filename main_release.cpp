@@ -79,14 +79,12 @@ int main(int argc, char *argv[])
             // Clip triangles such that they are bounded within [-w, w] on all axes
             sutherland_hodgman(indices, vertices);
 
-            if (indices.size() == 0)
+            if (indices.size() < 3)
                 continue;
 
             // Reform triangles using fan triangulation
             for (size_t j = 1; j < indices.size() - 1; ++j)
-            {
                 triangles.emplace_back(indices[0], indices[j], indices[j + 1]);
-            }
         }
 
         // Transform from clip space to screen space

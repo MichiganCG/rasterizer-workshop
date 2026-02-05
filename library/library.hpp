@@ -75,7 +75,7 @@ public:
     Image(const std::string &path) { load_file(path); }
 
     Color get_pixel(uint32_t x, uint32_t y) const { return pixels[get_index(x, y)]; }
-    Color get_pixel(float x, float y) const { return pixels[get_index(static_cast<uint32_t>(x * width), static_cast<uint32_t>(y * height))]; }
+    Color get_pixel(float x, float y) const;
     void set_pixel(uint32_t x, uint32_t y, const Color &color) { pixels[get_index(x, y)] = color; }
 
     /**
@@ -90,7 +90,7 @@ public:
     explicit operator bool() const { return pixels.capacity() != 0; }
 
 private:
-    uint32_t get_index(uint32_t x, uint32_t y) const { return x + width * y; }
+    inline uint32_t get_index(uint32_t x, uint32_t y) const { return x + width * y; }
 
     uint32_t width;
     uint32_t height;
