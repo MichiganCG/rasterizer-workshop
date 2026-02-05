@@ -33,10 +33,10 @@ class Light;
 class LightCollection
 {
 public:
-    LightCollection() : ambient_color{0.01, 0.01, 0.01} {}
-    LightCollection(const Color &ambient_color) : ambient_color{ambient_color} {}
+    LightCollection() : ambient_strength{0.01, 0.01, 0.01} {}
+    LightCollection(const Color &ambient_strength) : ambient_strength{ambient_strength} {}
 
-    const Color &get_ambient_color() const { return ambient_color; }
+    const Color &get_ambient_strength() const { return ambient_strength; }
 
     void push_back(std::shared_ptr<const Light> light) { lights.push_back(light); }
 
@@ -46,7 +46,7 @@ public:
 private:
     // We store the ambient light seperately from the other lights since there should
     // only be a single source of ambient light.
-    Color ambient_color;
+    Color ambient_strength;
 
     // A vector of all lights in the scene.
     std::vector<std::shared_ptr<const Light>> lights;
@@ -122,7 +122,7 @@ private:
 class Material
 {
 public:
-    Material() : shininess(0), ambient{0}, diffuse{0}, specular{0} {}
+    Material() : shininess{0}, ambient_color{0}, diffuse_color{0}, specular_color{0} {}
     Material(const std::string &file_name) { load_file(file_name); }
 
     void load_file(const std::string &file_name);
@@ -135,8 +135,8 @@ public:
 
 private:
     float shininess;
-    Color ambient, diffuse, specular;
-    Image texture_map, roughness_map, normal_map;
+    Color ambient_color, diffuse_color, specular_color;
+    Image texture_map;
 };
 
 /**

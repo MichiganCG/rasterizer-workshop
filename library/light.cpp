@@ -59,7 +59,7 @@ float saturate(float value) {
 
 Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights) const
 {
-    Color diffuse_sum, specular_sum;
+    Color color, diffuse_sum, specular_sum;
 
     Vec4 N = normal;                  // normalized surface normal
     Vec4 V = normalize(-world_coord); // normalized vector pointing from the surface to the viewer
@@ -68,10 +68,12 @@ Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec
     // Compute the sum of the diffuse and specular light from each light source
     for (const auto &light : lights)
     {
-        const Color &color = light->get_color();
+        const Color &light_color = light->get_color();
         float attenuation = light->get_attenuation(world_coord);
 
         const Vec4 L = light->get_direction(world_coord); // normalized vector pointing from the surface to the light source
+        float diffuse_intensity = saturate(dot(N, L));
+
 #ifdef BLINN_PHONG_MODEL
         const Vec4 H = normalize(L + V);                  // normalized half vector between light and viewer directions
         float angle = saturate(dot(N, H));
@@ -79,20 +81,20 @@ Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec
         const Vec4 R = normalize(2.0f * dot(L, N) * N - L); // normalized reflection vector
         float angle = saturate(dot(V, R));
 #endif
-
-        float diffuse_intensity = saturate(dot(N, L));
         float specular_intensity = std::pow(angle, shininess);
 
-        diffuse_sum += color * diffuse_intensity * attenuation;
-        specular_sum += color * specular_intensity * attenuation;
+        diffuse_sum  += light_color * attenuation * diffuse_intensity;
+        specular_sum += light_color * attenuation * specular_intensity;
     }
 
-    // Use the texture's color if there is one
-    const Color diffuse_color = texture_map ? texture_map.get_pixel(texture_coord.x, texture_coord.y) * diffuse : diffuse;
-    const Color specular_color = roughness_map ? roughness_map.get_pixel(texture_coord.x, texture_coord.y) * specular : specular;
+    // Phong lighting model: sum of ambient, diffuse, and specular light
+    color += ambient_color * lights.get_ambient_strength();
+    color += diffuse_color * diffuse_sum;
+    color += specular_color * specular_sum;
 
-    // Phong lighting model: Sum of ambient, diffuse, and specular light
-    Color color = diffuse_color * (ambient * lights.get_ambient_color() + diffuse_sum) + specular_color * specular_sum;
+    // Use the texture's color if there is one
+    if (texture_map) color *= texture_map.get_pixel(texture_coord.x, texture_coord.y);
+
     color.r = saturate(color.r);
     color.g = saturate(color.g);
     color.b = saturate(color.b);
@@ -130,7 +132,7 @@ void Material::load_file(const std::string &file_name)
             {
                 float r, g, b;
                 ss >> r >> g >> b;
-                ambient = {r, g, b};
+                ambient_color = {r, g, b};
                 continue;
             }
 
@@ -138,7 +140,7 @@ void Material::load_file(const std::string &file_name)
             {
                 float r, g, b;
                 ss >> r >> g >> b;
-                diffuse = {r, g, b};
+                diffuse_color = {r, g, b};
                 continue;
             }
 
@@ -146,7 +148,7 @@ void Material::load_file(const std::string &file_name)
             {
                 float r, g, b;
                 ss >> r >> g >> b;
-                specular = {r, g, b};
+                specular_color = {r, g, b};
                 continue;
             }
 
@@ -155,20 +157,6 @@ void Material::load_file(const std::string &file_name)
                 std::string path;
                 ss >> path;
                 texture_map.load_file(path);
-            }
-
-            if (key == "map_Ks") // roughness map
-            {
-                std::string path;
-                ss >> path;
-                roughness_map.load_file(path);
-            }
-
-            if (key == "map_Nm") // normal map
-            {
-                std::string path;
-                ss >> path;
-                normal_map.load_file(path);
             }
         }
         file.close();
