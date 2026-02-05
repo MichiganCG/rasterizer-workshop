@@ -204,6 +204,21 @@ void draw_line(Image &image, Vec3 &start, Vec3 &end)
     }
 }
 
+Vec3 calc_barycentric(Vec3 point, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2)
+{
+    float area, a, b, c;
+
+    // twice the triangle's area
+    area = (s1.x - s0.x) * (s2.y - s0.y) - (s2.x - s0.x) * (s1.y - s0.y);
+
+    // signed magnitude of the cross product (determinant)
+    b = ((s0.x - s2.x) * (point.y - s2.y) - (point.x - s2.x) * (s0.y - s2.y)) / area;
+    c = ((s1.x - s0.x) * (point.y - s0.y) - (point.x - s0.x) * (s1.y - s0.y)) / area;
+    a = 1 - b - c;
+
+    return Vec3(a, b, c);
+}
+
 void iterate_barycentric(Image &image, DepthBuffer &depth, const std::function<Color(float, float, float)> shader, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2)
 {
     // Get the bounding box of this triangle
@@ -212,48 +227,44 @@ void iterate_barycentric(Image &image, DepthBuffer &depth, const std::function<C
     uint32_t minv = std::round(std::min({s0.y, s1.y, s2.y}));
     uint32_t maxv = std::round(std::max({s0.y, s1.y, s2.y}));
 
+    // Get the width and height of the bounding box
+    uint32_t w = maxu - minu, h = maxv - minv;
+
     // Precompute values used to find the barycentric coordinates
-    // https://gamedev.stackexchange.com/a/23745
-    Vec3 edge0 = s1 - s0, edge1 = s2 - s0;
-    float d00 = dot(edge0, edge0);
-    float d01 = dot(edge0, edge1);
-    float d11 = dot(edge1, edge1);
-    float area_of_parallelogram = d00 * d11 - d01 * d01;
+    float area = (s1.x - s0.x) * (s2.y - s0.y) - (s2.x - s0.x) * (s1.y - s0.y);
     
     float z0 = s0.z, z1 = s1.z, z2 = s2.z; // get the depth of each vertex on the screen
 
     // Check the bounding box of the triangle
-    for (uint32_t u = minu; u < maxu; ++u)
+    auto action = [&](uint32_t i)
     {
-        for (uint32_t v = minv; v < maxv; ++v)
+        // Calculate the pixel coordinates
+        uint32_t u = i % w + minu, v = i / w + minv;
+
+        // Get the center of the pixel
+        Vec3 pixel(u + 0.5f, v + 0.5f);
+
+        // Compute the barycentric coordinates
+        float b = ((s0.x - s2.x) * (pixel.y - s2.y) - (pixel.x - s2.x) * (s0.y - s2.y)) / area;
+        float c = ((s1.x - s0.x) * (pixel.y - s0.y) - (pixel.x - s0.x) * (s1.y - s0.y)) / area;
+        float a = 1 - b - c;
+
+        // Check if this pixel is in the triangle
+        if (!(a < epsilon || b < epsilon || c < epsilon))
         {
-            // Get the center of the pixel
-            Vec3 pixel(u + 0.5f, v + 0.5f);
-
-            // Compute the barycentric coordinates
-            Vec3 edge2 = pixel - s0;
-            float d20 = dot(edge2, edge0);
-            float d21 = dot(edge2, edge1);
-
-            float b = (d11 * d20 - d01 * d21) / area_of_parallelogram;
-            float c = (d00 * d21 - d01 * d20) / area_of_parallelogram;
-            float a = 1.0f - b - c;
-
-            // Check if this pixel is in the triangle
-            if (!(a < epsilon || b < epsilon || c < epsilon))
+            float z = a * z0 + b * z1 + c * z2;
+            // Check if this pixel is closer to the screen
+            if (z < depth.at(u, v))
             {
-                float z = a * z0 + b * z1 + c * z2;
-                // Check if this pixel is closer to the screen
-                if (z < depth.at(u, v))
-                {
-                    depth.at(u, v) = z;
+                depth.at(u, v) = z;
 
-                    Color color = shader(a, b, c);
-                    image.set_pixel(u, v, color);
-                }
+                Color color = shader(a, b, c);
+                image.set_pixel(u, v, color);
             }
         }
-    }
+    };
+
+    parallel_for(0, w * h, action, false);
 }
 
 void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, Triplet triangle, VertexData &vertices)
