@@ -15,10 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <fstream>
+#include "scene.hpp"
 
 #include "../thirdparty/fkYAML/node.hpp"
-#include "scene.hpp"
+
+#include <fstream>
+#include <iostream>
 
 template <typename T>
 const T &get_reference(const std::string &key, std::map<std::string, std::unique_ptr<T>> &unique_map)

@@ -17,10 +17,6 @@
 
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <memory>
 #include <map>
 
 #include "vectors.hpp"
@@ -51,6 +47,13 @@ public:
     Vec3 scale;
     const Mesh &mesh;
     const Material &material;
+};
+
+class Camera
+{
+public:
+    Vec4 position;
+    Quaternion rotation;
 };
 
 class Scene {

@@ -17,8 +17,7 @@
 
 #include "mesh.hpp"
 
-#include <algorithm>
-#include <optional>
+#include <fstream>
 #include <iostream>
 
 std::ostream &operator<<(std::ostream &os, const Triplet &rhs)

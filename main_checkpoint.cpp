@@ -3,6 +3,7 @@
 #include "library/matrix.hpp"
 #include "library/mesh.hpp"
 #include "library/light.hpp"
+#include "library/render.hpp"
 #include "library/library.hpp"
 
 #include <string>
@@ -65,7 +66,7 @@ int main()
             return color;
         };
 
-        iterate_barycentric(image, depth, shader, v0.screen_coordinates, v1.screen_coordinates, v2.screen_coordinates);
+        iterate_shader(image, depth, shader, v0.screen_coordinates, v1.screen_coordinates, v2.screen_coordinates);
     }
 
     image.write_file("output.png");

@@ -17,10 +17,12 @@
 
 #include "light.hpp"
 
-#include <algorithm>
+#include <fstream>
 #include <iostream>
 
-constexpr double epsilon = -1E-5;
+float saturate(float value) {
+    return std::min(1.0f, std::max(0.0f, value));
+}
 
 Vec4 DirectionalLight::get_direction(const Vec4 &point) const
 {
@@ -53,16 +55,12 @@ float SpotLight::get_attenuation(const Vec4 &point) const
     return std::pow(light_fall_off, taper);
 }
 
-float saturate(float value) {
-    return std::min(1.0f, std::max(0.0f, value));
-}
-
-Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights, const Camera &camera) const
+Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights, const Vec4 &camera) const
 {
     Color color, diffuse_sum, specular_sum;
 
-    Vec4 N = normal;                  // normalized surface normal
-    Vec4 V = normalize(camera.position - world_coord); // normalized vector pointing from the surface to the viewer
+    Vec4 N = normal;                          // normalized surface normal
+    Vec4 V = normalize(camera - world_coord); // normalized vector pointing from the surface to the viewer
 
     // Compute the sum of the diffuse and specular light from each light source
     for (const auto &light : lights)
@@ -164,124 +162,4 @@ void Material::load_file(const std::string &file_name)
     {
         std::cerr << "Error: Unable to open file " << file_name << std::endl;
     }
-}
-
-void draw_line(Image &image, Vec3 &start, Vec3 &end)
-{
-    float u, v, du, dv, step;
-    du = end.x - start.x;
-    dv = end.y - start.y;
-
-    if (std::abs(du) >= std::abs(dv))
-        step = std::abs(du);
-    else
-        step = std::abs(dv);
-
-    du = du / step;
-    dv = dv / step;
-    u = start.x;
-    v = start.y;
-    int i = 0;
-    while (i <= step)
-    {
-        image.set_pixel(std::round(u), std::round(v), {1, 1, 1});
-        u = u + du;
-        v = v + dv;
-        ++i;
-    }
-}
-
-Vec3 calc_barycentric(Vec3 point, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2)
-{
-    float area, a, b, c;
-
-    // twice the triangle's area
-    area = (s1.x - s0.x) * (s2.y - s0.y) - (s2.x - s0.x) * (s1.y - s0.y);
-
-    // signed magnitude of the cross product (determinant)
-    b = ((s0.x - s2.x) * (point.y - s2.y) - (point.x - s2.x) * (s0.y - s2.y)) / area;
-    c = ((s1.x - s0.x) * (point.y - s0.y) - (point.x - s0.x) * (s1.y - s0.y)) / area;
-    a = 1 - b - c;
-
-    return Vec3(a, b, c);
-}
-
-void iterate_barycentric(Image &image, DepthBuffer &depth, const std::function<Color(float, float, float)> shader, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2)
-{
-    // Get the bounding box of this triangle
-    uint32_t minu = std::round(std::min({s0.x, s1.x, s2.x}));
-    uint32_t maxu = std::round(std::max({s0.x, s1.x, s2.x}));
-    uint32_t minv = std::round(std::min({s0.y, s1.y, s2.y}));
-    uint32_t maxv = std::round(std::max({s0.y, s1.y, s2.y}));
-
-    // Get the width and height of the bounding box
-    uint32_t w = maxu - minu, h = maxv - minv;
-
-    // Precompute values used to find the barycentric coordinates
-    float area = (s1.x - s0.x) * (s2.y - s0.y) - (s2.x - s0.x) * (s1.y - s0.y);
-    
-    float z0 = s0.z, z1 = s1.z, z2 = s2.z; // get the depth of each vertex on the screen
-
-    // Check the bounding box of the triangle
-    auto action = [&](uint32_t i)
-    {
-        // Calculate the pixel coordinates
-        uint32_t u = i % w + minu, v = i / w + minv;
-
-        // Get the center of the pixel
-        Vec3 pixel(u + 0.5f, v + 0.5f);
-
-        // Compute the barycentric coordinates
-        float b = ((s0.x - s2.x) * (pixel.y - s2.y) - (pixel.x - s2.x) * (s0.y - s2.y)) / area;
-        float c = ((s1.x - s0.x) * (pixel.y - s0.y) - (pixel.x - s0.x) * (s1.y - s0.y)) / area;
-        float a = 1 - b - c;
-
-        // Check if this pixel is in the triangle
-        if (a < epsilon || b < epsilon || c < epsilon) return;
-            
-        // Check if this pixel is closer to the screen
-        float z = a * z0 + b * z1 + c * z2;
-        if (z > depth.at(u, v)) return;
-        depth.at(u, v) = z;
-
-        Color color = shader(a, b, c);
-        image.set_pixel(u, v, color);
-    };
-
-    parallel_for(0, w * h, action, false);
-}
-
-void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, Triplet triangle, VertexData &vertices)
-{
-    const VertexData::Vertex &v0 = vertices[triangle[0]], &v1 = vertices[triangle[1]], &v2 = vertices[triangle[2]];
-
-    auto shader = [&](float a, float b, float c)
-    {
-        return color;
-    };
-
-    iterate_barycentric(image, depth, shader, v0.screen_coordinates, v1.screen_coordinates, v2.screen_coordinates);
-}
-
-void draw_barycentric(Image &image, DepthBuffer &depth, const Material &material, const LightCollection &lights, const Camera &camera, Triplet triangle, VertexData &vertices)
-{
-    const VertexData::Vertex &v0 = vertices[triangle[0]], &v1 = vertices[triangle[1]], &v2 = vertices[triangle[2]];
-    float w0 = v0.clip_coordinates.w, w1 = v1.clip_coordinates.w, w2 = v2.clip_coordinates.w;
-
-    auto shader = [&](float a, float b, float c)
-    {
-        // Correct for the perspective. https://www.cs.ucr.edu/~craigs/courses/2020-fall-cs-130/lectures/perspective-correct-interpolation.pdf
-        float aw = a * w0, bw = b * w1, cw = c * w2;
-        float w = 1.0f / (aw + bw + cw);
-
-        // Interpolate across all of the vertex values
-        Vec4 world =       w * (v0.world_coordinates   * aw + v1.world_coordinates   * bw + v2.world_coordinates   * cw);
-        Vec4 normal = normalize(v0.world_normals       * aw + v1.world_normals       * bw + v2.world_normals       * cw);
-        Vec3 texture =     w * (v0.texture_coordinates * aw + v1.texture_coordinates * bw + v2.texture_coordinates * cw);
-
-        // Set the color using the material and lights
-        return material.get_color(world, normal, texture, lights, camera);
-    };
-
-    iterate_barycentric(image, depth, shader, v0.screen_coordinates, v1.screen_coordinates, v2.screen_coordinates);
 }

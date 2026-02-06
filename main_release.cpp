@@ -16,13 +16,10 @@
  */
 
 #include "library/vectors.hpp"
-#include "library/quaternion.hpp"
 #include "library/matrix.hpp"
-#include "library/mesh.hpp"
-#include "library/light.hpp"
-#include "library/library.hpp"
-
 #include "library/scene.hpp"
+#include "library/render.hpp"
+#include "library/library.hpp"
 
 #include <string>
 #include <iostream>
@@ -104,7 +101,8 @@ int main(int argc, char *argv[])
             clip.w = temp; // store the w value for later
         }
 
-        // Draw each triangle
+        std::vector<Triplet> drawn_triangles;
+
         for (size_t i = 0; i < triangles.size(); ++i)
         {
             Triplet triangle = triangles[i];
@@ -115,12 +113,13 @@ int main(int argc, char *argv[])
 
             // Ignore triangles that are ordered incorrectly
             float orientation = ab.x * ac.y - ac.x * ab.y;
-            if (orientation < 0.0f)
-                continue;
-
-            // Draw each triangle
-            draw_barycentric(image, depth, object->material, scene.get_lights(), camera, triangle, vertices);
+            if (orientation > 0.0f)
+                drawn_triangles.emplace_back(triangle);
         }
+        
+        // Draw each triangle
+        for (auto &triangle : drawn_triangles)
+            draw_barycentric(image, depth, object->material, camera, scene.get_lights(), triangle, vertices);
     }
 
     std::cout << timer.elapsed() << " milliseconds\n";

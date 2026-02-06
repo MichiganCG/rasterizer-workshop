@@ -19,9 +19,7 @@
 
 #include "library.hpp"
 
-#include <cmath>
 #include <optional>
-#include <ostream>
 
 struct Vec3
 {

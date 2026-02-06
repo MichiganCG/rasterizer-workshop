@@ -3,6 +3,7 @@
 #include "library/matrix.hpp"
 #include "library/mesh.hpp"
 #include "library/light.hpp"
+#include "library/render.hpp"
 #include "library/library.hpp"
 
 #include <string>

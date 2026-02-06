@@ -17,13 +17,10 @@
 
 #pragma once
 
-#include <iostream>
 #include <vector>
 #include <memory>
 
 #include "vectors.hpp"
-#include "quaternion.hpp"
-#include "mesh.hpp"
 #include "library.hpp"
 
 class Light;
@@ -117,13 +114,6 @@ private:
     Vec4 position;
 };
 
-class Camera
-{
-public:
-    Vec4 position;
-    Quaternion rotation;
-};
-
 /**
  * Basic material class using Wavefront .mtl files.
  */
@@ -133,33 +123,16 @@ public:
     Material() : shininess{0}, ambient_color{0}, diffuse_color{0}, specular_color{0} {}
     Material(const std::string &file_name) { load_file(file_name); }
 
-    void load_file(const std::string &file_name);
-
     /**
      * Calculates the color at a point using the Blinn-Phong reflection model
      * https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model
      */
-    Color get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights, const Camera &camera) const;
+    Color get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights, const Vec4 &camera) const;
 
 private:
+    void load_file(const std::string &file_name);
+
     float shininess;
     Color ambient_color, diffuse_color, specular_color;
     Image texture_map;
 };
-
-/**
- * Uses the Digital Differential Analyzer (DDA) method to draw a line from 'start' to 'end'.
- */
-void draw_line(Image &image, const Vec3 &start, const Vec3 &end);
-
-void iterate_barycentric(Image &image, DepthBuffer &depth, const std::function<Color(float, float, float)> shader, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2);
-
-/**
- * Uses barycentric coordinates to fill a triangle.
- */
-void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, Triplet triangle, VertexData &vertices);
-
-/**
- * Uses the object's material and all light sources provided to determine the color of each pixel.
- */
-void draw_barycentric(Image &image, DepthBuffer &depth, const Material &mat, const LightCollection &lights, const Camera &camera, Triplet triangle, VertexData &vertices);

@@ -21,8 +21,6 @@
 #include "quaternion.hpp"
 
 #include <array>
-#include <cmath>
-#include <ostream>
 
 /**
  * Implementation of 4-by-4 matrices.
@@ -148,7 +146,8 @@ Matrix4 scale(const Vec3 &scales);
  * Quickly inverts a translation and rotation matrix.
  * Because these matrices have a specific format, we can simply transpose the
  * rotation component and negate the translation component to find the inverse.
- * @returns The inverse of the rotation-translation matrix.
+ * @param input The rotation-translation matrix.
+ * @returns     The inverse of the rotation-translation matrix.
  */
 Matrix4 quick_inverse(const Matrix4 &input);
 
@@ -177,5 +176,7 @@ Matrix4 perspective_projection(float fov, float aspect_ratio, float near, float 
 
 /**
  * Creates a matrix that transforms from NDC space to screen space.
+ * @param width  The width of the screen.
+ * @param height The height of the screen.
  */
 Matrix4 viewport(uint32_t width, uint32_t height);

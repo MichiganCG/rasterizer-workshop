@@ -16,7 +16,6 @@
  */
 
 #include "quaternion.hpp"
-#include "library.hpp"
 
 constexpr double epsilon = 8E-7;
 

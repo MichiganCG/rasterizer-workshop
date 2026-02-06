@@ -16,7 +16,6 @@
  */
 
 #include "vectors.hpp"
-#include "library.hpp"
 
 Vec3 &Vec3::operator=(const Vec3 &other)
 {
