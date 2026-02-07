@@ -104,9 +104,9 @@ void iterate_shader(Image &image, DepthBuffer &depth, const std::function<Color(
     parallel_bounding_box(action, s0, s1, s2);
 }
 
-void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, Triplet triangle, VertexData &vertices)
+void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, Triplet triangle, VertexBuffer &vertices)
 {
-    const VertexData::Vertex &v0 = vertices[triangle[0]], &v1 = vertices[triangle[1]], &v2 = vertices[triangle[2]];
+    const VertexBuffer::Vertex &v0 = vertices[triangle[0]], &v1 = vertices[triangle[1]], &v2 = vertices[triangle[2]];
 
     auto shader = [&](float a, float b, float c)
     {
@@ -116,9 +116,9 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, Triplet tr
     iterate_shader(image, depth, shader, v0.screen_coordinates, v1.screen_coordinates, v2.screen_coordinates);
 }
 
-void draw_barycentric(Image &image, DepthBuffer &depth, const Material &material, const Camera &camera, const LightCollection &lights, Triplet triangle, VertexData &vertices)
+void draw_barycentric(Image &image, DepthBuffer &depth, const Material &material, const Camera &camera, const LightCollection &lights, Triplet triangle, VertexBuffer &vertices)
 {
-    const VertexData::Vertex &v0 = vertices[triangle[0]], &v1 = vertices[triangle[1]], &v2 = vertices[triangle[2]];
+    const VertexBuffer::Vertex &v0 = vertices[triangle[0]], &v1 = vertices[triangle[1]], &v2 = vertices[triangle[2]];
     float w0 = v0.clip_coordinates.w, w1 = v1.clip_coordinates.w, w2 = v2.clip_coordinates.w;
 
     auto shader = [&](float a, float b, float c)

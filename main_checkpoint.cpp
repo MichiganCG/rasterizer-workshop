@@ -30,7 +30,7 @@ int main()
     // Define the model matrix
     Matrix4 m_model = translate(position) * rotate(rotation);
 
-    VertexData vertices{mesh.vertex_size()};
+    VertexBuffer vertices{mesh.vertex_size()};
 
     // Transform the model to world space
     for (size_t i = 0; i < mesh.vertex_size(); ++i)
@@ -57,7 +57,7 @@ int main()
     for (size_t i = 0; i < mesh.size(); ++i)
     {
         Triplet triangle = mesh[i];
-        const VertexData::Vertex &v0 = vertices[triangle[0]], &v1 = vertices[triangle[1]], &v2 = vertices[triangle[2]];
+        const VertexBuffer::Vertex &v0 = vertices[triangle[0]], &v1 = vertices[triangle[1]], &v2 = vertices[triangle[2]];
 
         Color color(1);
 

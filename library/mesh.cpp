@@ -238,7 +238,7 @@ void Mesh::load_file(const std::string &file_name)
     }
 }
 
-const std::vector<Vec4> clipping_planes = {
+const std::vector<Vec4> VertexBuffer::clipping_planes = {
     {-1, 0, 0}, // left
     {1, 0, 0},  // right
     {0, -1, 0}, // bottom
@@ -247,7 +247,7 @@ const std::vector<Vec4> clipping_planes = {
     {0, 0, 1},  // far
 };
 
-void sutherland_hodgman(std::vector<uint32_t> &input_list, VertexData &vertices)
+void VertexBuffer::sutherland_hodgman_clip(std::vector<uint32_t> &input_list)
 {
     std::vector<uint32_t> out_list = input_list;
 
@@ -264,8 +264,9 @@ void sutherland_hodgman(std::vector<uint32_t> &input_list, VertexData &vertices)
         {
             uint32_t end = input_list[j];
 
-            float d0 = dot(vertices[start].clip_coordinates, plane);
-            float d1 = dot(vertices[end].clip_coordinates, plane);
+            float d0 = dot(data[start].clip_coordinates, plane);
+            float d1 = dot(data[end].clip_coordinates, plane);
+            float a = -d1 / (d0 - d1);
 
             if (d0 > 0)
             {
@@ -275,14 +276,12 @@ void sutherland_hodgman(std::vector<uint32_t> &input_list, VertexData &vertices)
                 }
                 else
                 {
-                    float a = d0 / (d0 - d1);
-                    out_list.push_back(vertices.interpolate(start, end, a));
+                    out_list.push_back(interpolate_between(start, end, a));
                 }
             }
             else if (d1 > 0)
             {
-                float a = d0 / (d0 - d1);
-                out_list.push_back(vertices.interpolate(start, end, a));
+                out_list.push_back(interpolate_between(start, end, a));
                 out_list.push_back(end);
             }
             start = end;

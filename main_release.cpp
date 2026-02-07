@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
         // Define the model matrix
         Matrix4 m_model = translate(object->position) * rotate(object->rotation) * scale(object->scale);
 
-        VertexData vertices{mesh.vertex_size()};
+        VertexBuffer vertices{mesh.vertex_size()};
 
         // Transform all vertices in the mesh to world space and then to clip space
         for (size_t i = 0; i < mesh.vertex_size(); ++i)
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
             std::vector<uint32_t> indices{triangle[0], triangle[1], triangle[2]};
 
             // Clip triangles such that they are bounded within [-w, w] on all axes
-            sutherland_hodgman(indices, vertices);
+            vertices.sutherland_hodgman_clip(indices);
 
             if (indices.size() < 3)
                 continue;
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
             if (orientation > 0.0f)
                 drawn_triangles.emplace_back(triangle);
         }
-        
+
         // Draw each triangle
         for (auto &triangle : drawn_triangles)
             draw_barycentric(image, depth, object->material, camera, scene.get_lights(), triangle, vertices);

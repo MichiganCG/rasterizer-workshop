@@ -87,9 +87,9 @@ public:
     void smooth_normals();
 };
 
-class VertexData{
+class VertexBuffer{
 public:
-    VertexData(size_t size) : data(size) {}
+    VertexBuffer(size_t size) : data(size) {}
 
     struct Vertex {
         Vec4 world_coordinates;
@@ -100,26 +100,27 @@ public:
     };
 
     size_t size() const { return data.size(); }
-
     Vertex &at(size_t i) { return data[i]; }
-
     Vertex &operator[](size_t i) { return at(i); }
 
-    uint32_t interpolate(uint32_t start, uint32_t end, float a) {
+    /**
+     * Clips the given vertices against the screen boundaries using the Sutherland-Hodgman algorithm.
+     * @param input_list A vector of the triangle's indices.
+     */
+    void sutherland_hodgman_clip(std::vector<uint32_t> &input_list);
+
+private:
+    uint32_t interpolate_between(uint32_t start, uint32_t end, float a) {
         data.emplace_back(
-            data[start].world_coordinates   * (1 - a) + data[end].world_coordinates   * (a),
-            data[start].world_normals       * (1 - a) + data[end].world_normals       * (a),
-            data[start].clip_coordinates    * (1 - a) + data[end].clip_coordinates    * (a),
-            data[start].texture_coordinates * (1 - a) + data[end].texture_coordinates * (a)
+            data[start].world_coordinates   * (a) + data[end].world_coordinates   * (1 - a),
+            data[start].world_normals       * (a) + data[end].world_normals       * (1 - a),
+            data[start].clip_coordinates    * (a) + data[end].clip_coordinates    * (1 - a),
+            data[start].texture_coordinates * (a) + data[end].texture_coordinates * (1 - a)
         );
         return data.size() - 1;
     }
-private:
-    std::vector<Vertex> data;
-};
 
-/**
- * Clips the given vertices using the Sutherland-Hodgman algorithm.
- * Modifies `input_list`.
- */
-void sutherland_hodgman(std::vector<uint32_t> &input_list, VertexData &vertices);
+    std::vector<Vertex> data;
+
+    static const std::vector<Vec4> clipping_planes;
+};

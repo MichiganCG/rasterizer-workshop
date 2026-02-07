@@ -35,11 +35,11 @@ inline Vec3 get_barycentric(const Vec3 &p, const Vec3 &s0, const Vec3 &s1, const
 void iterate_shader(Image &image, DepthBuffer &depth, const std::function<Color(float, float, float)> shader, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2);
 
 /**
- * Uses barycentric coordinates to fill a triangle.
+ * Uses barycentric coordinates to fill a triangle with the given color.
  */
-void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, Triplet triangle, VertexData &vertices);
+void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, Triplet triangle, VertexBuffer &vertices);
 
 /**
  * Uses the object's material and all light sources provided to determine the color of each pixel.
  */
-void draw_barycentric(Image &image, DepthBuffer &depth, const Material &mat, const Camera &camera, const LightCollection &lights, Triplet triangle, VertexData &vertices);
+void draw_barycentric(Image &image, DepthBuffer &depth, const Material &mat, const Camera &camera, const LightCollection &lights, Triplet triangle, VertexBuffer &vertices);
