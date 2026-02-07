@@ -151,6 +151,15 @@ void Image::load_file(const std::string &path)
     }
 }
 
+Image DepthBuffer::get_image() const
+{
+    Image image{width, height};
+    for (uint32_t u = 0; u < width; ++u)
+        for (uint32_t v = 0; v < height; ++v)
+            image.set_pixel(u, v, Color{at(u, v)});
+    return image;
+}
+
 static Random *make_random_engine(uint32_t seed)
 {
     auto random = std::make_unique<Random>(seed);

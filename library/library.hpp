@@ -101,28 +101,19 @@ class DepthBuffer
 {
 public:
     DepthBuffer(uint32_t width, uint32_t height) : width(width), height(height), data(width * height, 1.0f) {}
-    DepthBuffer(const Image &image) : width(image.get_width()), height(image.get_height()), data(width * height, 1.0f) {}
 
     float at(uint32_t x, uint32_t y) const { return data[y * width + x]; };
     float &at(uint32_t x, uint32_t y) { return data[y * width + x]; };
 
-    Image get_image() const {
-        Image image{width, height};
-        for (uint32_t u = 0; u < width; ++u)
-        {
-            for (uint32_t v = 0; v < height; ++v)
-            {
-                image.set_pixel(u, v, Color{at(u, v)});
-            }
-        }
-        return image;
-    };
+    uint32_t get_width() const { return width; }
+    uint32_t get_height() const { return height; }
+
+    Image get_image() const;
 
 private:
     uint32_t width, height;
     std::vector<float> data;
 };
-
 
 class Timer
 {
