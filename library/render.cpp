@@ -77,6 +77,30 @@ inline Vec3 get_barycentric(const Vec3 &p, const Vec3 &s0, const Vec3 &s1, const
     return Vec3(a, b, c);
 }
 
+void iterate_depth(DepthBuffer &depth, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2)
+{
+    float z0 = s0.z, z1 = s1.z, z2 = s2.z; // get the depth of each vertex on the screen
+
+    // Check the bounding box of the triangle
+    auto action = [&](uint32_t u, uint32_t v)
+    {
+        // Get the center of the pixel
+        Vec3 center(u + 0.5f, v + 0.5f);
+
+        Vec3 bc = get_barycentric(center, s0, s1, s2);
+
+        // Check if this pixel is in the triangle
+        if (bc.x < epsilon || bc.y < epsilon || bc.z < epsilon) return;
+
+        // Check if this pixel is closer to the screen
+        float z = bc.x * z0 + bc.y * z1 + bc.z * z2;
+        if (z < depth.at(u, v))
+            depth.at(u, v) = z;
+    };
+
+    parallel_bounding_box(action, s0, s1, s2);
+}
+
 void iterate_shader(Image &image, DepthBuffer &depth, const std::function<Color(float, float, float)> shader, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2)
 {
     float z0 = s0.z, z1 = s1.z, z2 = s2.z; // get the depth of each vertex on the screen

@@ -32,6 +32,8 @@ void parallel_bounding_box(const std::function<void (uint32_t, uint32_t)> &actio
 
 inline Vec3 get_barycentric(const Vec3 &p, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2);
 
+void iterate_depth(DepthBuffer &depth, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2);
+
 void iterate_shader(Image &image, DepthBuffer &depth, const std::function<Color(float, float, float)> shader, const Vec3 &s0, const Vec3 &s1, const Vec3 &s2);
 
 /**
