@@ -26,6 +26,8 @@
 
 int main(int argc, char *argv[])
 {
+    stbi_flip_vertically_on_write(1);
+
     if (argc < 2)
     {
         std::cerr << "Error: Must provide a scene config" << "\n";
@@ -71,17 +73,14 @@ int main(int argc, char *argv[])
         for (size_t i = 0; i < mesh.size(); ++i)
         {
             Triplet triangle = mesh[i];
-            std::vector<uint32_t> indices{triangle[0], triangle[1], triangle[2]};
+            std::vector<uint32_t> indices{triangle.indices, triangle.indices + 3};
 
             // Clip triangles such that they are bounded within [-w, w] on all axes
             vertices.sutherland_hodgman_clip(indices);
 
-            if (indices.size() < 3)
-                continue;
-
             // Reform triangles using fan triangulation
-            for (size_t j = 1; j < indices.size() - 1; ++j)
-                triangles.emplace_back(indices[0], indices[j], indices[j + 1]);
+            for (size_t j = 2; j < indices.size(); ++j)
+                triangles.emplace_back(indices[0], indices[j - 1], indices[j]);
         }
 
         // Transform from clip space to screen space
@@ -116,6 +115,10 @@ int main(int argc, char *argv[])
             if (orientation > 0.0f)
                 drawn_triangles.emplace_back(triangle);
         }
+        
+        // Calculate the depth of each triangle
+        for (auto &triangle : drawn_triangles)
+            iterate_depth(depth, vertices[triangle[0]].screen_coordinates, vertices[triangle[1]].screen_coordinates, vertices[triangle[2]].screen_coordinates);
 
         // Draw each triangle
         for (auto &triangle : drawn_triangles)

@@ -15,6 +15,8 @@ const float AspectRatio = (float)ImageWidth / (float)ImageHeight;
 
 int main()
 {
+    stbi_flip_vertically_on_write(1);
+
     Image image(ImageWidth, ImageHeight);
     DepthBuffer depth(ImageWidth, ImageHeight);
 

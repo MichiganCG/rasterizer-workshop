@@ -220,7 +220,7 @@ Matrix4 viewport(uint32_t width, uint32_t height)
 
     Matrix4 matrix;
     matrix.at(0, 0) = half_width;
-    matrix.at(1, 1) = -half_height;
+    matrix.at(1, 1) = half_height;
     matrix.at(2, 2) = 1;
     matrix.at(0, 3) = half_width;
     matrix.at(1, 3) = half_height;

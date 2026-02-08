@@ -14,6 +14,8 @@ const uint32_t ImageHeight = 540;
 
 int main()
 {
+    stbi_flip_vertically_on_write(1);
+
     Image image(ImageWidth, ImageHeight);
 
     
