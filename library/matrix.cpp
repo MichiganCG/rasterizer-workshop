@@ -207,8 +207,8 @@ Matrix4 perspective_projection(float fov, float aspect_ratio, float near, float 
     Matrix4 matrix;
     matrix.at(0, 0) = tangent / aspect_ratio;      // map x between [-1, 1]
     matrix.at(1, 1) = tangent;                     // map y between [-1, 1]
-    matrix.at(2, 2) = (far) / (near - far);        // adjusted to map z between [0, 1]
-    matrix.at(2, 3) = (near * far) / (near - far); // adjusted to map z between [0, 1]
+    matrix.at(2, 2) = (near) / (far - near);       // adjusted to map z between [0, 1], near -> 1, far -> 0
+    matrix.at(2, 3) = (near * far) / (far - near); // adjusted to map z between [0, 1]
     matrix.at(3, 2) = -1;                          // set w = -z
     return matrix;
 }

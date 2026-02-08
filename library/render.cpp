@@ -94,7 +94,7 @@ void iterate_depth(DepthBuffer &depth, const Vec3 &s0, const Vec3 &s1, const Vec
 
         // Check if this pixel is closer to the screen
         float z = bc.x * z0 + bc.y * z1 + bc.z * z2;
-        if (z < depth.at(u, v))
+        if (z > depth.at(u, v))
             depth.at(u, v) = z;
     };
 
@@ -118,7 +118,7 @@ void iterate_shader(Image &image, DepthBuffer &depth, const std::function<Color(
 
         // Check if this pixel is closer to the screen
         float z = bc.x * z0 + bc.y * z1 + bc.z * z2;
-        if (z > depth.at(u, v)) return;
+        if (z < depth.at(u, v)) return;
         depth.at(u, v) = z;
 
         Color color = shader(bc.x, bc.y, bc.z);

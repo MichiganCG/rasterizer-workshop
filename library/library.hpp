@@ -100,7 +100,7 @@ private:
 class DepthBuffer
 {
 public:
-    DepthBuffer(uint32_t width, uint32_t height) : width(width), height(height), data(width * height, 1.0f) {}
+    DepthBuffer(uint32_t width, uint32_t height) : width(width), height(height), data(width * height, 0.0f) {}
 
     float at(uint32_t x, uint32_t y) const { return data[y * width + x]; };
     float &at(uint32_t x, uint32_t y) { return data[y * width + x]; };
