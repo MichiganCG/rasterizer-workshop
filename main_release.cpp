@@ -42,10 +42,10 @@ int main(int argc, char *argv[])
     DepthBuffer depth(scene.get_width(), scene.get_height());
 
     const Camera &camera = scene.get_camera();
-    Matrix4 m_view = quick_inverse(translate(camera.position) * rotate(camera.rotation));
+    Matrix4 m_view = quick_matrix_inverse(translate(camera.position) * rotate(camera.rotation));
 
     Matrix4 m_projection = perspective_projection(scene.get_fov(), scene.get_aspect_ratio(), 1, 100);
-    Matrix4 m_screen = viewport(scene.get_width(), scene.get_height());
+    Matrix4 m_screen = screen_space(scene.get_width(), scene.get_height());
 
     Timer timer;
 

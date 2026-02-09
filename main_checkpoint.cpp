@@ -21,7 +21,7 @@ int main()
     DepthBuffer depth(ImageWidth, ImageHeight);
 
     Matrix4 m_projection = perspective_projection(70, AspectRatio, 1, 100);
-    Matrix4 m_screen = viewport(ImageWidth, ImageHeight);
+    Matrix4 m_screen = screen_space(ImageWidth, ImageHeight);
 
     // Define our object
     Mesh mesh("model/cube.obj");

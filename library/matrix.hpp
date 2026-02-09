@@ -72,6 +72,9 @@ public:
      */
     Matrix4() = default;
 
+    Matrix4(float i1, float i2, float i3, float i4, float i5, float i6, float i7, float i8, float i9, float i10, float i11, float i12, float i13, float i14, float i15, float i16)
+        : data{i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16} {}
+
     /**
      * Copy constructor.
      * Initializes a matrix with the same values.
@@ -98,15 +101,7 @@ public:
     }
 
     // Make this matrix an identity matrix.
-    Matrix4 &identity()
-    {
-        Matrix4 matrix;
-        matrix.at(0, 0) = 1;
-        matrix.at(1, 1) = 1;
-        matrix.at(2, 2) = 1;
-        matrix.at(3, 3) = 1;
-        return (*this = matrix);
-    }
+    Matrix4 &identity() { return (*this = Matrix4::Identity); }
 
     Matrix4 &operator+=(const Matrix4 &rhs);
     Matrix4 &operator-=(const Matrix4 &rhs);
@@ -114,6 +109,8 @@ public:
     Matrix4 &operator*=(float);
 
     friend std::ostream &operator<<(std::ostream &os, const Matrix4 &rhs);
+
+    static Matrix4 Identity;
 };
 
 Matrix4 operator+(Matrix4 lhs, const Matrix4 &rhs);
@@ -149,7 +146,7 @@ Matrix4 scale(const Vec3 &scales);
  * @param input The rotation-translation matrix.
  * @returns     The inverse of the rotation-translation matrix.
  */
-Matrix4 quick_inverse(const Matrix4 &input);
+Matrix4 quick_matrix_inverse(const Matrix4 &input);
 
 /**
  * Creates a symmetric orthographic projection matrix.
@@ -179,4 +176,4 @@ Matrix4 perspective_projection(float fov, float aspect_ratio, float near, float 
  * @param width  The width of the screen.
  * @param height The height of the screen.
  */
-Matrix4 viewport(uint32_t width, uint32_t height);
+Matrix4 screen_space(uint32_t width, uint32_t height);

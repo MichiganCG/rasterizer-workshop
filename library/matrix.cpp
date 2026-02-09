@@ -17,6 +17,13 @@
 
 #include "matrix.hpp"
 
+Matrix4 Matrix4::Identity{
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+};
+
 Matrix4 &Matrix4::operator+=(const Matrix4 &other)
 {
     for (size_t i = 0; i < 16; ++i)
@@ -96,9 +103,7 @@ Matrix4 look_at(const Vec3 &eye, const Vec3 &target, const Vec3 &up_dir)
 
     Vec3 up = cross(forward, left);
 
-    Matrix4 matrix;
-    matrix.identity();
-
+    Matrix4 matrix = Matrix4::Identity;
     matrix.at(0, 0) = left.x;
     matrix.at(0, 1) = left.y;
     matrix.at(0, 2) = left.z;
@@ -108,11 +113,9 @@ Matrix4 look_at(const Vec3 &eye, const Vec3 &target, const Vec3 &up_dir)
     matrix.at(2, 0) = forward.x;
     matrix.at(2, 1) = forward.y;
     matrix.at(2, 2) = forward.z;
-
     matrix.at(0, 3) = -left.x * eye.x - left.y * eye.y - left.z * eye.z;
     matrix.at(1, 3) = -up.x * eye.x - up.y * eye.y - up.z * eye.z;
     matrix.at(2, 3) = -forward.x * eye.x - forward.y * eye.y - forward.z * eye.z;
-
     return matrix;
 }
 
@@ -125,8 +128,7 @@ void translate(Matrix4 &matrix, const Vec3 &translation)
 
 Matrix4 translate(const Vec3 &translation)
 {
-    Matrix4 matrix;
-    matrix.identity();
+    Matrix4 matrix = Matrix4::Identity;
     translate(matrix, translation);
     return matrix;
 }
@@ -148,8 +150,7 @@ void rotate(Matrix4 &matrix, const Quaternion &rotation)
 
 Matrix4 rotate(const Quaternion &rotation)
 {
-    Matrix4 matrix;
-    matrix.identity();
+    Matrix4 matrix = Matrix4::Identity;
     rotate(matrix, rotation);
     return matrix;
 }
@@ -163,13 +164,12 @@ void scale(Matrix4 &matrix, const Vec3 &scales)
 
 Matrix4 scale(const Vec3 &scales)
 {
-    Matrix4 matrix;
-    matrix.identity();
+    Matrix4 matrix = Matrix4::Identity;
     scale(matrix, scales);
     return matrix;
 }
 
-Matrix4 quick_inverse(const Matrix4 &input)
+Matrix4 quick_matrix_inverse(const Matrix4 &input)
 {
     Matrix4 matrix;
     matrix.at(0, 0) = input.at(0, 0);
@@ -213,7 +213,7 @@ Matrix4 perspective_projection(float fov, float aspect_ratio, float near, float 
     return matrix;
 }
 
-Matrix4 viewport(uint32_t width, uint32_t height)
+Matrix4 screen_space(uint32_t width, uint32_t height)
 {
     float half_width = width / 2;
     float half_height = height / 2;
