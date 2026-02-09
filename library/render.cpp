@@ -140,7 +140,7 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, Triplet tr
     iterate_shader(image, depth, shader, v0.screen_coordinates, v1.screen_coordinates, v2.screen_coordinates);
 }
 
-void draw_barycentric(Image &image, DepthBuffer &depth, const Material &material, const Camera &camera, const LightCollection &lights, Triplet triangle, VertexBuffer &vertices)
+void draw_barycentric(Image &image, DepthBuffer &depth, const Camera &camera, const LightCollection &lights, const Material &material, Triplet triangle, VertexBuffer &vertices)
 {
     const VertexBuffer::Vertex &v0 = vertices[triangle[0]], &v1 = vertices[triangle[1]], &v2 = vertices[triangle[2]];
     float w0 = v0.clip_coordinates.w, w1 = v1.clip_coordinates.w, w2 = v2.clip_coordinates.w;
@@ -155,6 +155,69 @@ void draw_barycentric(Image &image, DepthBuffer &depth, const Material &material
         Vec4 world =       w * (v0.world_coordinates   * aw + v1.world_coordinates   * bw + v2.world_coordinates   * cw);
         Vec4 normal = normalize(v0.world_normals       * aw + v1.world_normals       * bw + v2.world_normals       * cw);
         Vec3 texture =     w * (v0.texture_coordinates * aw + v1.texture_coordinates * bw + v2.texture_coordinates * cw);
+
+        // Set the color using the material and lights
+        return material.get_color(world, normal, texture, lights, camera.position);
+    };
+
+    iterate_shader(image, depth, shader, v0.screen_coordinates, v1.screen_coordinates, v2.screen_coordinates);
+}
+
+Matrix4 tangent_space(const Matrix4 &m_model, Vec4 &normal, const VertexBuffer::Vertex &v0, const VertexBuffer::Vertex &v1, const VertexBuffer::Vertex &v2)
+{
+    Vec4 edge1 = v1.world_coordinates - v0.world_coordinates;
+    Vec4 edge2 = v2.world_coordinates - v0.world_coordinates;
+
+    Vec3 uv1 = v1.texture_coordinates - v0.texture_coordinates;
+    Vec3 uv2 = v2.texture_coordinates - v0.texture_coordinates;
+
+    float det = 1.0f / (uv1.x * uv2.y - uv2.x * uv1.y);
+
+    Vec4 tangent{
+        (uv2.y * edge1.x - uv1.y * edge2.x) * det,
+        (uv2.y * edge1.y - uv1.y * edge2.y) * det,
+        (uv2.y * edge1.z - uv1.y * edge2.z) * det,
+    };
+
+    tangent        = normalize(m_model * tangent);
+    tangent        = normalize(tangent - dot(tangent, normal) * normal);
+    Vec4 bitangent = normalize(m_model * cross(normal, tangent));
+
+    Matrix4 matrix;
+    matrix.at(0, 0) = tangent.x;
+    matrix.at(1, 0) = tangent.y;
+    matrix.at(2, 0) = tangent.z;
+    matrix.at(0, 1) = bitangent.x;
+    matrix.at(1, 1) = bitangent.y;
+    matrix.at(2, 1) = bitangent.z;
+    matrix.at(0, 2) = normal.x;
+    matrix.at(1, 2) = normal.y;
+    matrix.at(2, 2) = normal.z;
+    matrix.at(3, 3) = 1;
+    return matrix;
+}
+
+void draw_barycentric(Image &image, DepthBuffer &depth, const Camera &camera, const Matrix4 &m_model, const LightCollection &lights, const Material &material, Triplet triangle, VertexBuffer &vertices)
+{
+    const VertexBuffer::Vertex &v0 = vertices[triangle[0]], &v1 = vertices[triangle[1]], &v2 = vertices[triangle[2]];
+    float w0 = v0.clip_coordinates.w, w1 = v1.clip_coordinates.w, w2 = v2.clip_coordinates.w;
+
+    const Image &normal_map = material.get_normal_map();
+
+    auto shader = [&](float a, float b, float c)
+    {
+        // Correct for the perspective. https://www.cs.ucr.edu/~craigs/courses/2020-fall-cs-130/lectures/perspective-correct-interpolation.pdf
+        float aw = a * w0, bw = b * w1, cw = c * w2;
+        float w = 1.0f / (aw + bw + cw);
+
+        // Interpolate across all of the vertex values
+        Vec4 world =       w * (v0.world_coordinates   * aw + v1.world_coordinates   * bw + v2.world_coordinates   * cw);
+        Vec4 normal = normalize(v0.world_normals       * aw + v1.world_normals       * bw + v2.world_normals       * cw);
+        Vec3 texture =     w * (v0.texture_coordinates * aw + v1.texture_coordinates * bw + v2.texture_coordinates * cw);
+    
+        Matrix4 m_TBN = tangent_space(m_model, normal, v0, v1, v2);
+
+        if (normal_map) normal = normalize(m_TBN * (normal_map.get_pixel(texture.x, texture.y) * 2.0f - 1.0f));
 
         // Set the color using the material and lights
         return material.get_color(world, normal, texture, lights, camera.position);

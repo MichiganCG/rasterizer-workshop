@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 
         // Draw each triangle
         for (auto &triangle : drawn_triangles)
-            draw_barycentric(image, depth, object->material, camera, scene.get_lights(), triangle, vertices);
+            draw_barycentric(image, depth, camera, m_model, scene.get_lights(), object->material, triangle, vertices);
     }
 
     std::cout << timer.elapsed() << " milliseconds\n";

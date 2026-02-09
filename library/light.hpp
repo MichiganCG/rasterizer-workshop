@@ -21,6 +21,7 @@
 #include <memory>
 
 #include "vectors.hpp"
+#include "matrix.hpp"
 #include "library.hpp"
 
 class Light;
@@ -129,10 +130,12 @@ public:
      */
     Color get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights, const Vec4 &camera) const;
 
+    const Image &get_normal_map() const { return normal_map; }
+
 private:
     void load_file(const std::string &file_name);
 
     float shininess;
     Color ambient_color, diffuse_color, specular_color;
-    Image texture_map, specular_map;
+    Image texture_map, specular_map, normal_map;
 };

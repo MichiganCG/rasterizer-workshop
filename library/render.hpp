@@ -44,4 +44,10 @@ void draw_barycentric(Image &image, DepthBuffer &depth, Color &color, Triplet tr
 /**
  * Uses the object's material and all light sources provided to determine the color of each pixel.
  */
-void draw_barycentric(Image &image, DepthBuffer &depth, const Material &mat, const Camera &camera, const LightCollection &lights, Triplet triangle, VertexBuffer &vertices);
+void draw_barycentric(Image &image, DepthBuffer &depth, const Camera &camera, const LightCollection &lights, const Material &mat, Triplet triangle, VertexBuffer &vertices);
+
+/**
+ * Uses the object's material and all light sources provided to determine the color of each pixel.
+ * Computes the TBN matrix and uses a normal map.
+ */
+void draw_barycentric(Image &image, DepthBuffer &depth, const Camera &camera, const Matrix4 &m_model, const LightCollection &lights, const Material &material, Triplet triangle, VertexBuffer &vertices);

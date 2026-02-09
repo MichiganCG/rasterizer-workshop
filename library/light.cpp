@@ -167,6 +167,14 @@ void Material::load_file(const std::string &file_name)
                 specular_map.load_file(path);
                 continue;
             }
+
+            if (key == "map_bump") // normal map image
+            {
+                std::string path;
+                ss >> path;
+                normal_map.load_file(path);
+                continue;
+            }
         }
         file.close();
     }
