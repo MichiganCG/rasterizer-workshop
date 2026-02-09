@@ -134,5 +134,5 @@ private:
 
     float shininess;
     Color ambient_color, diffuse_color, specular_color;
-    Image texture_map;
+    Image texture_map, specular_map;
 };

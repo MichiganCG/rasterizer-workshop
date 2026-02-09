@@ -58,6 +58,8 @@ float SpotLight::get_attenuation(const Vec4 &point) const
 Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights, const Vec4 &camera) const
 {
     Color color, diffuse_sum, specular_sum;
+    float specular_exponent = shininess;
+    if (specular_map) specular_exponent *= specular_map.get_pixel(texture_coord.x, texture_coord.y).r;
 
     Vec4 N = normal;                          // normalized surface normal
     Vec4 V = normalize(camera - world_coord); // normalized vector pointing from the surface to the viewer
@@ -71,14 +73,15 @@ Color Material::get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec
         const Vec4 L = light->get_direction(world_coord); // normalized vector pointing from the surface to the light source
         float diffuse_intensity = saturate(dot(N, L));
 
-#ifdef BLINN_PHONG_MODEL
-        const Vec4 H = normalize(L + V);                  // normalized half vector between light and viewer directions
-        float angle = saturate(dot(N, H));
-#else
+#ifdef PHONG_MODEL
+        specular_exponent *= 4;
         const Vec4 R = normalize(2.0f * dot(L, N) * N - L); // normalized reflection vector
         float angle = saturate(dot(V, R));
+#else
+        const Vec4 H = normalize(L + V);                  // normalized half vector between light and viewer directions
+        float angle = saturate(dot(N, H));
 #endif
-        float specular_intensity = std::pow(angle, shininess);
+        float specular_intensity = std::pow(angle, specular_exponent);
 
         diffuse_sum  += light_color * attenuation * diffuse_intensity;
         specular_sum += light_color * attenuation * specular_intensity;
@@ -154,6 +157,15 @@ void Material::load_file(const std::string &file_name)
                 std::string path;
                 ss >> path;
                 texture_map.load_file(path);
+                continue;
+            }
+
+            if (key == "map_Ns") // specular map image
+            {
+                std::string path;
+                ss >> path;
+                specular_map.load_file(path);
+                continue;
             }
         }
         file.close();
