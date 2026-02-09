@@ -163,7 +163,7 @@ void draw_barycentric(Image &image, DepthBuffer &depth, const Camera &camera, co
     iterate_shader(image, depth, shader, v0.screen_coordinates, v1.screen_coordinates, v2.screen_coordinates);
 }
 
-Matrix4 tangent_space(const Matrix4 &m_model, Vec4 &normal, const VertexBuffer::Vertex &v0, const VertexBuffer::Vertex &v1, const VertexBuffer::Vertex &v2)
+Matrix4 tangent_space(const Matrix4 &m_model, const VertexBuffer::Vertex &v0, const VertexBuffer::Vertex &v1, const VertexBuffer::Vertex &v2)
 {
     Vec4 edge1 = v1.world_coordinates - v0.world_coordinates;
     Vec4 edge2 = v2.world_coordinates - v0.world_coordinates;
@@ -179,6 +179,7 @@ Matrix4 tangent_space(const Matrix4 &m_model, Vec4 &normal, const VertexBuffer::
         (uv2.y * edge1.z - uv1.y * edge2.z) * det,
     };
 
+    Vec4 normal    = normalize(cross(edge1, edge2));
     tangent        = normalize(m_model * tangent);
     tangent        = normalize(tangent - dot(tangent, normal) * normal);
     Vec4 bitangent = normalize(m_model * cross(normal, tangent));
@@ -203,6 +204,7 @@ void draw_barycentric(Image &image, DepthBuffer &depth, const Camera &camera, co
     float w0 = v0.clip_coordinates.w, w1 = v1.clip_coordinates.w, w2 = v2.clip_coordinates.w;
 
     const Image &normal_map = material.get_normal_map();
+    Matrix4 m_TBN = tangent_space(m_model, v0, v1, v2);
 
     auto shader = [&](float a, float b, float c)
     {
@@ -212,12 +214,11 @@ void draw_barycentric(Image &image, DepthBuffer &depth, const Camera &camera, co
 
         // Interpolate across all of the vertex values
         Vec4 world =       w * (v0.world_coordinates   * aw + v1.world_coordinates   * bw + v2.world_coordinates   * cw);
-        Vec4 normal = normalize(v0.world_normals       * aw + v1.world_normals       * bw + v2.world_normals       * cw);
         Vec3 texture =     w * (v0.texture_coordinates * aw + v1.texture_coordinates * bw + v2.texture_coordinates * cw);
     
-        Matrix4 m_TBN = tangent_space(m_model, normal, v0, v1, v2);
-
+        Vec4 normal;
         if (normal_map) normal = normalize(m_TBN * (normal_map.get_pixel(texture.x, texture.y) * 2.0f - 1.0f));
+        else normal = normalize(v0.world_normals * aw + v1.world_normals * bw + v2.world_normals * cw);
 
         // Set the color using the material and lights
         return material.get_color(world, normal, texture, lights, camera.position);
