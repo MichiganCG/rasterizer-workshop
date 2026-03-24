@@ -1,0 +1,23 @@
+resolution:
+  width: 960
+  height: 540
+fov: 55
+
+lights:
+  -
+    type: directional
+    color: [1.0, 0.941, 0.91]
+    direction: [-1, -1, -1]
+  -
+    type: point
+    color: [1.0, 0.0, 0.0]
+    intensity: 2.0
+    position: [1.0, 0, -3]
+
+objects:
+  -
+    position: [0.0, 0.0, -5]
+    rotation: [1, 1, 0, 1.0472]
+    scale: [1, 1, 1]
+    mesh: model/cube.obj
+    material: material/material.mtl

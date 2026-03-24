@@ -216,9 +216,8 @@ void draw_barycentric(Image &image, DepthBuffer &depth, const Camera &camera, co
         Vec4 world =       w * (v0.world_coordinates   * aw + v1.world_coordinates   * bw + v2.world_coordinates   * cw);
         Vec3 texture =     w * (v0.texture_coordinates * aw + v1.texture_coordinates * bw + v2.texture_coordinates * cw);
     
-        Vec4 normal;
+        Vec4 normal = normalize(v0.world_normals * aw + v1.world_normals * bw + v2.world_normals * cw);
         if (normal_map) normal = normalize(m_TBN * (normal_map.get_pixel(texture.x, texture.y) * 2.0f - 1.0f));
-        else normal = normalize(v0.world_normals * aw + v1.world_normals * bw + v2.world_normals * cw);
 
         // Set the color using the material and lights
         return material.get_color(world, normal, texture, lights, camera.position);

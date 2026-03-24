@@ -130,6 +130,10 @@ public:
      */
     Color get_color(const Vec4 &world_coord, const Vec4 &normal, const Vec3 &texture_coord, const LightCollection &lights, const Vec4 &camera) const;
 
+    Color get_ambient() const { return ambient_color; }
+    Color get_diffuse() const { return diffuse_color; }
+    Color get_specular() const { return specular_color; }
+
     const Image &get_normal_map() const { return normal_map; }
 
 private:
